@@ -14,34 +14,32 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
 } from '@/components/ui/dropdown-menu';
 import { useUser } from '@/context/user-context';
-import { LogOut, User as UserIcon, Settings, Users, Check } from 'lucide-react';
+import { useAuth } from '@/firebase';
+import { LogOut, User as UserIcon, Settings } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { mockUsers } from '@/lib/data';
-import type { UserRole } from '@/lib/types';
-
+import { signOut } from 'firebase/auth';
 
 export function UserNav() {
-  const { userProfile, switchUser } = useUser();
+  const { user, userProfile } = useUser();
+  const auth = useAuth();
   const router = useRouter();
 
-  if (!userProfile) {
+  if (!user || !userProfile) {
     return null;
   }
 
-  const handleLogout = () => {
-    // In a real app, this would sign the user out.
-    // For this demo, we'll just go back to the landing page.
+  const handleLogout = async () => {
+    if (auth) {
+      await signOut(auth);
+    }
     router.push('/');
   };
 
-  const userDisplayName = `${userProfile.firstName} ${userProfile.lastName}`;
-  const userFallback = userProfile.firstName.charAt(0);
-
+  const userDisplayName = userProfile.firstName ? `${userProfile.firstName} ${userProfile.lastName}` : user.displayName;
+  const userFallback = userProfile.firstName ? userProfile.firstName.charAt(0) : user.email?.charAt(0).toUpperCase();
 
   return (
     <div className="flex items-center gap-4">
@@ -49,7 +47,7 @@ export function UserNav() {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-10 w-10 rounded-full">
             <Avatar className="h-10 w-10">
-              <AvatarImage src={userProfile.avatar} alt={userDisplayName} />
+              <AvatarImage src={userProfile.avatar || user.photoURL || undefined} alt={userDisplayName || 'User'} />
               <AvatarFallback>{userFallback}</AvatarFallback>
             </Avatar>
           </Button>
@@ -83,27 +81,6 @@ export function UserNav() {
             <LogOut className="mr-2 h-4 w-4" />
             <span>Log out</span>
           </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-       {/* Mock user switcher */}
-       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="icon">
-            <Users className="h-4 w-4"/>
-            <span className="sr-only">Switch User</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56" align="end">
-          <DropdownMenuLabel>Switch User Role</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuRadioGroup value={userProfile.role} onValueChange={(role) => switchUser(role as UserRole)}>
-            {Object.values(mockUsers).map(u => (
-              <DropdownMenuRadioItem key={u.id} value={u.role}>
-                {u.role.charAt(0).toUpperCase() + u.role.slice(1)} ({u.firstName})
-              </DropdownMenuRadioItem>
-            ))}
-          </DropdownMenuRadioGroup>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

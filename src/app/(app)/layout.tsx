@@ -34,6 +34,8 @@ import {
   Wallet,
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAuth } from '@/firebase';
+import { signOut } from 'firebase/auth';
 
 const navItems = {
   shared: [
@@ -77,11 +79,19 @@ function getNavigation(role: UserRole) {
 }
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { userProfile, loading, switchUser } = useUser();
+  const { user, userProfile, loading } = useUser();
   const router = useRouter();
   const pathname = usePathname();
+  const auth = useAuth();
   
-  if (loading || !userProfile) {
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
+
+
+  if (loading || !userProfile || !user) {
     return (
       <div className="flex h-screen w-screen items-center justify-center">
         <div className="flex flex-col items-center gap-4">
@@ -94,9 +104,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   
   const navigation = getNavigation(userProfile.role);
 
-  const handleLogout = () => {
-    // In a real app, this would sign the user out.
-    // For this demo, we'll just go back to the landing page.
+  const handleLogout = async () => {
+    if (auth) {
+      await signOut(auth);
+    }
     router.push('/');
   };
 
