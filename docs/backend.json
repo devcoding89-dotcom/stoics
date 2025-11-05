@@ -1,0 +1,433 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user in the EduConnect system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the User entity."
+        },
+        "role": {
+          "type": "string",
+          "description": "The role of the user (student, teacher, parent, admin)."
+        },
+        "firstName": {
+          "type": "string",
+          "description": "The first name of the user."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "The last name of the user."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the user.",
+          "format": "email"
+        },
+        "googleId": {
+          "type": "string",
+          "description": "Google ID for users registered through Google authentication."
+        }
+      },
+      "required": [
+        "id",
+        "role",
+        "firstName",
+        "lastName",
+        "email"
+      ]
+    },
+    "Lesson": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Lesson",
+      "type": "object",
+      "description": "Represents a lesson scheduled by a teacher.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Lesson entity."
+        },
+        "teacherId": {
+          "type": "string",
+          "description": "Reference to Teacher. (Relationship: Teacher 1:N Lesson)"
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the lesson."
+        },
+        "subject": {
+          "type": "string",
+          "description": "The subject of the lesson."
+        },
+        "materials": {
+          "type": "string",
+          "description": "The materials required for the lesson."
+        },
+        "resources": {
+          "type": "string",
+          "description": "The resources for the lesson."
+        },
+        "scheduledDateTime": {
+          "type": "string",
+          "description": "The date and time the lesson is scheduled for.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "teacherId",
+        "title",
+        "subject",
+        "materials",
+        "resources",
+        "scheduledDateTime"
+      ]
+    },
+    "Attendance": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Attendance",
+      "type": "object",
+      "description": "Represents a student's attendance record for a specific lesson.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Attendance entity."
+        },
+        "studentId": {
+          "type": "string",
+          "description": "Reference to Student. (Relationship: Student 1:N Attendance)"
+        },
+        "lessonId": {
+          "type": "string",
+          "description": "Reference to Lesson. (Relationship: Lesson 1:N Attendance)"
+        },
+        "attendanceStatus": {
+          "type": "string",
+          "description": "The status of the student's attendance (e.g., present, absent, late)."
+        },
+        "date": {
+          "type": "string",
+          "description": "The date of the attendance record.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "studentId",
+        "lessonId",
+        "attendanceStatus",
+        "date"
+      ]
+    },
+    "Payment": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Payment",
+      "type": "object",
+      "description": "Represents a payment made by a parent or student.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Payment entity."
+        },
+        "studentId": {
+          "type": "string",
+          "description": "Reference to Student. (Relationship: Student 1:N Payment)"
+        },
+        "amount": {
+          "type": "number",
+          "description": "The amount of the payment."
+        },
+        "paymentDate": {
+          "type": "string",
+          "description": "The date the payment was made.",
+          "format": "date-time"
+        },
+        "paymentMethod": {
+          "type": "string",
+          "description": "The method of payment (e.g., credit card, PayPal)."
+        },
+        "transactionId": {
+          "type": "string",
+          "description": "The transaction ID from the payment gateway."
+        }
+      },
+      "required": [
+        "id",
+        "studentId",
+        "amount",
+        "paymentDate",
+        "paymentMethod",
+        "transactionId"
+      ]
+    },
+    "ChatMessage": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ChatMessage",
+      "type": "object",
+      "description": "Represents a message in the real-time chat.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the ChatMessage entity."
+        },
+        "senderId": {
+          "type": "string",
+          "description": "Reference to User who sent the message. (Relationship: User 1:N ChatMessage)"
+        },
+        "recipientId": {
+          "type": "string",
+          "description": "Reference to User who received the message. (Relationship: User 1:N ChatMessage)"
+        },
+        "message": {
+          "type": "string",
+          "description": "The content of the message."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "The timestamp of the message.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "senderId",
+        "recipientId",
+        "message",
+        "timestamp"
+      ]
+    },
+    "Announcement": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Announcement",
+      "type": "object",
+      "description": "Represents an announcement made by an admin or teacher.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Announcement entity."
+        },
+        "authorId": {
+          "type": "string",
+          "description": "Reference to User who created the announcement. (Relationship: User 1:N Announcement)"
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the announcement."
+        },
+        "content": {
+          "type": "string",
+          "description": "The content of the announcement."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "The timestamp of the announcement.",
+          "format": "date-time"
+        },
+        "audience": {
+          "type": "string",
+          "description": "The intended audience of the announcement (e.g., all, students, teachers, parents)."
+        }
+      },
+      "required": [
+        "id",
+        "authorId",
+        "title",
+        "content",
+        "timestamp",
+        "audience"
+      ]
+    },
+    "AiTutoringContext": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AiTutoringContext",
+      "type": "object",
+      "description": "Represents the context provided by teachers for the AI tutoring tool.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the AiTutoringContext entity."
+        },
+        "teacherId": {
+          "type": "string",
+          "description": "Reference to Teacher who provided the context. (Relationship: Teacher 1:N AiTutoringContext)"
+        },
+        "instructions": {
+          "type": "string",
+          "description": "Instructions for the AI tutoring tool on how to communicate."
+        },
+        "subject": {
+          "type": "string",
+          "description": "The subject area the context applies to."
+        }
+      },
+      "required": [
+        "id",
+        "teacherId",
+        "instructions",
+        "subject"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profiles.  Includes 'googleId' for Google authentication.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{teacherId}/lessons/{lessonId}",
+        "definition": {
+          "entityName": "Lesson",
+          "schema": {
+            "$ref": "#/backend/entities/Lesson"
+          },
+          "description": "Stores lessons created by teachers. The teacherId path parameter represents ownership.",
+          "params": [
+            {
+              "name": "teacherId",
+              "description": "The unique identifier for the teacher."
+            },
+            {
+              "name": "lessonId",
+              "description": "The unique identifier for the lesson."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{studentId}/attendances/{attendanceId}",
+        "definition": {
+          "entityName": "Attendance",
+          "schema": {
+            "$ref": "#/backend/entities/Attendance"
+          },
+          "description": "Stores attendance records for each student. The studentId path parameter represents ownership.",
+          "params": [
+            {
+              "name": "studentId",
+              "description": "The unique identifier for the student."
+            },
+            {
+              "name": "attendanceId",
+              "description": "The unique identifier for the attendance record."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{teacherId}/lessons/{lessonId}/attendances/{attendanceId}",
+        "definition": {
+          "entityName": "Attendance",
+          "schema": {
+            "$ref": "#/backend/entities/Attendance"
+          },
+          "description": "Denormalized attendance records nested under lessons, enabling efficient lesson-centric attendance queries. The teacherId path parameter represents ownership and to guarantee Authorization Independence. Includes denormalized 'teacherId'.",
+          "params": [
+            {
+              "name": "teacherId",
+              "description": "The unique identifier for the teacher."
+            },
+            {
+              "name": "lessonId",
+              "description": "The unique identifier for the lesson."
+            },
+            {
+              "name": "attendanceId",
+              "description": "The unique identifier for the attendance record."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{studentId}/payments/{paymentId}",
+        "definition": {
+          "entityName": "Payment",
+          "schema": {
+            "$ref": "#/backend/entities/Payment"
+          },
+          "description": "Stores payment records for each student. The studentId path parameter represents ownership.",
+          "params": [
+            {
+              "name": "studentId",
+              "description": "The unique identifier for the student."
+            },
+            {
+              "name": "paymentId",
+              "description": "The unique identifier for the payment."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/chat_messages/{messageId}",
+        "definition": {
+          "entityName": "ChatMessage",
+          "schema": {
+            "$ref": "#/backend/entities/ChatMessage"
+          },
+          "description": "Stores chat messages between users.",
+          "params": [
+            {
+              "name": "messageId",
+              "description": "The unique identifier for the chat message."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/announcements/{announcementId}",
+        "definition": {
+          "entityName": "Announcement",
+          "schema": {
+            "$ref": "#/backend/entities/Announcement"
+          },
+          "description": "Stores global announcements.",
+          "params": [
+            {
+              "name": "announcementId",
+              "description": "The unique identifier for the announcement."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/ai_tutoring_contexts/{contextId}",
+        "definition": {
+          "entityName": "AiTutoringContext",
+          "schema": {
+            "$ref": "#/backend/entities/AiTutoringContext"
+          },
+          "description": "Stores AI tutoring context provided by teachers.",
+          "params": [
+            {
+              "name": "contextId",
+              "description": "The unique identifier for the AI tutoring context."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to ensure Authorization Independence, DBAC, and QAPs. User data is stored under `/users/{userId}`. Lessons are nested under teachers (`/users/{teacherId}/lessons/{lessonId}`), ensuring clear ownership. Attendance records are nested under both students and lessons (`/users/{studentId}/attendances/{attendanceId}` and denormalized to `/users/{teacherId}/lessons/{lessonId}/attendances/{attendanceId}`) to facilitate efficient queries for both student-centric and lesson-centric attendance views and to ensure Authorization Independence. Payments are associated with students (`/users/{studentId}/payments/{paymentId}`). Chat messages are in a top-level `/chat_messages` collection, with `senderId` and `recipientId` fields for direct querying. Announcements are stored in a top-level `/announcements` collection with an `authorId` field, and are publicly readable, with write access restricted to admins and teachers. AI tutoring contexts are stored under `/ai_tutoring_contexts/{contextId}` and associated with a `teacherId`. Authorization independence is achieved through denormalization. For example, attendance data stores a `teacherId` to prevent the need for `get()` calls to the lesson when enforcing attendance write rules. Segregation is used to separate data with different access requirements (e.g., public announcements vs. private user data). QAPs are supported through structural segregation; listing announcements is possible because they are all public and in a single collection."
+  }
+}

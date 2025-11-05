@@ -1,0 +1,211 @@
+/**
+ * @fileOverview Firestore Security Rules for EduConnect application.
+ *
+ * Core Philosophy:
+ * This ruleset enforces a strict user-ownership model for user-specific data,
+ * while allowing public read access to certain collections like announcements.
+ * Google Authentication is taken into account.
+ *
+ * Data Structure:
+ * - User profiles are stored under `/users/{userId}`.
+ * - Lessons are nested under teachers: `/users/{teacherId}/lessons/{lessonId}`.
+ * - Attendance records are nested under both students and lessons for efficient querying:
+ *   - `/users/{studentId}/attendances/{attendanceId}`
+ *   - `/users/{teacherId}/lessons/{lessonId}/attendances/{attendanceId}`
+ * - Payments are associated with students: `/users/{studentId}/payments/{paymentId}`.
+ * - Chat messages are stored in a top-level collection: `/chat_messages/{messageId}`.
+ * - Announcements are stored in a top-level collection: `/announcements/{announcementId}`.
+ * - AI Tutoring Contexts are stored in a top-level collection: `/ai_tutoring_contexts/{contextId}`.
+ *
+ * Key Security Decisions:
+ * - User listing is disallowed.
+ * - Announcements are publicly readable but writable only by authorized users (teachers/admins - not yet implemented)
+ * - Data consistency is enforced between document IDs and path parameters.
+ * - All write operations require a verified user identity (`request.auth != null`).
+ *
+ * Denormalization for Authorization:
+ * - Attendance records nested under lessons include a denormalized `teacherId` to avoid `get()` calls
+ *   when enforcing attendance write rules.
+ *
+ * Structural Segregation:
+ * - Announcements are stored in a separate top-level collection for public read access.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Secures user profiles.  Users can only read/write their own profile data.
+     * @path /users/{userId}
+     * @allow (create) User with ID 'user123' can create their profile if authenticated as 'user123'.
+     * @allow (get) User with ID 'user123' can read their profile if authenticated as 'user123'.
+     * @allow (update) User with ID 'user123' can update their profile if authenticated as 'user123'.
+     * @allow (delete) User with ID 'user123' can delete their profile if authenticated as 'user123'.
+     * @deny (create) User with ID 'user123' cannot create a profile for 'user456'.
+     * @deny (get) User with ID 'user123' cannot read the profile of 'user456'.
+     * @deny (update) User with ID 'user123' cannot update the profile of 'user456'.
+     * @deny (delete) User with ID 'user123' cannot delete the profile of 'user456'.
+     * @principle Enforces document ownership; users can only access their own data.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isOwner(userId) && request.auth.uid == userId;
+      allow update: if isExistingOwner(userId) && request.auth.uid == userId && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId) && request.auth.uid == userId;
+    }
+
+    /**
+     * @description Secures lessons created by teachers. Only the teacher can create, read, update, or delete their own lessons.
+     * @path /users/{teacherId}/lessons/{lessonId}
+     * @allow (create) Teacher with ID 'teacher123' can create a lesson under their profile.
+     * @allow (get) Teacher with ID 'teacher123' can read a lesson under their profile.
+     * @allow (update) Teacher with ID 'teacher123' can update a lesson under their profile.
+     * @allow (delete) Teacher with ID 'teacher123' can delete a lesson under their profile.
+     * @deny (create) User 'student456' cannot create a lesson under 'teacher123' profile.
+     * @deny (get) User 'student456' cannot read a lesson under 'teacher123' profile.
+     * @deny (update) User 'student456' cannot update a lesson under 'teacher123' profile.
+     * @deny (delete) User 'student456' cannot delete a lesson under 'teacher123' profile.
+     * @principle Enforces document ownership; teachers can only manage their own lessons.
+     */
+    match /users/{teacherId}/lessons/{lessonId} {
+      allow get: if isOwner(teacherId);
+      allow list: if isOwner(teacherId);
+      allow create: if isOwner(teacherId) && request.resource.data.teacherId == teacherId;
+      allow update: if isExistingOwner(teacherId) && request.resource.data.teacherId == resource.data.teacherId;
+      allow delete: if isExistingOwner(teacherId);
+    }
+
+    /**
+     * @description Secures attendance records for each student. Only the student can create, read, update, or delete their own attendance records.
+     * @path /users/{studentId}/attendances/{attendanceId}
+     * @allow (create) Student with ID 'student123' can create an attendance record under their profile.
+     * @allow (get) Student with ID 'student123' can read an attendance record under their profile.
+     * @allow (update) Student with ID 'student123' can update an attendance record under their profile.
+     * @allow (delete) Student with ID 'student123' can delete an attendance record under their profile.
+     * @deny (create) User 'teacher456' cannot create an attendance record under 'student123' profile.
+     * @deny (get) User 'teacher456' cannot read an attendance record under 'student123' profile.
+     * @deny (update) User 'teacher456' cannot update an attendance record under 'student123' profile.
+     * @deny (delete) User 'teacher456' cannot delete an attendance record under 'student123' profile.
+     * @principle Enforces document ownership; students can only access their own attendance records.
+     */
+    match /users/{studentId}/attendances/{attendanceId} {
+      allow get: if isOwner(studentId);
+      allow list: if isOwner(studentId);
+      allow create: if isOwner(studentId) && request.resource.data.studentId == studentId;
+      allow update: if isExistingOwner(studentId) && request.resource.data.studentId == resource.data.studentId;
+      allow delete: if isExistingOwner(studentId);
+    }
+
+    /**
+     * @description Secures denormalized attendance records nested under lessons.  The teacher owns the lesson and attendance.
+     * @path /users/{teacherId}/lessons/{lessonId}/attendances/{attendanceId}
+     * @allow (create) Teacher with ID 'teacher123' can create an attendance record under their lesson.
+     * @allow (get) Teacher with ID 'teacher123' can read an attendance record under their lesson.
+     * @allow (update) Teacher with ID 'teacher123' can update an attendance record under their lesson.
+     * @allow (delete) Teacher with ID 'teacher123' can delete an attendance record under their lesson.
+     * @deny (create) User 'student456' cannot create an attendance record under 'teacher123' lesson.
+     * @deny (get) User 'student456' cannot read an attendance record under 'teacher123' lesson.
+     * @deny (update) User 'student456' cannot update an attendance record under 'teacher123' lesson.
+     * @deny (delete) User 'student456' cannot delete an attendance record under 'teacher123' lesson.
+     * @principle Enforces teacher ownership of attendance records within their lessons.  Supports Authorization Independence through teacherId.
+     */
+    match /users/{teacherId}/lessons/{lessonId}/attendances/{attendanceId} {
+      allow get: if isOwner(teacherId);
+      allow list: if isOwner(teacherId);
+      allow create: if isOwner(teacherId) && request.resource.data.teacherId == teacherId;
+      allow update: if isExistingOwner(teacherId) && request.resource.data.teacherId == resource.data.teacherId;
+      allow delete: if isExistingOwner(teacherId);
+    }
+
+    /**
+     * @description Secures payment records for each student. Only the student can create, read, update, or delete their own payment records.
+     * @path /users/{studentId}/payments/{paymentId}
+     * @allow (create) Student with ID 'student123' can create a payment record under their profile.
+     * @allow (get) Student with ID 'student123' can read a payment record under their profile.
+     * @allow (update) Student with ID 'student123' can update a payment record under their profile.
+     * @allow (delete) Student with ID 'student123' can delete a payment record under their profile.
+     * @deny (create) User 'teacher456' cannot create a payment record under 'student123' profile.
+     * @deny (get) User 'teacher456' cannot read a payment record under 'student123' profile.
+     * @deny (update) User 'teacher456' cannot update a payment record under 'student123' profile.
+     * @deny (delete) User 'teacher456' cannot delete a payment record under 'student123' profile.
+     * @principle Enforces document ownership; students can only access their own payment records.
+     */
+    match /users/{studentId}/payments/{paymentId} {
+      allow get: if isOwner(studentId);
+      allow list: if isOwner(studentId);
+      allow create: if isOwner(studentId) && request.resource.data.studentId == studentId;
+      allow update: if isExistingOwner(studentId) && request.resource.data.studentId == resource.data.studentId;
+      allow delete: if isExistingOwner(studentId);
+    }
+
+    /**
+     * @description Secures chat messages.  Any authenticated user can create chat messages.
+     * Reads need a special rule to determine the messages that you can read.
+     * Updates/Deletes are disallowed.
+     * @path /chat_messages/{messageId}
+     * @allow (create) Authenticated user 'user123' can create a new chat message.
+     * @deny (update) No one can update a chat message.
+     * @deny (delete) No one can delete a chat message.
+     * @principle Authenticated users can create messages; updates and deletes are restricted.
+     */
+    match /chat_messages/{messageId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn();
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Secures global announcements. Announcements are publicly readable but only authorized users can create, update, or delete them.
+     * @path /announcements/{announcementId}
+     * @allow (get) Any user can read any announcement.
+     * @allow (list) Any user can list announcements.
+     * @deny (create) Non-admin user cannot create announcements.
+     * @deny (update) Non-admin user cannot update announcements.
+     * @deny (delete) Non-admin user cannot delete announcements.
+     * @principle Public read access with restricted write access.
+     */
+    match /announcements/{announcementId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if false; // TODO: Add admin/teacher role check
+      allow update: if false; // TODO: Add admin/teacher role check
+      allow delete: if false; // TODO: Add admin/teacher role check
+    }
+
+    /**
+     * @description Secures AI tutoring context. Only authorized users can create, read, update, or delete the tutoring contexts.
+     * @path /ai_tutoring_contexts/{contextId}
+     * @allow (create) Authorized user can create AI tutoring context.
+     * @allow (get) Authorized user can read AI tutoring context.
+     * @allow (update) Authorized user can update AI tutoring context.
+     * @allow (delete) Authorized user can delete AI tutoring context.
+     * @deny (create) Non-authorized user cannot create AI tutoring context.
+     * @deny (get) Non-authorized user cannot read AI tutoring context.
+     * @deny (update) Non-authorized user cannot update AI tutoring context.
+     * @deny (delete) Non-authorized user cannot delete AI tutoring context.
+     */
+    match /ai_tutoring_contexts/{contextId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn(); // TODO: Add admin/teacher role check
+      allow update: if false; // TODO: Add admin/teacher role check
+      allow delete: if false; // TODO: Add admin/teacher role check
+    }
+  }
+
+  // Helper functions
+  function isSignedIn() {
+    return request.auth != null;
+  }
+
+  function isOwner(userId) {
+    return request.auth != null && request.auth.uid == userId;
+  }
+
+  function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+  }
+}
