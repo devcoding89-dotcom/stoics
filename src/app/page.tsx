@@ -66,7 +66,7 @@ export default function Home() {
           <span className="font-bold text-xl font-headline">EduConnect</span>
         </Link>
         <Button asChild>
-          <Link href="/dashboard">Login</Link>
+          <Link href="/login">Login</Link>
         </Button>
       </header>
 

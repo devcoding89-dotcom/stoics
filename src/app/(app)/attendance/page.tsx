@@ -36,7 +36,7 @@ const TeacherAttendance = () => {
             </SelectTrigger>
             <SelectContent>
               {mockLessons.map(l => (
-                <SelectItem key={l.id} value={l.id}>{l.title} - {l.date}</SelectItem>
+                <SelectItem key={l.id} value={l.id}>{l.title} - {format(new Date(l.date), "MM/dd/yyyy")}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -122,7 +122,7 @@ const ParentAttendance = () => {
               return (
                 <TableRow key={lesson.id}>
                   <TableCell className="font-medium">{lesson.title}</TableCell>
-                  <TableCell>{lesson.date}</TableCell>
+                  <TableCell>{format(new Date(lesson.date), "MM/dd/yyyy")}</TableCell>
                   <TableCell>
                     <Badge variant={status === 'absent' ? 'destructive' : 'secondary'} className={
                       status === 'present' ? 'bg-green-100 text-green-800' :
@@ -142,10 +142,14 @@ const ParentAttendance = () => {
 }
 
 export default function AttendancePage() {
-  const { user } = useUser();
+  const { userProfile } = useUser();
 
-  const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin';
-  const isParent = user.role === 'parent';
+  if (!userProfile) {
+    return null; // Or a loading indicator
+  }
+
+  const isTeacherOrAdmin = userProfile.role === 'teacher' || userProfile.role === 'admin';
+  const isParent = userProfile.role === 'parent';
 
   const pageDetails = {
     teacher: { title: "Track Attendance", description: "Mark student attendance for your lessons." },
@@ -154,13 +158,13 @@ export default function AttendancePage() {
     student: { title: "My Attendance", description: "View your attendance history." },
   };
 
-  const { title, description } = pageDetails[user.role] || pageDetails.student;
+  const { title, description } = pageDetails[userProfile.role] || pageDetails.student;
 
   return (
     <>
       <PageHeader title={title} description={description} />
       {isTeacherOrAdmin && <TeacherAttendance />}
-      {(isParent || user.role === 'student') && <ParentAttendance />}
+      {(isParent || userProfile.role === 'student') && <ParentAttendance />}
     </>
   );
 }

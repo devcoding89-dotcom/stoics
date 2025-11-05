@@ -29,8 +29,9 @@ import { Label } from '@/components/ui/label';
 import { useUser } from '@/context/user-context';
 import { mockPayments } from '@/lib/data';
 import { Badge } from '@/components/ui/badge';
-import { CreditCard, DollarSign } from 'lucide-react';
+import { DollarSign } from 'lucide-react';
 import { capitalize } from '@/lib/utils';
+import { format } from 'date-fns';
 
 function PaymentDialog() {
   return (
@@ -83,8 +84,10 @@ function PaymentDialog() {
 }
 
 export default function PaymentsPage() {
-  const { user } = useUser();
-  const canMakePayment = user.role === 'parent' || user.role === 'admin';
+  const { userProfile } = useUser();
+  if (!userProfile) return null;
+
+  const canMakePayment = userProfile.role === 'parent' || userProfile.role === 'admin';
 
   const pageDetails = {
     student: { title: "My Payments", description: "Here is your payment history." },
@@ -93,7 +96,7 @@ export default function PaymentsPage() {
     admin: { title: "All Payments", description: "An overview of all payments in the system." },
   };
 
-  const { title, description } = pageDetails[user.role];
+  const { title, description } = pageDetails[userProfile.role];
 
   return (
     <>
@@ -120,7 +123,7 @@ export default function PaymentsPage() {
                   <TableCell className="font-mono text-xs">{payment.id}</TableCell>
                   <TableCell className="font-medium">{payment.studentName}</TableCell>
                   <TableCell>${payment.amount.toFixed(2)}</TableCell>
-                  <TableCell>{payment.date}</TableCell>
+                  <TableCell>{format(new Date(payment.date), "MM/dd/yyyy")}</TableCell>
                   <TableCell>
                     <Badge variant={payment.status === 'paid' ? 'default' : 'secondary'}
                       className={

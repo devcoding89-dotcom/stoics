@@ -1,10 +1,13 @@
 import type { User, UserRole, Lesson, Payment, Announcement, ChatContact, ChatMessage, Homework, AttendanceStatus } from './types';
 
+// This file contains mock data for the application.
+// In a real application, this data would come from a database.
+
 export const mockUsers: Record<UserRole, User> = {
-  student: { id: 'user-student-1', name: 'Alex Johnson', email: 'alex.j@example.com', avatar: 'https://i.pravatar.cc/150?u=alex', role: 'student' },
-  teacher: { id: 'user-teacher-1', name: 'Dr. Evelyn Reed', email: 'e.reed@example.com', avatar: 'https://i.pravatar.cc/150?u=evelyn', role: 'teacher' },
-  parent: { id: 'user-parent-1', name: 'Maria Garcia', email: 'm.garcia@example.com', avatar: 'https://i.pravatar.cc/150?u=maria', role: 'parent' },
-  admin: { id: 'user-admin-1', name: 'Samuel Green', email: 's.green@example.com', avatar: 'https://i.pravatar.cc/150?u=samuel', role: 'admin' },
+  student: { id: 'user-student-1', firstName: 'Alex', lastName: 'Johnson', email: 'alex.j@example.com', avatar: 'https://i.pravatar.cc/150?u=alex', role: 'student' },
+  teacher: { id: 'user-teacher-1', firstName: 'Evelyn', lastName: 'Reed', email: 'e.reed@example.com', avatar: 'https://i.pravatar.cc/150?u=evelyn', role: 'teacher' },
+  parent: { id: 'user-parent-1', firstName: 'Maria', lastName: 'Garcia', email: 'm.garcia@example.com', avatar: 'https://i.pravatar.cc/150?u=maria', role: 'parent' },
+  admin: { id: 'user-admin-1', firstName: 'Samuel', lastName: 'Green', email: 's.green@example.com', avatar: 'https://i.pravatar.cc/150?u=samuel', role: 'admin' },
 };
 
 const students = [

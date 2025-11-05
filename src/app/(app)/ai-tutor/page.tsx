@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useUser } from '@/context/user-context';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { BrainCircuit, Send, User } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
@@ -18,10 +18,11 @@ type Message = {
   isUser: boolean;
   text: string | React.ReactNode;
   avatar: string;
+  name: string;
 };
 
 export default function AiTutorPage() {
-  const { user } = useUser();
+  const { user, userProfile } = useUser();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [topic, setTopic] = useState('general');
@@ -36,13 +37,14 @@ export default function AiTutorPage() {
   
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading || !user || !userProfile) return;
 
     const userMessage: Message = {
       id: Date.now(),
       isUser: true,
       text: input,
-      avatar: user.avatar,
+      avatar: user.photoURL || userProfile.avatar || '',
+      name: user.displayName || userProfile.firstName,
     };
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
@@ -61,6 +63,7 @@ export default function AiTutorPage() {
           </div>
         ),
         avatar: '/ai-avatar.png', // Placeholder, ideally a real image
+        name: 'AI Tutor',
       };
       setMessages((prev) => [...prev, aiMessage]);
 
@@ -70,6 +73,7 @@ export default function AiTutorPage() {
         isUser: false,
         text: "Sorry, I encountered an error. Please try again.",
         avatar: '/ai-avatar.png',
+        name: 'AI Tutor',
       };
       setMessages((prev) => [...prev, errorMessage]);
       console.error("AI tutor error:", error);
@@ -78,7 +82,11 @@ export default function AiTutorPage() {
     }
   };
 
-  if (user.role !== 'student') {
+  if (!userProfile) {
+    return <p>Loading...</p>
+  }
+
+  if (userProfile.role !== 'student') {
     return (
       <>
         <PageHeader title="AI Tutor" />
@@ -121,7 +129,7 @@ export default function AiTutorPage() {
               </div>
               {message.isUser && (
                 <Avatar className="h-9 w-9">
-                  <AvatarImage src={message.avatar} />
+                  <AvatarImage src={message.avatar} alt={message.name} />
                   <AvatarFallback><User className="h-5 w-5" /></AvatarFallback>
                 </Avatar>
               )}

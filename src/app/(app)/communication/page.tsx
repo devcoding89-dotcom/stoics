@@ -15,10 +15,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 
 export default function CommunicationPage() {
-  const { user } = useUser();
+  const { userProfile } = useUser();
   const [selectedContact, setSelectedContact] = React.useState<ChatContact>(mockContacts[0]);
   const messages = mockMessages[selectedContact.id] || [];
-  const canAnnounce = user.role === 'teacher' || user.role === 'admin';
+  
+  if (!userProfile) return null;
+
+  const canAnnounce = userProfile.role === 'teacher' || userProfile.role === 'admin';
 
   return (
     <div className="h-[calc(100vh-120px)] flex flex-col">

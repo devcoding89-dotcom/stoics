@@ -2,8 +2,11 @@
 
 import { firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore'
+import { getAuth, User as FirebaseUser } from 'firebase/auth';
+import { getFirestore, doc, getDoc, setDoc, DocumentData } from 'firebase/firestore'
+import React, { createContext, useContext, useEffect, useState, useMemo, ReactNode } from 'react';
+import { User, UserRole } from '@/lib/types';
+import { FirebaseClientProvider } from './client-provider';
 
 // IMPORTANT: DO NOT MODIFY THIS FUNCTION
 export function initializeFirebase() {
@@ -33,10 +36,12 @@ export function initializeFirebase() {
 }
 
 export function getSdks(firebaseApp: FirebaseApp) {
+  const firestore = getFirestore(firebaseApp);
+  const auth = getAuth(firebaseApp);
   return {
     firebaseApp,
-    auth: getAuth(firebaseApp),
-    firestore: getFirestore(firebaseApp)
+    auth,
+    firestore
   };
 }
 

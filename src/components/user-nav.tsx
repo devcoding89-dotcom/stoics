@@ -12,33 +12,50 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useAuth } from '@/firebase';
 import { useUser } from '@/context/user-context';
-import { UserRole } from '@/lib/types';
+import { signOut } from 'firebase/auth';
 import { LogOut, User as UserIcon, Settings } from 'lucide-react';
-import { capitalize } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export function UserNav() {
-  const { user, setUser, roles } = useUser();
+  const { user, userProfile } = useUser();
+  const auth = useAuth();
+  const router = useRouter();
+
+  if (!user || !userProfile) {
+    return null;
+  }
+
+  const handleLogout = async () => {
+    if (auth) {
+      await signOut(auth);
+    }
+    router.push('/login');
+  };
+
+  const userDisplayName = user.displayName || `${userProfile.firstName} ${userProfile.lastName}`;
+  const userFallback = user.displayName ? user.displayName.charAt(0) : userProfile.firstName.charAt(0);
+
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
           <Avatar className="h-10 w-10">
-            <AvatarImage src={user.avatar} alt={user.name} />
-            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+            <AvatarImage src={user.photoURL || userProfile.avatar} alt={userDisplayName} />
+            <AvatarFallback>{userFallback}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user.name}</p>
+            <p className="text-sm font-medium leading-none">{userDisplayName}</p>
             <p className="text-xs leading-none text-muted-foreground">
               {user.email}
             </p>
@@ -46,26 +63,21 @@ export function UserNav() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem>
-            <UserIcon className="mr-2 h-4 w-4" />
-            <span>Profile</span>
+          <DropdownMenuItem asChild>
+            <Link href="/settings">
+              <UserIcon className="mr-2 h-4 w-4" />
+              <span>Profile</span>
+            </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Settings className="mr-2 h-4 w-4" />
-            <span>Settings</span>
+          <DropdownMenuItem asChild>
+            <Link href="/settings">
+              <Settings className="mr-2 h-4 w-4" />
+              <span>Settings</span>
+            </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuLabel>Switch Role</DropdownMenuLabel>
-        <DropdownMenuRadioGroup value={user.role} onValueChange={(value) => setUser(value as UserRole)}>
-          {roles.map((role) => (
-             <DropdownMenuRadioItem key={role} value={role}>
-              {capitalize(role)}
-            </DropdownMenuRadioItem>
-          ))}
-        </DropdownMenuRadioGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={handleLogout}>
           <LogOut className="mr-2 h-4 w-4" />
           <span>Log out</span>
         </DropdownMenuItem>

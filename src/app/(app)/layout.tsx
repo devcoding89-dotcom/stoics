@@ -1,10 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useAuth } from '@/firebase';
 import { useUser } from '@/context/user-context';
 import type { UserRole } from '@/lib/types';
+import { signOut } from 'firebase/auth';
 
 import {
   SidebarProvider,
@@ -19,7 +21,6 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { Separator } from '@/components/ui/separator';
-import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
 import { UserNav } from '@/components/user-nav';
 import {
@@ -32,9 +33,9 @@ import {
   Settings,
   LogOut,
   Users,
-  User,
   Wallet,
 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const navItems = {
   shared: [
@@ -69,10 +70,8 @@ function getNavigation(role: UserRole) {
   
   const allNavs = [...roleNav, ...navItems.shared];
 
-  // Simple de-duplication based on href
   const uniqueNavs = allNavs.filter((v,i,a)=>a.findIndex(t=>(t.href === v.href))===i)
   
-  // Custom sort order
   const order = ['/dashboard', '/lessons', '/attendance', '/ai-tutor', '/users', '/payments', '/communication', '/settings'];
   uniqueNavs.sort((a, b) => order.indexOf(a.href) - order.indexOf(b.href));
 
@@ -80,9 +79,36 @@ function getNavigation(role: UserRole) {
 }
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user } = useUser();
+  const { user, loading, userProfile } = useUser();
+  const auth = useAuth();
+  const router = useRouter();
   const pathname = usePathname();
-  const navigation = getNavigation(user.role);
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
+  
+  if (loading || !user || !userProfile) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Logo className="h-12 w-12" />
+          <Skeleton className="h-4 w-48" />
+        </div>
+      </div>
+    );
+  }
+  
+  const navigation = getNavigation(userProfile.role);
+
+  const handleLogout = async () => {
+    if (auth) {
+      await signOut(auth);
+    }
+    router.push('/login');
+  };
 
   return (
     <SidebarProvider>
@@ -115,7 +141,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <Separator className="my-2" />
             <SidebarMenu>
               <SidebarMenuItem>
-                 <SidebarMenuButton>
+                 <SidebarMenuButton onClick={handleLogout}>
                    <LogOut/>
                    <span>Logout</span>
                  </SidebarMenuButton>

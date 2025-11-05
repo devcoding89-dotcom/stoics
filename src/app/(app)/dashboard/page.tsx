@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import {
   BookOpenCheck,
-  ClipboardCheck,
+  ClipboardList,
   DollarSign,
   Megaphone,
   BarChart,
@@ -48,7 +48,7 @@ const StudentDashboard = () => {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-lg font-medium">Recent Homework</CardTitle>
-          <ClipboardCheck className="h-5 w-5 text-muted-foreground" />
+          <ClipboardList className="h-5 w-5 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{recentHomework.subject}</div>
@@ -206,14 +206,20 @@ const dashboardComponents: Record<UserRole, React.ComponentType> = {
 };
 
 export default function DashboardPage() {
-  const { user } = useUser();
-  const DashboardComponent = dashboardComponents[user.role];
+  const { user, userProfile } = useUser();
+  
+  if (!userProfile) {
+    return null; // Or a loading indicator
+  }
+
+  const DashboardComponent = dashboardComponents[userProfile.role];
+  const welcomeName = userProfile.firstName || user.displayName || 'User';
 
   return (
     <>
       <PageHeader
         title="Dashboard"
-        description={`Welcome back, ${user.name}! Here's your overview for today.`}
+        description={`Welcome back, ${welcomeName}! Here's your overview for today.`}
       />
       <DashboardComponent />
     </>

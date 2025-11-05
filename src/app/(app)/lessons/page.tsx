@@ -21,10 +21,14 @@ import {
 import { useUser } from '@/context/user-context';
 import { mockLessons } from '@/lib/data';
 import { BookPlus, MoreHorizontal } from 'lucide-react';
+import { format } from 'date-fns';
 
 export default function LessonsPage() {
-  const { user } = useUser();
-  const isTeacher = user.role === 'teacher';
+  const { userProfile } = useUser();
+
+  if (!userProfile) return null;
+
+  const isTeacher = userProfile.role === 'teacher';
 
   const pageDetails = {
     student: { title: "My Lessons", description: "Here are your upcoming lessons." },
@@ -33,7 +37,7 @@ export default function LessonsPage() {
     admin: { title: "All Lessons", description: "An overview of all scheduled lessons in the system." },
   };
 
-  const { title, description } = pageDetails[user.role];
+  const { title, description } = pageDetails[userProfile.role];
 
   return (
     <>
@@ -68,7 +72,7 @@ export default function LessonsPage() {
                   <TableCell className="font-medium">{lesson.title}</TableCell>
                   <TableCell>{lesson.subject}</TableCell>
                   <TableCell>{lesson.teacher}</TableCell>
-                  <TableCell>{lesson.date}</TableCell>
+                  <TableCell>{format(new Date(lesson.date), "MM/dd/yyyy")}</TableCell>
                   <TableCell>{lesson.time}</TableCell>
                   <TableCell className="text-right">
                      <DropdownMenu>
@@ -82,7 +86,7 @@ export default function LessonsPage() {
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuItem>View Details</DropdownMenuItem>
                         {isTeacher && <DropdownMenuItem>Edit Lesson</DropdownMenuItem>}
-                        {(isTeacher || user.role === 'admin') && <DropdownMenuItem className="text-destructive">Delete Lesson</DropdownMenuItem>}
+                        {(isTeacher || userProfile.role === 'admin') && <DropdownMenuItem className="text-destructive">Delete Lesson</DropdownMenuItem>}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

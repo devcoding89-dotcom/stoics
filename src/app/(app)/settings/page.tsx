@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { PageHeader } from '@/components/page-header';
+import { useFirestore, useMemoFirebase } from '@/firebase';
 import { useUser } from '@/context/user-context';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { customizeAITutorPersonality } from '@/ai/flows/customize-ai-tutor-personality';
+import { Input } from '@/components/ui/input';
+import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { doc } from 'firebase/firestore';
+
 
 function AiPersonalityCustomizer() {
   const { toast } = useToast();
@@ -68,7 +73,28 @@ function AiPersonalityCustomizer() {
 }
 
 export default function SettingsPage() {
-  const { user } = useUser();
+  const { user, userProfile } = useUser();
+  const firestore = useFirestore();
+  const [name, setName] = React.useState(userProfile?.firstName || '');
+  const [lastName, setLastName] = React.useState(userProfile?.lastName || '');
+  
+  React.useEffect(() => {
+    if (userProfile) {
+      setName(userProfile.firstName);
+      setLastName(userProfile.lastName);
+    }
+  }, [userProfile]);
+
+  const handleProfileUpdate = () => {
+    if (user && userProfile && firestore) {
+      const userRef = doc(firestore, 'users', user.uid);
+      setDocumentNonBlocking(userRef, { 
+        ...userProfile, 
+        firstName: name, 
+        lastName: lastName 
+      }, { merge: true });
+    }
+  };
 
   return (
     <>
@@ -77,7 +103,7 @@ export default function SettingsPage() {
         description="Manage your account and application settings."
       />
       <div className="grid gap-6">
-        {user.role === 'teacher' && <AiPersonalityCustomizer />}
+        {userProfile?.role === 'teacher' && <AiPersonalityCustomizer />}
 
         <Card>
           <CardHeader>
@@ -86,14 +112,18 @@ export default function SettingsPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-1">
-              <Label htmlFor="name">Name</Label>
-              <Input id="name" defaultValue={user.name} />
+              <Label htmlFor="firstName">First Name</Label>
+              <Input id="firstName" value={name} onChange={(e) => setName(e.target.value)} />
+            </div>
+             <div className="space-y-1">
+              <Label htmlFor="lastName">Last Name</Label>
+              <Input id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} />
             </div>
              <div className="space-y-1">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" defaultValue={user.email} />
+              <Input id="email" type="email" defaultValue={user?.email || ''} disabled />
             </div>
-            <Button>Update Profile</Button>
+            <Button onClick={handleProfileUpdate}>Update Profile</Button>
           </CardContent>
         </Card>
       </div>

@@ -1,12 +1,15 @@
+import { type User as FirebaseUser } from 'firebase/auth';
+
 export type UserRole = "student" | "teacher" | "parent" | "admin";
 
-export type User = {
+export interface User {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
-  avatar: string;
   role: UserRole;
-};
+  avatar?: string;
+}
 
 export type Lesson = {
   id: string;
