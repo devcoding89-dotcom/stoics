@@ -6,6 +6,12 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  updateProfile,
+} from 'firebase/auth';
+import { doc, setDoc, getFirestore } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -33,6 +39,7 @@ import {
 } from '@/components/ui/select';
 import { Logo } from '@/components/logo';
 import { useToast } from '@/hooks/use-toast';
+import type { User as AppUser } from '@/lib/types';
 
 const formSchema = z.object({
   firstName: z.string().min(2, 'First name must be at least 2 characters.'),
@@ -47,6 +54,8 @@ const formSchema = z.object({
 export default function RegisterPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const auth = getAuth();
+  const firestore = getFirestore();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -58,19 +67,53 @@ export default function RegisterPage() {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    // In a real app, you would handle registration here (e.g., call Firebase)
-    console.log(values);
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    try {
+      // 1. Create user in Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        values.email,
+        values.password
+      );
+      const firebaseUser = userCredential.user;
 
-    toast({
-      title: 'Registration Successful (Demo)',
-      description: `Welcome, ${values.firstName}! Please log in.`,
-    });
+      // 2. Update Firebase Auth profile
+      await updateProfile(firebaseUser, {
+        displayName: `${values.firstName} ${values.lastName}`,
+      });
 
-    // Redirect to login page after a short delay
-    setTimeout(() => {
+      // 3. Create user document in Firestore
+      const userRef = doc(firestore, 'users', firebaseUser.uid);
+      const newUserProfile: AppUser = {
+        id: firebaseUser.uid,
+        firstName: values.firstName,
+        lastName: values.lastName,
+        email: values.email,
+        role: values.role,
+        avatar: '',
+        verified: false, // Admins will verify new users
+      };
+      await setDoc(userRef, newUserProfile);
+
+      toast({
+        title: 'Registration Successful',
+        description: `Welcome, ${values.firstName}! Please log in.`,
+        className: 'bg-green-500 text-white',
+      });
+
       router.push('/login');
-    }, 1500);
+    } catch (error: any) {
+      console.error('Registration Error:', error);
+      let errorMessage = 'Failed to create account. Please try again.';
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'This email is already in use.';
+      }
+      toast({
+        title: 'Registration Failed',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+    }
   };
 
   return (

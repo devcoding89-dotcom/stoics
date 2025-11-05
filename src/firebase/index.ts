@@ -2,10 +2,10 @@
 
 import { firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth, User as FirebaseUser } from 'firebase/auth';
-import { getFirestore, doc, getDoc, setDoc, DocumentData } from 'firebase/firestore'
-import React, { createContext, useContext, useEffect, useState, useMemo, ReactNode } from 'react';
-import { User, UserRole } from '@/lib/types';
+import { Auth, getAuth, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import { Firestore, getFirestore, doc, getDoc, setDoc, DocumentData } from 'firebase/firestore'
+import React, { DependencyList, createContext, useContext, useEffect, useState, useMemo, ReactNode } from 'react';
+import type { User as AppUser, UserRole } from '@/lib/types';
 import { FirebaseClientProvider } from './client-provider';
 
 // IMPORTANT: DO NOT MODIFY THIS FUNCTION
@@ -43,6 +43,51 @@ export function getSdks(firebaseApp: FirebaseApp) {
     auth,
     firestore
   };
+}
+
+export interface UserContextState {
+  user: FirebaseUser | null;
+  userProfile: AppUser | null;
+  isUserLoading: boolean;
+  isUserProfileLoading: boolean;
+}
+
+export const UserContext = createContext<UserContextState | undefined>(undefined);
+
+export function useUser(): UserContextState {
+  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [userProfile, setUserProfile] = useState<AppUser | null>(null);
+  const [isUserLoading, setIsUserLoading] = useState(true);
+  const [isUserProfileLoading, setIsUserProfileLoading] = useState(true);
+  
+  const auth = getAuth();
+  const firestore = getFirestore();
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      setUser(firebaseUser);
+      setIsUserLoading(false);
+      
+      if (firebaseUser) {
+        setIsUserProfileLoading(true);
+        const userRef = doc(firestore, 'users', firebaseUser.uid);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+          setUserProfile(userSnap.data() as AppUser);
+        } else {
+          setUserProfile(null);
+        }
+        setIsUserProfileLoading(false);
+      } else {
+        setUserProfile(null);
+        setIsUserProfileLoading(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [auth, firestore]);
+
+  return { user, userProfile, isUserLoading, isUserProfileLoading };
 }
 
 export * from './provider';

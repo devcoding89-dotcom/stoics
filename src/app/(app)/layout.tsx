@@ -1,9 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useUser } from '@/context/user-context';
+import { usePathname, useRouter } from 'next/navigation';
+import { useUser } from '@/firebase';
 import type { UserRole } from '@/lib/types';
 
 import {
@@ -34,6 +34,7 @@ import {
   Wallet,
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getAuth, signOut } from 'firebase/auth';
 
 const navItems = {
   shared: [
@@ -77,10 +78,18 @@ function getNavigation(role: UserRole) {
 }
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { userProfile, loading, logout } = useUser();
+  const { user, isUserLoading, userProfile } = useUser();
+  const router = useRouter();
   const pathname = usePathname();
+  const auth = getAuth();
   
-  if (loading || !userProfile) {
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, isUserLoading, router]);
+
+  if (isUserLoading || !userProfile) {
     return (
       <div className="flex h-screen w-screen items-center justify-center">
         <div className="flex flex-col items-center gap-4">
@@ -92,6 +101,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
   
   const navigation = getNavigation(userProfile.role);
+
+  const handleLogout = () => {
+    signOut(auth);
+  };
 
   return (
     <SidebarProvider>
@@ -124,7 +137,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <Separator className="my-2" />
             <SidebarMenu>
               <SidebarMenuItem>
-                 <SidebarMenuButton onClick={logout}>
+                 <SidebarMenuButton onClick={handleLogout}>
                    <LogOut/>
                    <span>Logout</span>
                  </SidebarMenuButton>
