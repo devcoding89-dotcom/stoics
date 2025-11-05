@@ -14,32 +14,27 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuPortal,
 } from '@/components/ui/dropdown-menu';
 import { useUser } from '@/context/user-context';
-import { useAuth } from '@/firebase';
-import { LogOut, User as UserIcon, Settings } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { LogOut, User as UserIcon, Settings, UserCog } from 'lucide-react';
 import Link from 'next/link';
-import { signOut } from 'firebase/auth';
+import { mockUsers } from '@/lib/data';
+import { UserRole } from '@/lib/types';
+import { capitalize } from '@/lib/utils';
 
 export function UserNav() {
-  const { user, userProfile } = useUser();
-  const auth = useAuth();
-  const router = useRouter();
+  const { userProfile, switchRole, logout } = useUser();
 
-  if (!user || !userProfile) {
+  if (!userProfile) {
     return null;
   }
 
-  const handleLogout = async () => {
-    if (auth) {
-      await signOut(auth);
-    }
-    router.push('/');
-  };
-
-  const userDisplayName = userProfile.firstName ? `${userProfile.firstName} ${userProfile.lastName}` : user.displayName;
-  const userFallback = userProfile.firstName ? userProfile.firstName.charAt(0) : user.email?.charAt(0).toUpperCase();
+  const userDisplayName = userProfile.firstName ? `${userProfile.firstName} ${userProfile.lastName}` : 'User';
+  const userFallback = userProfile.firstName ? userProfile.firstName.charAt(0) : 'U';
 
   return (
     <div className="flex items-center gap-4">
@@ -47,7 +42,7 @@ export function UserNav() {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-10 w-10 rounded-full">
             <Avatar className="h-10 w-10">
-              <AvatarImage src={userProfile.avatar || user.photoURL || undefined} alt={userDisplayName || 'User'} />
+              <AvatarImage src={userProfile.avatar || undefined} alt={userDisplayName || 'User'} />
               <AvatarFallback>{userFallback}</AvatarFallback>
             </Avatar>
           </Button>
@@ -63,12 +58,22 @@ export function UserNav() {
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
-            <DropdownMenuItem asChild>
-              <Link href="/settings">
-                <UserIcon className="mr-2 h-4 w-4" />
-                <span>Profile</span>
-              </Link>
-            </DropdownMenuItem>
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                <UserCog className="mr-2 h-4 w-4" />
+                <span>Switch Role</span>
+              </DropdownMenuSubTrigger>
+              <DropdownMenuPortal>
+                <DropdownMenuSubContent>
+                  {Object.keys(mockUsers).map((role) => (
+                    <DropdownMenuItem key={role} onClick={() => switchRole(role as UserRole)}>
+                      {capitalize(role)}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuSubContent>
+              </DropdownMenuPortal>
+            </DropdownMenuSub>
+
             <DropdownMenuItem asChild>
               <Link href="/settings">
                 <Settings className="mr-2 h-4 w-4" />
@@ -77,7 +82,7 @@ export function UserNav() {
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handleLogout}>
+          <DropdownMenuItem onClick={logout}>
             <LogOut className="mr-2 h-4 w-4" />
             <span>Log out</span>
           </DropdownMenuItem>
