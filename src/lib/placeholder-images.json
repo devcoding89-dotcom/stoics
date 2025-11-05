@@ -1,3 +1,28 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero-image",
+      "description": "A bright, modern classroom with students engaged in learning.",
+      "imageUrl": "https://images.unsplash.com/photo-1573894998033-c0cef4ed722b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Y2xhc3Nyb29tJTIwbGVhcm5pbmd8ZW58MHx8fHwxNzYyMzAxMTUwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "classroom learning"
+    },
+    {
+      "id": "feature-roles",
+      "description": "A diverse group of people representing different user roles.",
+      "imageUrl": "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxkaXZlcnNlJTIwcGVvcGxlfGVufDB8fHx8MTc2MjM2NTQwN3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "diverse people"
+    },
+    {
+      "id": "feature-lessons",
+      "description": "A digital tablet showing an online lesson.",
+      "imageUrl": "https://images.unsplash.com/photo-1583929260767-9020a3cdc78a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxvbmxpbmUlMjBsZXNzb258ZW58MHx8fHwxNzYyMzgzNzE1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "online lesson"
+    },
+    {
+      "id": "feature-communication",
+      "description": "A smartphone displaying a chat application interface.",
+      "imageUrl": "https://images.unsplash.com/photo-1633354998322-415842c7ee11?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxjaGF0JTIwYXBwfGVufDB8fHx8MTc2MjMzNTE0OHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "chat app"
+    }
+  ]
 }

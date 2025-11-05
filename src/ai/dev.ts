@@ -1,1 +1,5 @@
-// Flows will be imported for their side effects in this file.
+import { config } from 'dotenv';
+config();
+
+import '@/ai/flows/homework-support.ts';
+import '@/ai/flows/customize-ai-tutor-personality.ts';
