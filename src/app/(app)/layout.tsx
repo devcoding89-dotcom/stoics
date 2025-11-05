@@ -57,8 +57,8 @@ const navItems = {
     { href: '/payments', icon: CreditCard, label: 'Payments' },
   ],
   admin: [
-    { href: '/lessons', icon: BookOpenCheck, label: 'All Lessons' },
     { href: '/users', icon: Users, label: 'Manage Users' },
+    { href: '/lessons', icon: BookOpenCheck, label: 'All Lessons' },
     { href: '/payments', icon: CreditCard, label: 'All Payments' },
   ],
 };

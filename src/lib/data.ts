@@ -3,11 +3,22 @@ import type { User, UserRole, Lesson, Payment, Announcement, ChatContact, ChatMe
 // This file contains mock data for the application.
 // In a real application, this data would come from a database.
 
+export const allMockUsers: User[] = [
+  { id: 'user-student-1', firstName: 'Alex', lastName: 'Johnson', email: 'alex.j@example.com', avatar: 'https://i.pravatar.cc/150?u=alex', role: 'student', verified: true },
+  { id: 'user-teacher-1', firstName: 'Evelyn', lastName: 'Reed', email: 'e.reed@example.com', avatar: 'https://i.pravatar.cc/150?u=evelyn', role: 'teacher', verified: true },
+  { id: 'user-parent-1', firstName: 'Maria', lastName: 'Garcia', email: 'm.garcia@example.com', avatar: 'https://i.pravatar.cc/150?u=maria', role: 'parent', verified: true },
+  { id: 'user-admin-1', firstName: 'Samuel', lastName: 'Green', email: 's.green@example.com', avatar: 'https://i.pravatar.cc/150?u=samuel', role: 'admin', verified: true },
+  { id: 'user-student-2', firstName: 'Ben', lastName: 'Carter', email: 'ben.c@example.com', avatar: 'https://i.pravatar.cc/150?u=ben', role: 'student', verified: false },
+  { id: 'user-teacher-2', firstName: 'David', lastName: 'Lee', email: 'david.lee@example.com', avatar: 'https://i.pravatar.cc/150?u=david', role: 'teacher', verified: false },
+  { id: 'user-student-3', firstName: 'Chloe', lastName: 'White', email: 'chloe.w@example.com', avatar: 'https://i.pravatar.cc/150?u=chloe', role: 'student', verified: true },
+  { id: 'user-parent-2', firstName: 'James', lastName: 'Taylor', email: 'j.taylor@example.com', avatar: 'https://i.pravatar.cc/150?u=james', role: 'parent', verified: false },
+];
+
 export const mockUsers: Record<UserRole, User> = {
-  student: { id: 'user-student-1', firstName: 'Alex', lastName: 'Johnson', email: 'alex.j@example.com', avatar: 'https://i.pravatar.cc/150?u=alex', role: 'student' },
-  teacher: { id: 'user-teacher-1', firstName: 'Evelyn', lastName: 'Reed', email: 'e.reed@example.com', avatar: 'https://i.pravatar.cc/150?u=evelyn', role: 'teacher' },
-  parent: { id: 'user-parent-1', firstName: 'Maria', lastName: 'Garcia', email: 'm.garcia@example.com', avatar: 'https://i.pravatar.cc/150?u=maria', role: 'parent' },
-  admin: { id: 'user-admin-1', firstName: 'Samuel', lastName: 'Green', email: 's.green@example.com', avatar: 'https://i.pravatar.cc/150?u=samuel', role: 'admin' },
+  student: allMockUsers.find(u => u.role === 'student' && u.verified)!,
+  teacher: allMockUsers.find(u => u.role === 'teacher' && u.verified)!,
+  parent: allMockUsers.find(u => u.role === 'parent' && u.verified)!,
+  admin: allMockUsers.find(u => u.role === 'admin')!,
 };
 
 const students = [

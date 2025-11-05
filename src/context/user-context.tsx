@@ -1,13 +1,13 @@
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import type { User as AppUser, UserRole } from '@/lib/types';
-import { mockUsers } from '@/lib/data';
+import type { User, UserRole } from '@/lib/types';
+import { mockUsers, allMockUsers } from '@/lib/data';
 import { useRouter } from 'next/navigation';
 
 interface UserContextType {
-  user: AppUser | null; // For demo, user and userProfile are the same
-  userProfile: AppUser | null;
+  user: User | null; // For demo, user and userProfile are the same
+  userProfile: User | null;
   loading: boolean;
   isUserProfileLoading: boolean;
   switchRole: (role: UserRole) => void;
@@ -17,7 +17,7 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [currentRole, setCurrentRole] = useState<UserRole>('student');
+  const [currentRole, setCurrentRole] = useState<UserRole>('admin');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   

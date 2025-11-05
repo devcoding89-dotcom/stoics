@@ -9,6 +9,7 @@ export interface User {
   email: string;
   role: UserRole;
   avatar?: string;
+  verified: boolean;
 }
 
 export type Lesson = {
