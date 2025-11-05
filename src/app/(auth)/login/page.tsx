@@ -58,7 +58,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <Logo className="mx-auto h-10 w-10 mb-4" />
-          <CardTitle className="text-2xl font-headline">Welcome to EduConnect</CardTitle>
+          <CardTitle className="text-2xl font-headline">Welcome to Stoics Educational Services</CardTitle>
           <CardDescription>Sign in to access your dashboard</CardDescription>
         </CardHeader>
         <CardContent>

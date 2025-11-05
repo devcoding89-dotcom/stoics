@@ -6,7 +6,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 
 export const metadata: Metadata = {
-  title: 'EduConnect',
+  title: 'Stoics Educational Services',
   description: 'A digital learning companion for students, teachers, and parents.',
 };
 

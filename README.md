@@ -1,4 +1,4 @@
-# EduConnect
+# Stoics Educational Services
 
 This is a NextJS application scaffolded by Firebase Studio.
 

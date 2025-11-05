@@ -118,7 +118,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <SidebarHeader>
             <div className="flex items-center gap-2 p-2">
               <Logo />
-              <span className="font-bold text-xl font-headline">EduConnect</span>
+              <span className="font-bold text-lg font-headline">Stoics Educational Services</span>
             </div>
           </SidebarHeader>
           <SidebarContent>

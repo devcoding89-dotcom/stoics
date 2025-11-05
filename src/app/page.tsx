@@ -63,7 +63,7 @@ export default function Home() {
       <header className="container mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
           <Logo />
-          <span className="font-bold text-xl font-headline">EduConnect</span>
+          <span className="font-bold text-xl font-headline">Stoics Educational Services</span>
         </Link>
         <Button asChild>
           <Link href="/dashboard">Login</Link>
@@ -78,7 +78,7 @@ export default function Home() {
                 The Future of Education, Connected.
               </h1>
               <p className="text-lg text-muted-foreground">
-                EduConnect is an all-in-one platform designed to streamline communication and management for educational institutions, bringing students, teachers, and parents closer together.
+                Stoics Educational Services is an all-in-one platform designed to streamline communication and management for educational institutions, bringing students, teachers, and parents closer together.
               </p>
               <Button size="lg" asChild>
                 <Link href="/dashboard">Get Started</Link>
@@ -104,7 +104,7 @@ export default function Home() {
             <div className="text-center space-y-4 mb-16">
               <h2 className="text-3xl md:text-4xl font-bold font-headline">Everything You Need in One Place</h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Discover the powerful features that make EduConnect the perfect solution for modern learning environments.
+                Discover the powerful features that make Stoics Educational Services the perfect solution for modern learning environments.
               </p>
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -142,7 +142,7 @@ export default function Home() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Logo className="h-5 w-5" />
-            <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} EduConnect. All rights reserved.</p>
+            <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} Stoics Educational Services. All rights reserved.</p>
           </div>
           <div className="text-sm text-muted-foreground">
             <Link href="#" className="hover:text-primary transition-colors">Privacy Policy</Link>
