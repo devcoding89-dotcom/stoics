@@ -3,10 +3,8 @@
 import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useAuth } from '@/firebase';
 import { useUser } from '@/context/user-context';
 import type { UserRole } from '@/lib/types';
-import { signOut } from 'firebase/auth';
 
 import {
   SidebarProvider,
@@ -79,18 +77,11 @@ function getNavigation(role: UserRole) {
 }
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading, userProfile } = useUser();
-  const auth = useAuth();
+  const { userProfile, loading, switchUser } = useUser();
   const router = useRouter();
   const pathname = usePathname();
-
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login');
-    }
-  }, [user, loading, router]);
   
-  if (loading || !user || !userProfile) {
+  if (loading || !userProfile) {
     return (
       <div className="flex h-screen w-screen items-center justify-center">
         <div className="flex flex-col items-center gap-4">
@@ -103,11 +94,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   
   const navigation = getNavigation(userProfile.role);
 
-  const handleLogout = async () => {
-    if (auth) {
-      await signOut(auth);
-    }
-    router.push('/login');
+  const handleLogout = () => {
+    // In a real app, this would sign the user out.
+    // For this demo, we'll just go back to the landing page.
+    router.push('/');
   };
 
   return (

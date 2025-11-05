@@ -14,74 +14,98 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
 } from '@/components/ui/dropdown-menu';
-import { useAuth } from '@/firebase';
 import { useUser } from '@/context/user-context';
-import { signOut } from 'firebase/auth';
-import { LogOut, User as UserIcon, Settings } from 'lucide-react';
+import { LogOut, User as UserIcon, Settings, Users, Check } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { mockUsers } from '@/lib/data';
+import type { UserRole } from '@/lib/types';
+
 
 export function UserNav() {
-  const { user, userProfile } = useUser();
-  const auth = useAuth();
+  const { userProfile, switchUser } = useUser();
   const router = useRouter();
 
-  if (!user || !userProfile) {
+  if (!userProfile) {
     return null;
   }
 
-  const handleLogout = async () => {
-    if (auth) {
-      await signOut(auth);
-    }
-    router.push('/login');
+  const handleLogout = () => {
+    // In a real app, this would sign the user out.
+    // For this demo, we'll just go back to the landing page.
+    router.push('/');
   };
 
-  const userDisplayName = user.displayName || `${userProfile.firstName} ${userProfile.lastName}`;
-  const userFallback = user.displayName ? user.displayName.charAt(0) : userProfile.firstName.charAt(0);
+  const userDisplayName = `${userProfile.firstName} ${userProfile.lastName}`;
+  const userFallback = userProfile.firstName.charAt(0);
 
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src={user.photoURL || userProfile.avatar} alt={userDisplayName} />
-            <AvatarFallback>{userFallback}</AvatarFallback>
-          </Avatar>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="end" forceMount>
-        <DropdownMenuLabel className="font-normal">
-          <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{userDisplayName}</p>
-            <p className="text-xs leading-none text-muted-foreground">
-              {user.email}
-            </p>
-          </div>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          <DropdownMenuItem asChild>
-            <Link href="/settings">
-              <UserIcon className="mr-2 h-4 w-4" />
-              <span>Profile</span>
-            </Link>
+    <div className="flex items-center gap-4">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={userProfile.avatar} alt={userDisplayName} />
+              <AvatarFallback>{userFallback}</AvatarFallback>
+            </Avatar>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-56" align="end" forceMount>
+          <DropdownMenuLabel className="font-normal">
+            <div className="flex flex-col space-y-1">
+              <p className="text-sm font-medium leading-none">{userDisplayName}</p>
+              <p className="text-xs leading-none text-muted-foreground">
+                {userProfile.email}
+              </p>
+            </div>
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuGroup>
+            <DropdownMenuItem asChild>
+              <Link href="/settings">
+                <UserIcon className="mr-2 h-4 w-4" />
+                <span>Profile</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/settings">
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Settings</span>
+              </Link>
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={handleLogout}>
+            <LogOut className="mr-2 h-4 w-4" />
+            <span>Log out</span>
           </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link href="/settings">
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Settings</span>
-            </Link>
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleLogout}>
-          <LogOut className="mr-2 h-4 w-4" />
-          <span>Log out</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+       {/* Mock user switcher */}
+       <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="icon">
+            <Users className="h-4 w-4"/>
+            <span className="sr-only">Switch User</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-56" align="end">
+          <DropdownMenuLabel>Switch User Role</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuRadioGroup value={userProfile.role} onValueChange={(role) => switchUser(role as UserRole)}>
+            {Object.values(mockUsers).map(u => (
+              <DropdownMenuRadioItem key={u.id} value={u.role}>
+                {u.role.charAt(0).toUpperCase() + u.role.slice(1)} ({u.firstName})
+              </DropdownMenuRadioItem>
+            ))}
+          </DropdownMenuRadioGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 }

@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { PageHeader } from '@/components/page-header';
-import { useFirestore, useMemoFirebase } from '@/firebase';
 import { useUser } from '@/context/user-context';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,8 +10,6 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { customizeAITutorPersonality } from '@/ai/flows/customize-ai-tutor-personality';
 import { Input } from '@/components/ui/input';
-import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { doc } from 'firebase/firestore';
 
 
 function AiPersonalityCustomizer() {
@@ -73,28 +70,11 @@ function AiPersonalityCustomizer() {
 }
 
 export default function SettingsPage() {
-  const { user, userProfile } = useUser();
-  const firestore = useFirestore();
-  const [name, setName] = React.useState(userProfile?.firstName || '');
-  const [lastName, setLastName] = React.useState(userProfile?.lastName || '');
+  const { userProfile, loading } = useUser();
   
-  React.useEffect(() => {
-    if (userProfile) {
-      setName(userProfile.firstName);
-      setLastName(userProfile.lastName);
-    }
-  }, [userProfile]);
-
-  const handleProfileUpdate = () => {
-    if (user && userProfile && firestore) {
-      const userRef = doc(firestore, 'users', user.uid);
-      setDocumentNonBlocking(userRef, { 
-        ...userProfile, 
-        firstName: name, 
-        lastName: lastName 
-      }, { merge: true });
-    }
-  };
+  if (loading || !userProfile) {
+    return null;
+  }
 
   return (
     <>
@@ -112,18 +92,14 @@ export default function SettingsPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-1">
-              <Label htmlFor="firstName">First Name</Label>
-              <Input id="firstName" value={name} onChange={(e) => setName(e.target.value)} />
-            </div>
-             <div className="space-y-1">
-              <Label htmlFor="lastName">Last Name</Label>
-              <Input id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+              <Label htmlFor="name">Full Name</Label>
+              <Input id="name" defaultValue={`${userProfile.firstName} ${userProfile.lastName}`} />
             </div>
              <div className="space-y-1">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" defaultValue={user?.email || ''} disabled />
+              <Input id="email" type="email" defaultValue={userProfile.email} disabled />
             </div>
-            <Button onClick={handleProfileUpdate}>Update Profile</Button>
+            <Button>Update Profile</Button>
           </CardContent>
         </Card>
       </div>
