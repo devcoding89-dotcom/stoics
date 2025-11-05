@@ -65,9 +65,14 @@ export default function Home() {
           <Logo />
           <span className="font-bold text-xl font-headline">Stoics Educational Services</span>
         </Link>
-        <Button asChild>
-          <Link href="/dashboard">Login</Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" asChild>
+            <Link href="/register">Register</Link>
+          </Button>
+          <Button asChild>
+            <Link href="/dashboard">Login</Link>
+          </Button>
+        </div>
       </header>
 
       <main className="flex-grow">
