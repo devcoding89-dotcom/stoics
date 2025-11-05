@@ -2,9 +2,9 @@
   "placeholderImages": [
     {
       "id": "hero-image",
-      "description": "A bright, modern classroom with students engaged in learning.",
-      "imageUrl": "https://images.unsplash.com/photo-1573894998033-c0cef4ed722b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Y2xhc3Nyb29tJTIwbGVhcm5pbmd8ZW58MHx8fHwxNzYyMzAxMTUwfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "classroom learning"
+      "description": "A student writing on a chalkboard in a classroom.",
+      "imageUrl": "https://images.unsplash.com/photo-1509062522246-3755977927d7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxlZHVjYXRpb258ZW58MHx8fHwxNzYyMjk5MzY2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "education learning"
     },
     {
       "id": "feature-roles",
