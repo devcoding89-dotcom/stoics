@@ -101,9 +101,9 @@ export function AdminDashboard({ user, userProfile }: AdminDashboardProps) {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
+                  <TableHead className="hidden sm:table-cell">Email</TableHead>
                   <TableHead>Role</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead className="hidden sm:table-cell">Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -117,9 +117,9 @@ export function AdminDashboard({ user, userProfile }: AdminDashboardProps) {
                   users.map(u => (
                     <TableRow key={u.id}>
                       <TableCell className="font-medium">{`${u.firstName} ${u.lastName}`}</TableCell>
-                      <TableCell>{u.email}</TableCell>
+                      <TableCell className="hidden sm:table-cell">{u.email}</TableCell>
                       <TableCell>{capitalize(u.role)}</TableCell>
-                      <TableCell>
+                      <TableCell className="hidden sm:table-cell">
                         <Badge variant={u.verified ? 'default' : 'secondary'}>
                           {u.verified ? 'Verified' : 'Unverified'}
                         </Badge>

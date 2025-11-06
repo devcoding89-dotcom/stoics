@@ -127,7 +127,7 @@ export default function RegisterPage() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
       <div className="mb-8 flex items-center gap-2">
         <Logo className="h-8 w-8" />
-        <span className="text-2xl font-bold font-headline">Stoics Educational Institute & Services</span>
+        <span className="text-2xl font-bold font-headline text-center">Stoics Educational Institute & Services</span>
       </div>
       <Card className="w-full max-w-md">
         <CardHeader>
@@ -139,7 +139,7 @@ export default function RegisterPage() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="firstName"
@@ -197,7 +197,7 @@ export default function RegisterPage() {
                   </FormItem>
                 )}
               />
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="role"

@@ -45,9 +45,9 @@ export function StudentDashboard({ user, userProfile }: StudentDashboardProps) {
         title="Student Dashboard"
         description={`Welcome back, ${welcomeName}! Here's your overview.`}
       />
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
         {/* Upcoming Lessons */}
-        <Card className="lg:col-span-2">
+        <Card className="md:col-span-2 lg:col-span-1 xl:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between">
             <div className="flex items-center gap-2">
                 <Calendar className="h-6 w-6 text-primary" />
@@ -62,7 +62,7 @@ export function StudentDashboard({ user, userProfile }: StudentDashboardProps) {
               <TableHeader>
                 <TableRow>
                   <TableHead>Lesson</TableHead>
-                  <TableHead>Teacher</TableHead>
+                  <TableHead className="hidden sm:table-cell">Teacher</TableHead>
                   <TableHead>Time</TableHead>
                 </TableRow>
               </TableHeader>
@@ -100,7 +100,7 @@ export function StudentDashboard({ user, userProfile }: StudentDashboardProps) {
         </Card>
 
         {/* Homework Overview */}
-        <Card className="lg:col-span-3">
+        <Card className="md:col-span-2 lg:col-span-3">
           <CardHeader className="flex flex-row items-center justify-between">
              <div className="flex items-center gap-2">
                 <BookCopy className="h-6 w-6 text-primary" />
@@ -116,7 +116,7 @@ export function StudentDashboard({ user, userProfile }: StudentDashboardProps) {
                 <TableRow>
                   <TableHead>Subject</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Due Date / Submitted</TableHead>
+                  <TableHead className="hidden sm:table-cell">Due Date / Submitted</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -127,7 +127,7 @@ export function StudentDashboard({ user, userProfile }: StudentDashboardProps) {
                         <TableCell>
                         <Badge variant={hw.status === 'completed' ? 'default' : 'secondary'} className={hw.status === 'completed' ? 'bg-green-500/80': ''}>{capitalize(hw.status)}</Badge>
                         </TableCell>
-                        <TableCell>{hw.submittedDate}</TableCell>
+                        <TableCell className="hidden sm:table-cell">{hw.submittedDate}</TableCell>
                     </TableRow>
                     ))
                 ) : (
