@@ -247,9 +247,9 @@ const dashboardComponents: Record<UserRole, React.ComponentType> = {
 };
 
 export default function DashboardPage() {
-  const { user, userProfile, isUserLoading } = useUser();
+  const { user, userProfile, isUserLoading, isUserProfileLoading } = useUser();
   
-  if (isUserLoading || !userProfile || !user) {
+  if (isUserLoading || isUserProfileLoading || !userProfile || !user) {
     return null; // Or a loading indicator
   }
 

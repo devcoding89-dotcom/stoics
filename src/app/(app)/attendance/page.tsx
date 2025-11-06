@@ -25,7 +25,7 @@ import React from 'react';
 
 const StudentListForLesson = ({ studentIds }: { studentIds: string[] }) => {
   const firestore = useFirestore();
-  const { userProfile } = useUser();
+  const { user, userProfile } = useUser();
 
   const studentsQuery = useMemoFirebase(() => {
     if (!firestore || !userProfile || !studentIds || studentIds.length === 0) return null;

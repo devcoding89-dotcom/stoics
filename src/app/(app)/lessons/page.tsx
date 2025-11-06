@@ -44,6 +44,7 @@ function CreateLessonDialog({ user, afterCreate }: { user: User; afterCreate: ()
   const firestore = useFirestore();
 
   const handleCreateLesson = async () => {
+    if (!firestore || !user) return;
     if (!title || !subject) {
       toast({
         title: 'Missing Information',

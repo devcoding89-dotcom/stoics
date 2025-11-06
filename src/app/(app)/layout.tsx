@@ -34,7 +34,6 @@ import {
   Users,
   Wallet,
 } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
 import { getAuth, signOut } from 'firebase/auth';
 
 const navItems = {
@@ -157,7 +156,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
 
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { isUserLoading, user, userProfile } = useUser();
+  const { isUserLoading, user, userProfile, isUserProfileLoading } = useUser();
   const router = useRouter();
   
   useEffect(() => {
@@ -167,7 +166,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
   }, [isUserLoading, user, router]);
 
-  if (isUserLoading || !userProfile) {
+  // Combined loading state. Show loading until both auth and profile are done.
+  if (isUserLoading || isUserProfileLoading || !userProfile) {
     return (
        <div className="flex h-screen w-screen items-center justify-center">
         <div className="flex flex-col items-center gap-4">

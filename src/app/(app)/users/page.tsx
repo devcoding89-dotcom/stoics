@@ -21,14 +21,14 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 
 export default function ManageUsersPage() {
-  const { userProfile } = useUser();
+  const { user, userProfile } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
 
   const usersQuery = useMemoFirebase(() => {
-    if (!firestore || !userProfile) return null;
+    if (!firestore || !userProfile || !user) return null;
     return collection(firestore, 'users')
-  }, [firestore, userProfile]);
+  }, [firestore, user, userProfile]);
   const { data: users, isLoading } = useCollection<User>(usersQuery);
 
   if (!userProfile || userProfile.role !== 'admin') {
