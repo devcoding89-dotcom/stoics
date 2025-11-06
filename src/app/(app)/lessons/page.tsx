@@ -230,7 +230,9 @@ export default function LessonsPage() {
               ))}
                {!isLoading && (!lessons || lessons.length === 0) && (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center">No lessons found.</TableCell>
+                  <TableCell colSpan={5} className="h-24 text-center">
+                    No lessons found.
+                  </TableCell>
                 </TableRow>
               )}
             </TableBody>
