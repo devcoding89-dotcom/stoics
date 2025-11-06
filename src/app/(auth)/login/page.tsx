@@ -183,13 +183,25 @@ export default function LoginPage() {
     }
   };
 
-  if (isUserLoading || user) {
+  // On the login page, we only need to wait for the initial auth state check.
+  // If a user is found, the useEffect above will redirect them. If not, we show the form.
+  if (isUserLoading) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background">
         <Logo className="h-12 w-12 animate-pulse" />
       </div>
     );
   }
+  
+  // If after loading there is a user, we are in the process of redirecting, so don't show the form.
+  if (user) {
+     return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-background">
+        <Logo className="h-12 w-12 animate-pulse" />
+      </div>
+    );
+  }
+
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
