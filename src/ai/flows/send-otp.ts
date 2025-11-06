@@ -5,8 +5,18 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { z } from 'zod';
 import { getFirestore, collection, query, where, getDocs, setDoc, doc } from 'firebase/firestore';
+import { initializeApp, getApps } from 'firebase-admin/app';
+import { getFirestore as getAdminFirestore } from 'firebase-admin/firestore';
+import { firebaseConfig } from '@/firebase/config';
+
+// Initialize Firebase Admin SDK if not already initialized
+if (!getApps().length) {
+  initializeApp({
+    projectId: firebaseConfig.projectId,
+  });
+}
 
 const SendOtpInputSchema = z.object({
   email: z.string().email().describe('The email address to send the OTP to.'),
@@ -30,14 +40,14 @@ const sendOtpFlow = ai.defineFlow(
     outputSchema: SendOtpOutputSchema,
   },
   async ({ email }) => {
-    const firestore = getFirestore();
+    const firestore = getAdminFirestore();
     const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
-    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 minutes expiry
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
 
     // Check if user exists
-    const usersRef = collection(firestore, 'users');
-    const q = query(usersRef, where('email', '==', email));
-    const querySnapshot = await getDocs(q);
+    const usersRef = firestore.collection('users');
+    const q = usersRef.where('email', '==', email);
+    const querySnapshot = await q.get();
     
     let userId;
     if (querySnapshot.empty) {
@@ -48,11 +58,11 @@ const sendOtpFlow = ai.defineFlow(
       userId = querySnapshot.docs[0].id;
     }
 
-    const userRef = doc(firestore, 'users', userId);
+    const userRef = firestore.doc(`users/${userId}`);
 
     // In a real app, this `setDoc` would be a `updateDoc`.
     // We use `setDoc` with `merge` to be safe if the fields don't exist yet.
-    await setDoc(userRef, { otp, otpExpiry }, { merge: true });
+    await userRef.set({ otp, otpExpiry }, { merge: true });
 
     // !! SIMULATION ONLY !!
     // In a real application, you would use a service like SendGrid, Mailgun, or Firebase Extensions
