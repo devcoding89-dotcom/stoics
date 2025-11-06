@@ -9,15 +9,18 @@ import { Button } from '@/components/ui/button';
 import type { ChatContact, ChatMessage, Announcement, User as AppUser } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Send, Megaphone, PlusCircle, MessagesSquare } from 'lucide-react';
-import { useUser, useCollection, useMemoFirebase } from '@/firebase';
+import { useUser, useCollection, useMemoFirebase, useFirestore } from '@/firebase';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { getFirestore, collection, query, orderBy } from 'firebase/firestore';
 import { format } from 'date-fns';
 
 const Announcements = () => {
   const { userProfile } = useUser();
-  const firestore = getFirestore();
-  const announcementsQuery = useMemoFirebase(() => query(collection(firestore, 'announcements'), orderBy('timestamp', 'desc')), [firestore]);
+  const firestore = useFirestore();
+  const announcementsQuery = useMemoFirebase(() => {
+      if (!firestore) return null;
+      return query(collection(firestore, 'announcements'), orderBy('timestamp', 'desc'));
+  }, [firestore]);
   const { data: announcements, isLoading } = useCollection<Announcement>(announcementsQuery);
   const canAnnounce = userProfile?.role === 'teacher' || userProfile?.role === 'admin';
   
@@ -62,10 +65,10 @@ const Announcements = () => {
 
 const Chat = () => {
   const { userProfile } = useUser();
-  const firestore = getFirestore();
+  const firestore = useFirestore();
   
   const usersQuery = useMemoFirebase(() => {
-    if (userProfile?.role !== 'admin') return null; // Only admins can list all users
+    if (!firestore || userProfile?.role !== 'admin') return null; // Only admins can list all users
     return query(collection(firestore, 'users'));
   }, [firestore, userProfile]);
 
@@ -146,8 +149,8 @@ const Chat = () => {
 }
 
 export default function CommunicationPage() {
-  const { userProfile } = useUser();
-  if (!userProfile) return null;
+  const { userProfile, isUserLoading } = useUser();
+  if (isUserLoading || !userProfile) return null;
 
   return (
     <div className="h-[calc(100vh-120px)] flex flex-col">

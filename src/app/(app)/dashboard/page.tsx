@@ -5,7 +5,6 @@ import type { UserRole, Lesson, Announcement, Payment } from '@/lib/types';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import {
   BookOpenCheck,
   ClipboardList,
@@ -21,12 +20,10 @@ import { collection, query, where, getFirestore, limit, collectionGroup } from '
 
 const StudentDashboard = () => {
   const { user } = useUser();
-  const firestore = getFirestore();
+  const firestore = useFirestore();
 
-  // In a real app, you would have a way to associate students with lessons.
   const lessonsQuery = useMemoFirebase(() => {
-    if (!user) return null; 
-    // This query is for demonstration. A real implementation would be more robust.
+    if (!user || !firestore) return null;
     return query(collectionGroup(firestore, 'lessons'), where('studentIds', 'array-contains', user.uid), limit(1));
   }, [firestore, user]);
 
@@ -108,7 +105,7 @@ const StudentDashboard = () => {
 
 const TeacherDashboard = () => {
   const { user } = useUser();
-  const firestore = getFirestore();
+  const firestore = useFirestore();
 
   const lessonsQuery = useMemoFirebase(() => {
     if (!user || !firestore) return null;
@@ -197,17 +194,14 @@ const ParentDashboard = () => (
 );
 
 const AdminDashboard = () => {
-    const firestore = getFirestore();
+    const firestore = useFirestore();
+    
     const usersQuery = useMemoFirebase(() => {
         if (!firestore) return null;
         return collection(firestore, 'users');
     }, [firestore]);
-    // Admin cannot query all nested lessons directly without knowing teacher IDs.
-    // This would require a more complex aggregation or a separate top-level collection for all lessons if admins need this view.
-    // const lessonsQuery = useMemoFirebase(() => collection(firestore, 'lessons'), [firestore]);
     
     const { data: users, isLoading: usersLoading } = useCollection(usersQuery);
-    // const { data: lessons, isLoading: lessonsLoading } = useCollection(lessonsQuery);
 
     const stats = [
       { title: "Total Students", value: users?.filter(u => u.role === 'student').length.toString() || '0', icon: Users },
@@ -252,9 +246,9 @@ const dashboardComponents: Record<UserRole, React.ComponentType> = {
 };
 
 export default function DashboardPage() {
-  const { user, userProfile, isUserLoading, isUserProfileLoading } = useUser();
+  const { user, userProfile, isUserLoading } = useUser();
   
-  if (isUserLoading || isUserProfileLoading || !userProfile || !user) {
+  if (isUserLoading || !userProfile || !user) {
     return null; // Or a loading indicator
   }
 

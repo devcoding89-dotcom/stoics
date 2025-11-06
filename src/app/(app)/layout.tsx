@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import React, { useEffect } from 'react';
@@ -81,21 +79,15 @@ function getNavigation(role: UserRole) {
 }
 
 function MainLayout({ children }: { children: React.ReactNode }) {
-  const { user, userProfile, isUserLoading } = useUser();
+  const { user, userProfile } = useUser();
   const router = useRouter();
   const pathname = usePathname();
   const auth = getAuth();
   const { setOpenMobile } = useSidebar();
   
-  useEffect(() => {
-    // Wait until loading is complete before checking for user
-    if (!isUserLoading && !user) {
-      router.push('/login');
-    }
-  }, [user, isUserLoading, router]);
-
   const handleLogout = () => {
     signOut(auth);
+    router.push('/login');
   };
   
   const handleLinkClick = (e: React.MouseEvent) => {
@@ -104,20 +96,8 @@ function MainLayout({ children }: { children: React.ReactNode }) {
       setOpenMobile(false);
     }
   };
-
-  // Display a loading skeleton while waiting for user and profile data
-  if (isUserLoading || !userProfile || !user) {
-    return (
-      <div className="flex h-screen w-screen items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Logo className="h-12 w-12" />
-          <Skeleton className="h-4 w-48" />
-        </div>
-      </div>
-    );
-  }
   
-  const navigation = getNavigation(userProfile.role);
+  const navigation = getNavigation(userProfile!.role);
 
   return (
     <div className="min-h-screen bg-background">
@@ -176,17 +156,30 @@ function MainLayout({ children }: { children: React.ReactNode }) {
 
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { isUserLoading } = useUser();
+  const { isUserLoading, user } = useUser();
+  const router = useRouter();
+  
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push('/login');
+    }
+  }, [isUserLoading, user, router]);
 
   if (isUserLoading) {
     return (
        <div className="flex h-screen w-screen items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <Logo className="h-12 w-12 animate-pulse" />
-          <Skeleton className="h-4 w-48 mt-2" />
+          <p className="text-muted-foreground">Loading your experience...</p>
         </div>
       </div>
     )
+  }
+
+  if (!user) {
+    // This state is brief, as the useEffect above will redirect.
+    // Returning null prevents rendering children that might depend on a user.
+    return null;
   }
 
   return (
