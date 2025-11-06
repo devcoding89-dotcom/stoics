@@ -4,12 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { Logo } from './logo';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { supportedLanguages } from '@/lib/languages';
 
-const supportedLanguages = [
-    { code: 'en', name: 'English' },
-    { code: 'es', name: 'Español' },
-    { code: 'fr', name: 'Français' },
-];
 
 export function LanguageGate({ children }: { children: React.ReactNode }) {
     const [language, setLanguage] = useState<string | null>(null);

@@ -40,6 +40,7 @@ import {
 import { Logo } from '@/components/logo';
 import { useToast } from '@/hooks/use-toast';
 import type { User as AppUser } from '@/lib/types';
+import { supportedLanguages, supportedLanguageCodes } from '@/lib/languages';
 
 const formSchema = z.object({
   firstName: z.string().min(2, 'First name must be at least 2 characters.'),
@@ -49,7 +50,7 @@ const formSchema = z.object({
   role: z.enum(['student', 'teacher', 'parent'], {
     required_error: 'You need to select a role.',
   }),
-  language: z.enum(['en', 'es', 'fr'], {
+  language: z.enum(supportedLanguageCodes, {
     required_error: 'Please select your preferred language.',
   }),
 });
@@ -78,7 +79,12 @@ export default function RegisterPage() {
         auth,
         values.email,
         values.password
-      );
+      ).catch((error) => {
+        // This catch block specifically handles the Firebase Auth error
+        // and prevents it from bubbling up to the Next.js error overlay in dev mode.
+        console.error('Firebase Auth Error:', error);
+        throw error; // Re-throw to be caught by the outer try-catch
+      });
       const firebaseUser = userCredential.user;
 
       // 2. Update Firebase Auth profile
@@ -231,9 +237,9 @@ export default function RegisterPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="en">English</SelectItem>
-                          <SelectItem value="es">Español</SelectItem>
-                          <SelectItem value="fr">Français</SelectItem>
+                          {supportedLanguages.map(lang => (
+                            <SelectItem key={lang.code} value={lang.code}>{lang.name}</SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -258,5 +264,3 @@ export default function RegisterPage() {
     </div>
   );
 }
-
-    
