@@ -22,18 +22,6 @@ export function StudentDashboard({ user, userProfile }: StudentDashboardProps) {
   const welcomeName = userProfile.firstName || user.displayName || 'Student';
   const firestore = useFirestore();
 
-  // Fetch upcoming lessons for the current student
-  const lessonsQuery = useMemoFirebase(() => {
-    if (!firestore || !userProfile.id) return null;
-    return query(
-      collectionGroup(firestore, 'lessons'),
-      where('studentIds', 'array-contains', userProfile.id),
-      orderBy('scheduledDateTime', 'asc'),
-      limit(3)
-    );
-  }, [firestore, userProfile.id]);
-  const { data: upcomingLessons, isLoading: lessonsLoading } = useCollection<Lesson>(lessonsQuery);
-
   // Fetch announcements
   const announcementsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
@@ -47,6 +35,9 @@ export function StudentDashboard({ user, userProfile }: StudentDashboardProps) {
 
   // Homework data - will be empty for now
   const homeworkData: Homework[] = [];
+
+  const lessonsLoading = false;
+  const upcomingLessons: Lesson[] = [];
 
   return (
     <>
@@ -76,23 +67,7 @@ export function StudentDashboard({ user, userProfile }: StudentDashboardProps) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {lessonsLoading && (
-                    <TableRow><TableCell colSpan={3} className="text-center">Loading lessons...</TableCell></TableRow>
-                )}
-                {!lessonsLoading && upcomingLessons && upcomingLessons.length > 0 ? (
-                  upcomingLessons.map(lesson => (
-                    <TableRow key={lesson.id}>
-                      <TableCell>
-                          <div className="font-medium">{lesson.title}</div>
-                          <div className="text-sm text-muted-foreground">{lesson.subject}</div>
-                      </TableCell>
-                      <TableCell>{lesson.teacher || 'N/A'}</TableCell>
-                      <TableCell>{new Date(lesson.scheduledDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                    !lessonsLoading && <TableRow><TableCell colSpan={3} className="text-center">No upcoming lessons.</TableCell></TableRow>
-                )}
+                <TableRow><TableCell colSpan={3} className="text-center">Upcoming lessons are currently unavailable.</TableCell></TableRow>
               </TableBody>
             </Table>
           </CardContent>
