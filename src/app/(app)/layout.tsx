@@ -18,10 +18,12 @@ import {
 } from '@/components/ui/sidebar';
 import { Logo } from '@/components/logo';
 import { UserNav } from '@/components/user-nav';
-import { LayoutDashboard } from 'lucide-react';
+import { BookCopy, LayoutDashboard, MessageSquare } from 'lucide-react';
 
 function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { userProfile } = useUser();
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -47,6 +49,36 @@ function MainLayout({ children }: { children: React.ReactNode }) {
                   </span>
                 </SidebarMenuButton>
               </Link>
+            </SidebarMenuItem>
+            {userProfile?.role === 'student' && (
+                <SidebarMenuItem>
+                <Link href="/homework">
+                    <SidebarMenuButton
+                    asChild
+                    isActive={pathname.startsWith('/homework')}
+                    tooltip={{ children: 'Homework' }}
+                    >
+                    <span>
+                        <BookCopy />
+                        <span>Homework</span>
+                    </span>
+                    </SidebarMenuButton>
+                </Link>
+                </SidebarMenuItem>
+            )}
+            <SidebarMenuItem>
+                <Link href="/messages">
+                    <SidebarMenuButton
+                    asChild
+                    isActive={pathname.startsWith('/messages')}
+                    tooltip={{ children: 'Messages' }}
+                    >
+                    <span>
+                        <MessageSquare />
+                        <span>Messages</span>
+                    </span>
+                    </SidebarMenuButton>
+                </Link>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarContent>
