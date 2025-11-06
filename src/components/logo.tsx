@@ -1,63 +1,16 @@
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
 
 export function Logo({ className }: { className?: string }) {
+  const logoUrl = `data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MDAgODAwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBkPSJNMCAwaDgwMHY4MDBIMHoiLz48cGF0aCBmaWxsPSIjYzk5YzQ5IiBkPSJNMzY4LjMgMjg1LjJhMTQ5LjggMTQ5LjggMCAwIDAtNDYuMy0xOC40bC0xMS4yIDIyLjNhMTI3LjUgMTI3LjUgMCAwIDEgMzkuOCAxNS44bC03LjcgMzguOGExNjUgMTY1IDAgMCAwLTM1LjgtMTQuM2wtMTEuMiAyMi40YzE1LjIgMy44IDMwLjcgOC4zIDQ1LjYgMTMuNWw3LjYtMzguN2ExMzkgMTM5IDAgMCAxLTIyLjYtOS40bDIyLjYtOS40em0tOTIgNjQuOGMtMjYgOS01MC4yIDE5LjctNzIgMzEuOGwxMS4yLTIyLjRhNDM4LjggNDM4LjggMCAwIDEgNjAuOC0yMi43bC4xLS4xem0xODQgMGMyNiA5IDUwLjIgMTkuNyA3MiAzMS44bDExLjItMjIuNGE0MzguOCA0MzguOCAwIDAgMC02MC44LTIyLjdsLS4xLS4xem0yMy40LTIyNy4xYTE5MS43IDE5MS43IDAgMCAwLTQxLjIgNC4zbDEuOCA5YTE4Mi44IDE4Mi44IDAgMCAxIDQwLjEtNC4xbC0uNy05ek0zNDYuMyAyNDZjLTEzLjIgMC0yNi4zLjUtMzkuMiAxLjVsMi4zIDguOGMxMi41LTEgMjUuMy0xLjUgMzguMi0xLjVsLTEuMy04Ljh6TTUyMiAyNTMuN2ExODggMTg4IDAgMCAwLTM2LjYtMTNsNC4zIDguMWExNzkgMTc5IDAgMCAxIDM0LjMgMTIuMWwtMi03LjIzek0zMDQuNCAyNDguMmMtMTMuMyAyLjYtMjYuMyA1LjgtMzkgOS44bDQuMiA4YTE1Mi4zIDE1Mi4zIDAgMCAxIDM2LjgtOS4ybC0yLTguNnptOTQuMyAxMS4zYy00LjQtMi04LjgtMy44LTEzLjMtNS40bC0zLjMgOC40YzQuMyAxLjYgOC41IDMuMiAxMi42IDVsMy45LTcuOXptLTYwLjYtMTIuOGMtNi43IDAtMTMuMy4zLTE5LjguN2wzLjggOC42YzYuMi0uNCAxMi4zLS42IDE4LjItLjZsMi4xLTguN3ptNjQuMiA0LjRjLTcgMS0xNC4yIDEtMjEuMiAxLjdsLjcIDguOWM2LjgtLjYgMTMuNi0xLjIgMjAuMi0yLjNsLTEuMy04LjN6bS0zMi4xLTEwLjRjLS4yIDAtLjMgMC0uNS0uMXMtLjIuMS0uNC4xLS4yIDAtLjIgMEM0MjguMyAyNDEgNDI4IDI0MSA0MjggMjQxYy0xLjIgMC0yLjQuMS0zLjYtLjEtMi42LS4zLTUuMi0uOC03LjgtMS0zLS4zLTYtLjQtOS0uMmwtMS4yIDguOWMyLjctLjIgNS41LS4xIDguMi4yIDIuNi4yIDUuMS42IDcuNi45IDEuMy4xIDIuNS4yIDMuOC4yIDEuMSAwIDIuMy0uMSAzLjQtLjIgMi44LS4zIDUuOC0uNyA4LjYtMS4zIDEuNS0uMyAz-.OSAyLjgtLjQuMSAwIC4yLjEgLjMgMCAuNS4xLjMtLjEuMy0uMSAwIC4xIDAgLjIgMCAuMyAwIDQuMiAwIDguMi4yIDExLjEuNiAyLjYuNCA1LjMuNiA3LjkuMyAyLjUtLjIgNC45LS43IDcuMy0xLjNsMS4yIDguOGMtMi4zLjYtNC44IDEuMS03LjMgMS4zLTIuNi4zLTUuMy4zLTguMi4yLTQgMC04LjItLjQtMTIuMi0xLjItMS44LS4z-My42LS44-NS4zLTEuMy0yLS42-My45-MS40-NS43-y41bC0yLjkgOC4yYyIsIj48L3N2Zz4=`;
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 100 100"
+    <Image
+      src={logoUrl}
+      alt="Stoics Educational Institute & Services Logo"
       className={cn('h-10 w-10', className)}
+      width={100}
+      height={100}
       aria-hidden="true"
-    >
-      <g transform="translate(0, -5)">
-        {/* Laurel Wreath - Gold */}
-        <path
-          d="M35 55 A30 35 0 0 0 20 25 L15 30 A25 30 0 0 1 30 60z"
-          fill="#c09b43"
-        />
-        <path
-          d="M25 45 A20 25 0 0 0 15 20 L10 25 A25 30 0 0 1 20 50z"
-          fill="#c09b43"
-        />
-        <path
-          d="M65 55 A30 35 0 0 1 80 25 L85 30 A25 30 0 0 0 70 60z"
-          fill="#c09b43"
-        />
-        <path
-          d="M75 45 A20 25 0 0 1 85 20 L90 25 A25 30 0 0 0 80 50z"
-          fill="#c09b43"
-        />
-        <g fill="#c09b43">
-            {/* Left side leaves */}
-            <ellipse transform="rotate(-30 28 38)" cx="28" cy="38" rx="7" ry="2.5"/>
-            <ellipse transform="rotate(-40 22 48)" cx="22" cy="48" rx="7" ry="2.5"/>
-            <ellipse transform="rotate(-50 18 58)" cx="18" cy="58" rx="7" ry="2.5"/>
-            <ellipse transform="rotate(-60 15 68)" cx="15" cy="68" rx="7" ry="2.5"/>
-            {/* Right side leaves */}
-            <ellipse transform="rotate(30 72 38)" cx="72" cy="38" rx="7" ry="2.5"/>
-            <ellipse transform="rotate(40 78 48)" cx="78" cy="48" rx="7" ry="2.5"/>
-            <ellipse transform="rotate(50 82 58)" cx="82" cy="58" rx="7" ry="2.5"/>
-            <ellipse transform="rotate(60 85 68)" cx="85" cy="68" rx="7" ry="2.5"/>
-        </g>
-        
-        {/* Column - Dark Blue */}
-        <g fill="hsl(var(--primary))">
-          <rect x="38" y="20" width="24" height="3" />
-          <path d="M40 23 C 35 23, 35 28, 40 28 L 60 28 C 65 28, 65 23, 60 23 Z" />
-          <rect x="42" y="28" width="16" height="10" />
-        </g>
-        
-        {/* Book - Dark Blue */}
-        <path
-          d="M15 80 Q50 60, 85 80 L85 45 Q50 65, 15 45 L15 80z"
-          fill="hsl(var(--primary))"
-        />
-        <path
-          d="M50 42 L50 78 M15 45 Q50 65, 85 45"
-          stroke="#FFFFFF"
-          strokeWidth="2"
-          fill="none"
-        />
-      </g>
-    </svg>
+    />
   );
 }
