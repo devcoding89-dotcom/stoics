@@ -166,8 +166,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
   }, [isUserLoading, user, router]);
 
+  const showLoading = isUserLoading || !user || !userProfile;
+
   // Show a loading indicator while the user is being authenticated or the profile is being fetched.
-  if (isUserLoading) {
+  if (showLoading) {
     return (
        <div className="flex h-screen w-screen items-center justify-center">
         <div className="flex flex-col items-center gap-4">
@@ -177,13 +179,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </div>
     )
   }
-  
+
   // After loading, if there's still no user, we are redirecting.
   // Rendering null prevents children from rendering prematurely.
   if (!user || !userProfile) {
     return null;
   }
-
 
   return (
     <SidebarProvider>
