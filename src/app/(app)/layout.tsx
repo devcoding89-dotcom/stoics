@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useEffect } from 'react';
@@ -81,7 +82,7 @@ function getNavigation(role: UserRole) {
 }
 
 function MainLayout({ children }: { children: React.ReactNode }) {
-  const { user, isUserLoading, userProfile, isUserProfileLoading } = useUser();
+  const { user, isUserLoading, userProfile } = useUser();
   const router = useRouter();
   const pathname = usePathname();
   const auth = getAuth();
@@ -89,10 +90,10 @@ function MainLayout({ children }: { children: React.ReactNode }) {
   
   useEffect(() => {
     // Wait until loading is complete before checking for user
-    if (!isUserLoading && !isUserProfileLoading && !user) {
+    if (!isUserLoading && !user) {
       router.push('/login');
     }
-  }, [user, isUserLoading, isUserProfileLoading, router]);
+  }, [user, isUserLoading, router]);
 
   const handleLogout = () => {
     signOut(auth);
@@ -106,7 +107,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
   };
 
   // Display a loading skeleton while waiting for user and profile data
-  if (isUserLoading || isUserProfileLoading || !userProfile || !user) {
+  if (isUserLoading || !userProfile || !user) {
     return (
       <div className="flex h-screen w-screen items-center justify-center">
         <div className="flex flex-col items-center gap-4">
@@ -176,9 +177,9 @@ function MainLayout({ children }: { children: React.ReactNode }) {
 
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { isUserLoading, isUserProfileLoading } = useUser();
+  const { isUserLoading } = useUser();
 
-  if (isUserLoading || isUserProfileLoading) {
+  if (isUserLoading) {
     return (
        <div className="flex h-screen w-screen items-center justify-center">
         <div className="flex flex-col items-center gap-4">

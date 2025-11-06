@@ -21,8 +21,7 @@ export interface FirebaseContextState {
   auth: Auth;
   user: User | null; // Firebase Auth User
   userProfile: AppUser | null; // Firestore User Profile
-  isUserLoading: boolean; // Loading state for Firebase Auth user
-  isUserProfileLoading: boolean; // Loading state for Firestore profile
+  isUserLoading: boolean; // Combined loading state for both Auth and Firestore user
 }
 
 // React Context
@@ -39,24 +38,19 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 }) => {
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<AppUser | null>(null);
-  const [isUserLoading, setIsUserLoading] = useState(true); // For Auth user
-  const [isUserProfileLoading, setIsUserProfileLoading] = useState(true); // For Firestore profile
+  const [isUserLoading, setIsUserLoading] = useState(true); // Single loading state
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setUser(firebaseUser);
-      setIsUserLoading(false); // Auth check is complete
-
       if (firebaseUser) {
-        setIsUserProfileLoading(true);
+        // User is signed in, fetch profile
         const userRef = doc(firestore, 'users', firebaseUser.uid);
         try {
           const userSnap = await getDoc(userRef);
           if (userSnap.exists()) {
             setUserProfile({ ...userSnap.data(), id: userSnap.id } as AppUser);
           } else {
-            // This case can happen if the user record is created in Auth but not in Firestore yet.
-            // Or if the user is deleted from Firestore but not Auth.
+            // This can happen if user is created in Auth but not Firestore yet.
             console.warn(`No Firestore profile found for user ${firebaseUser.uid}.`);
             setUserProfile(null); 
           }
@@ -64,12 +58,14 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
           console.error("Error fetching user profile:", error);
           setUserProfile(null);
         } finally {
-          setIsUserProfileLoading(false); // Profile fetch attempt is complete
+            setUser(firebaseUser);
+            setIsUserLoading(false); // Loading is complete after auth check and profile fetch attempt
         }
       } else {
-        // No auth user, so no profile to fetch. Clear all user state.
+        // No user is signed in
+        setUser(null);
         setUserProfile(null);
-        setIsUserProfileLoading(false); // No profile loading needed.
+        setIsUserLoading(false); // Loading is complete
       }
     });
 
@@ -84,8 +80,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     user,
     userProfile,
     isUserLoading,
-    isUserProfileLoading,
-  }), [firebaseApp, firestore, auth, user, userProfile, isUserLoading, isUserProfileLoading]);
+  }), [firebaseApp, firestore, auth, user, userProfile, isUserLoading]);
 
   return (
     <FirebaseContext.Provider value={contextValue}>
@@ -126,6 +121,8 @@ export const useFirebaseApp = (): FirebaseApp => {
  * This is the primary hook components should use to get user information.
  */
 export const useUser = () => {
-  const { user, userProfile, isUserLoading, isUserProfileLoading } = useFirebase();
+  const { user, userProfile, isUserLoading } = useFirebase();
+  // We no longer need isUserProfileLoading as it's combined into isUserLoading
+  const isUserProfileLoading = isUserLoading; 
   return { user, userProfile, isUserLoading, isUserProfileLoading };
 };
