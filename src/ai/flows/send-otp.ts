@@ -6,7 +6,6 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { getFirestore, collection, query, where, getDocs, setDoc, doc } from 'firebase/firestore';
 import { initializeApp, getApps } from 'firebase-admin/app';
 import { getFirestore as getAdminFirestore } from 'firebase-admin/firestore';
 import { firebaseConfig } from '@/firebase/config';

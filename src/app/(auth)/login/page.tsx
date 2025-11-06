@@ -9,7 +9,7 @@ import {
   User as FirebaseUser,
   signInWithCustomToken,
 } from 'firebase/auth';
-import { doc, getDoc, setDoc, getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc, setDoc, getFirestore, collection, query, where, getDocs, serverTimestamp, updateDoc } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -30,6 +30,18 @@ import { useToast } from '@/hooks/use-toast';
 import { sendOtp } from '@/ai/flows/send-otp';
 
 type LoginStep = 'start' | 'otp';
+
+// In a real app, this would be a backend call to a secure cloud function
+async function getCustomTokenForUser(uid: string): Promise<string> {
+    // !! SIMULATION ONLY !!
+    // This is NOT secure. In a real application, this function would be
+    // a server-side Cloud Function that uses the Firebase Admin SDK
+    // to create a custom token for the user.
+    // The client would call this function, and the function would return
+    // the token.
+    console.warn("INSECURE: Generating custom token on the client. This is for prototyping only.");
+    return uid; // Simulating the token is the UID
+}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -95,11 +107,11 @@ export default function LoginPage() {
       await sendOtp({ email });
       setLoginStep('otp');
       toast({ title: 'OTP Sent', description: 'Check your console for the OTP.' });
-    } catch (error) {
+    } catch (error: any) {
       console.error('OTP Send Error:', error);
       toast({
         title: 'Error',
-        description: 'Could not send OTP. Please try again.',
+        description: error.message || 'Could not send OTP. Please check if the user exists.',
         variant: 'destructive',
       });
     } finally {
@@ -114,46 +126,49 @@ export default function LoginPage() {
     }
     setIsSigningIn(true);
     try {
-      // In a real app, you would have a backend flow that verifies the OTP
-      // and returns a custom token. Here we simulate that.
-      // This is insecure and for demonstration ONLY.
-      const usersRef = collection(firestore, 'users');
-      const q = query(usersRef, where('email', '==', email), where('otp', '==', otp));
-      const querySnapshot = await getDocs(q);
+        // In a real app, this logic would be on a secure backend.
+        // The backend would verify the OTP and its expiry against the database,
+        // then use the Admin SDK to create a custom token.
+        // For this prototype, we do the check on the client.
 
-      if (querySnapshot.empty) {
-        throw new Error('Invalid OTP or email.');
-      }
-      
-      const userDoc = querySnapshot.docs[0];
-      // This part should be a secure backend call that returns a custom token
-      const customToken = userDoc.id; // !!INSECURE!! SIMULATING TOKEN = UID
+        const usersRef = collection(firestore, 'users');
+        const q = query(usersRef, where('email', '==', email));
+        const querySnapshot = await getDocs(q);
 
-      // In a real app, you'd get this token from your secure backend
-      // For the prototype, we are using a simplified, insecure method.
-      // We will assume the custom token is the user's UID.
-      // A secure implementation requires a Cloud Function.
-      
-      // Let's find the user by email to get their UID for the "custom token".
-      const userQuery = query(collection(firestore, "users"), where("email", "==", email));
-      const userQuerySnapshot = await getDocs(userQuery);
+        if (querySnapshot.empty) {
+            throw new Error('User with this email does not exist.');
+        }
+        
+        const userDoc = querySnapshot.docs[0];
+        const userData = userDoc.data() as AppUser;
+        const now = new Date();
 
-      if (userQuerySnapshot.empty) {
-          throw new Error("User not found.");
-      }
-      const userUid = userQuerySnapshot.docs[0].id;
-      
-      // In a real app, you would generate a real custom token. For now, we simulate this.
-      // This is NOT secure and for prototyping only.
-      await signInWithCustomToken(auth, userUid);
+        if (userData.otp !== otp) {
+            throw new Error('Invalid OTP. Please try again.');
+        }
 
+        if (userData.otpExpiry && new Date(userData.otpExpiry) < now) {
+            throw new Error('OTP has expired. Please request a new one.');
+        }
+        
+        // OTP is valid. Now, get a custom token (simulated).
+        const customToken = await getCustomTokenForUser(userDoc.id);
+        
+        // Sign in with the custom token.
+        await signInWithCustomToken(auth, customToken);
 
-      router.push('/dashboard');
+        // Clear the OTP from the database after successful login
+        await updateDoc(userDoc.ref, {
+            otp: null,
+            otpExpiry: null
+        });
+
+        router.push('/dashboard');
     } catch (error: any) {
       console.error('OTP Sign-In Error:', error);
       toast({
         title: 'Sign-in Failed',
-        description: error.message || 'Invalid OTP. Please try again.',
+        description: error.message || 'An unexpected error occurred.',
         variant: 'destructive',
       });
     } finally {

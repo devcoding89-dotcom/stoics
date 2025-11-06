@@ -12,7 +12,7 @@ export interface User {
   verified: boolean;
   language: string;
   otp?: string;
-  otpExpiry?: string;
+  otpExpiry?: Date;
 }
 
 export type Lesson = {
