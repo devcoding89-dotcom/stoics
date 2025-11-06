@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Logo } from '@/components/logo';
 import { UserNav } from '@/components/user-nav';
-import { BookCopy, LayoutDashboard, MessageSquare } from 'lucide-react';
+import { BookCopy, LayoutDashboard, MessageSquare, PlusCircle } from 'lucide-react';
 
 function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -61,6 +61,22 @@ function MainLayout({ children }: { children: React.ReactNode }) {
                     <span>
                         <BookCopy />
                         <span>Homework</span>
+                    </span>
+                    </SidebarMenuButton>
+                </Link>
+                </SidebarMenuItem>
+            )}
+            {userProfile?.role === 'teacher' && (
+                <SidebarMenuItem>
+                <Link href="/lessons/create">
+                    <SidebarMenuButton
+                    asChild
+                    isActive={pathname.startsWith('/lessons/create')}
+                    tooltip={{ children: 'New Lesson' }}
+                    >
+                    <span>
+                        <PlusCircle />
+                        <span>New Lesson</span>
                     </span>
                     </SidebarMenuButton>
                 </Link>

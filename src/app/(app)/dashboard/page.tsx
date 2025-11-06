@@ -2,6 +2,7 @@
 
 import { useUser } from '@/firebase';
 import { StudentDashboard } from '@/components/dashboards/student-dashboard';
+import { TeacherDashboard } from '@/components/dashboards/teacher-dashboard';
 import { PageHeader } from '@/components/page-header';
 
 export default function DashboardPage() {
@@ -17,7 +18,11 @@ export default function DashboardPage() {
     return <StudentDashboard user={user} userProfile={userProfile} />;
   }
 
-  // Fallback for other roles (teacher, parent, admin)
+  if (userProfile.role === 'teacher') {
+    return <TeacherDashboard user={user} userProfile={userProfile} />;
+  }
+
+  // Fallback for other roles (parent, admin)
   const welcomeName = userProfile.firstName || user.displayName || 'User';
 
   return (
