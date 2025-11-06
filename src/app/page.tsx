@@ -7,24 +7,31 @@ import { Logo } from '@/components/logo';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export default function Home() {
     const { user, isUserLoading } = useUser();
     const router = useRouter();
+    const [isNavigating, setIsNavigating] = useState(false);
+
 
     useEffect(() => {
         if (!isUserLoading && user) {
             router.push('/dashboard');
         }
     }, [user, isUserLoading, router]);
+    
+    const handleLoginClick = () => {
+        setIsNavigating(true);
+        router.push('/login');
+    };
 
-    if (isUserLoading || user) {
+    if (isUserLoading || user || isNavigating) {
         return (
             <div className="flex h-screen w-screen items-center justify-center">
                 <div className="flex flex-col items-center gap-4">
-                    <Logo className="h-12 w-auto animate-pulse" />
+                    <Logo className="h-48 w-auto animate-pulse" />
                     <p className="text-muted-foreground">Loading...</p>
                 </div>
             </div>
@@ -42,8 +49,8 @@ export default function Home() {
                     <Logo className="h-8 w-auto" />
                 </div>
                 <nav className="flex items-center gap-4">
-                    <Button variant="ghost" asChild>
-                        <Link href="/login">Log In</Link>
+                    <Button variant="ghost" onClick={handleLoginClick}>
+                        Log In
                     </Button>
                     <Button asChild>
                         <Link href="/register">Sign Up</Link>
