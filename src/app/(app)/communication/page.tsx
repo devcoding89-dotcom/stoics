@@ -61,8 +61,14 @@ const Announcements = () => {
 }
 
 const Chat = () => {
+  const { userProfile } = useUser();
   const firestore = getFirestore();
-  const usersQuery = useMemoFirebase(() => query(collection(firestore, 'users')), [firestore]);
+  
+  const usersQuery = useMemoFirebase(() => {
+    if (userProfile?.role !== 'admin') return null; // Only admins can list all users
+    return query(collection(firestore, 'users'));
+  }, [firestore, userProfile]);
+
   const { data: users, isLoading: usersLoading } = useCollection<AppUser>(usersQuery);
   const [selectedContact, setSelectedContact] = React.useState<AppUser | null>(null);
 
@@ -97,6 +103,9 @@ const Chat = () => {
                 </div>
               </button>
             ))}
+            {!usersLoading && userProfile?.role !== 'admin' && (
+              <p className="p-2 text-xs text-muted-foreground">User list is only available to admins.</p>
+            )}
           </div>
         </CardContent>
       </Card>
