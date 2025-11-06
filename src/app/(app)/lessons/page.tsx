@@ -1,4 +1,5 @@
 'use client';
+import React from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -18,31 +19,131 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useUser, useCollection, useMemoFirebase } from '@/firebase';
-import type { Lesson } from '@/lib/types';
+import type { Lesson, User } from '@/lib/types';
 import { BookPlus, MoreHorizontal } from 'lucide-react';
 import { format } from 'date-fns';
-import { collection, query, where, getFirestore, orderBy, collectionGroup } from 'firebase/firestore';
+import { collection, query, where, getFirestore, orderBy, collectionGroup, addDoc, serverTimestamp } from 'firebase/firestore';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+
+function CreateLessonDialog({ user, afterCreate }: { user: User; afterCreate: () => void }) {
+  const [title, setTitle] = React.useState('');
+  const [subject, setSubject] = React.useState('');
+  const [isLoading, setIsLoading] = React.useState(false);
+  const { toast } = useToast();
+  const firestore = getFirestore();
+
+  const handleCreateLesson = async () => {
+    if (!title || !subject) {
+      toast({
+        title: 'Missing Information',
+        description: 'Please provide a title and subject for the lesson.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const lessonsRef = collection(firestore, 'users', user.id, 'lessons');
+      // In a real app, studentIds would be assigned based on enrollment.
+      // For now, we'll assign some mock student IDs for demonstration.
+      // This assumes student users with these IDs exist.
+      const mockStudentIds = ['student1-mock-id', 'student2-mock-id'];
+
+      const newLesson: Omit<Lesson, 'id'> = {
+        title,
+        subject,
+        teacherId: user.id,
+        scheduledDateTime: new Date().toISOString(), // Default to now
+        studentIds: mockStudentIds, 
+      };
+
+      await addDoc(lessonsRef, newLesson);
+      
+      toast({
+        title: 'Lesson Created!',
+        description: `${title} has been added.`,
+        className: 'bg-accent text-accent-foreground',
+      });
+      afterCreate(); // Close dialog
+    } catch (error) {
+      console.error('Error creating lesson:', error);
+      toast({
+        title: 'Error',
+        description: 'Could not create the lesson. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <DialogContent>
+      <DialogHeader>
+        <DialogTitle>Create a New Lesson</DialogTitle>
+        <DialogDescription>
+          Fill in the details below to schedule a new lesson.
+        </DialogDescription>
+      </DialogHeader>
+      <div className="space-y-4 py-4">
+        <div className="space-y-2">
+          <Label htmlFor="title">Lesson Title</Label>
+          <Input
+            id="title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="e.g., Introduction to Algebra"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="subject">Subject</Label>
+          <Input
+            id="subject"
+            value={subject}
+            onChange={(e) => setSubject(e.target.value)}
+            placeholder="e.g., Math"
+          />
+        </div>
+      </div>
+      <DialogFooter>
+        <Button onClick={handleCreateLesson} disabled={isLoading}>
+          {isLoading ? 'Creating...' : 'Create Lesson'}
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  );
+}
+
 
 export default function LessonsPage() {
   const { user, userProfile } = useUser();
   const firestore = getFirestore();
+  const [isCreateDialogOpen, setCreateDialogOpen] = React.useState(false);
+
 
   const lessonsQuery = useMemoFirebase(() => {
     if (!user || !userProfile) return null;
     
     switch(userProfile.role) {
       case 'student':
-        // Students can't query the nested collections directly without teacherId.
-        // A top-level 'lessons' collection group query is needed for this role.
         return query(collectionGroup(firestore, 'lessons'), where('studentIds', 'array-contains', user.uid), orderBy('scheduledDateTime', 'desc'));
       case 'teacher':
         return query(collection(firestore, 'users', user.uid, 'lessons'), orderBy('scheduledDateTime', 'desc'));
       case 'admin':
-         // Admins can see all lessons via a collection group query.
          return query(collectionGroup(firestore, 'lessons'), orderBy('scheduledDateTime', 'desc'));
       case 'parent':
-        // This requires knowing the child's UID. For this demo, we assume the parent can't see lessons directly.
-        // A better data model would link parent and student accounts.
         return null; 
       default:
         return null;
@@ -51,7 +152,7 @@ export default function LessonsPage() {
 
   const { data: lessons, isLoading } = useCollection<Lesson>(lessonsQuery);
 
-  if (!userProfile) return null;
+  if (!userProfile || !user) return null;
 
   const isTeacher = userProfile.role === 'teacher';
 
@@ -71,10 +172,15 @@ export default function LessonsPage() {
         description={description}
         action={
           isTeacher && (
-            <Button>
-              <BookPlus className="mr-2 h-4 w-4" />
-              Create Lesson
-            </Button>
+            <Dialog open={isCreateDialogOpen} onOpenChange={setCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <BookPlus className="mr-2 h-4 w-4" />
+                  Create Lesson
+                </Button>
+              </DialogTrigger>
+              <CreateLessonDialog user={userProfile} afterCreate={() => setCreateDialogOpen(false)} />
+            </Dialog>
           )
         }
       />

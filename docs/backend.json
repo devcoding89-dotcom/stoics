@@ -88,6 +88,13 @@
           "type": "string",
           "description": "The date and time the lesson is scheduled for.",
           "format": "date-time"
+        },
+        "studentIds": {
+          "type": "array",
+          "description": "A list of student UIDs enrolled in the lesson.",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "required": [

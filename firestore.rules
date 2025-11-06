@@ -55,6 +55,7 @@ service cloud.firestore {
         allow get: if isSignedIn(); // Students/parents need to be able to get single lessons
         allow list: if isOwner(userId); // Only teacher can list their own lessons
         allow create: if isOwner(userId) && request.resource.data.teacherId == userId;
+        // Teacher can update their own lesson, including studentIds
         allow update: if isExistingOwner(userId) && request.resource.data.teacherId == resource.data.teacherId;
         allow delete: if isExistingOwner(userId);
       }

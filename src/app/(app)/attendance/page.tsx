@@ -19,9 +19,69 @@ import { capitalize } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { getFirestore, collection, query, where } from 'firebase/firestore';
-import type { Lesson, Attendance } from '@/lib/types';
+import { getFirestore, collection, query, where, documentId } from 'firebase/firestore';
+import type { Lesson, Attendance, User } from '@/lib/types';
 import React from 'react';
+
+const StudentListForLesson = ({ studentIds }: { studentIds: string[] }) => {
+  const firestore = getFirestore();
+
+  const studentsQuery = useMemoFirebase(() => {
+    if (!studentIds || studentIds.length === 0) return null;
+    return query(collection(firestore, 'users'), where(documentId(), 'in', studentIds));
+  }, [firestore, studentIds]);
+  
+  const { data: students, isLoading: studentsLoading } = useCollection<User>(studentsQuery);
+
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Student</TableHead>
+          <TableHead className="text-right">Attendance Status</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {studentsLoading ? (
+          <TableRow><TableCell colSpan={2} className="text-center">Loading students...</TableCell></TableRow>
+        ) : students && students.length > 0 ? (
+          students.map(student => (
+            <TableRow key={student.id}>
+              <TableCell>
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-9 w-9">
+                    <AvatarImage src={student.avatar} alt={student.firstName} />
+                    <AvatarFallback>{student.firstName?.charAt(0) || 'S'}</AvatarFallback>
+                  </Avatar>
+                  <div className="font-medium">{student.firstName} {student.lastName}</div>
+                </div>
+              </TableCell>
+              <TableCell className="text-right">
+                <RadioGroup defaultValue="present" className="flex justify-end gap-4">
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="present" id={`present-${student.id}`} />
+                    <Label htmlFor={`present-${student.id}`}>Present</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="absent" id={`absent-${student.id}`} />
+                    <Label htmlFor={`absent-${student.id}`}>Absent</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="late" id={`late-${student.id}`} />
+                    <Label htmlFor={`late-${student.id}`}>Late</Label>
+                  </div>
+                </RadioGroup>
+              </TableCell>
+            </TableRow>
+          ))
+        ) : (
+          <TableRow><TableCell colSpan={2} className="text-center">No students enrolled in this lesson.</TableCell></TableRow>
+        )}
+      </TableBody>
+    </Table>
+  );
+};
+
 
 const TeacherAttendance = () => {
   const { user } = useUser();
@@ -35,8 +95,6 @@ const TeacherAttendance = () => {
   const { data: lessons, isLoading: lessonsLoading } = useCollection<Lesson>(lessonsQuery);
 
   const lesson = lessons?.find(l => l.id === selectedLessonId);
-  // In a real app, you would fetch attendance and student details for the selected lesson.
-  // This remains a simplified demonstration.
 
   return (
     <>
@@ -67,8 +125,11 @@ const TeacherAttendance = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <p>Attendance taking UI would go here. This requires fetching student details for the lesson.</p>
-            {/* Full implementation requires fetching student profiles based on lesson.studentIds */}
+            {lesson.studentIds && lesson.studentIds.length > 0 ? (
+              <StudentListForLesson studentIds={lesson.studentIds} />
+            ) : (
+              <p className="text-center text-muted-foreground py-8">No students are enrolled in this lesson yet.</p>
+            )}
           </CardContent>
         </Card>
       ) : <p className='text-center text-muted-foreground'>Please select a lesson to view attendance.</p> }
@@ -82,7 +143,6 @@ const ParentOrStudentAttendance = () => {
 
   const attendanceQuery = useMemoFirebase(() => {
     if (!user) return null;
-    // This path is based on the student's own attendance records.
     return query(collection(firestore, 'users', user.uid, 'attendances'));
   }, [firestore, user]);
 
