@@ -166,8 +166,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
   }, [isUserLoading, user, router]);
 
-  // Show loading indicator until user/profile is loaded or if there's no user and we are about to redirect.
-  if (isUserLoading || !userProfile) {
+  // Show a loading indicator while the user is being authenticated or the profile is being fetched.
+  if (isUserLoading) {
     return (
        <div className="flex h-screen w-screen items-center justify-center">
         <div className="flex flex-col items-center gap-4">
@@ -178,9 +178,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     )
   }
   
-  // If loading is complete but there is still no user, redirecting.
-  // Returning null prevents children from rendering prematurely.
-  if (!user) {
+  // After loading, if there's still no user, we are redirecting.
+  // Rendering null prevents children from rendering prematurely.
+  if (!user || !userProfile) {
     return null;
   }
 
