@@ -6,39 +6,23 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useUser } from '@/firebase';
 
 import {
-  SidebarProvider,
   Sidebar,
-  SidebarHeader,
   SidebarContent,
+  SidebarHeader,
+  SidebarInset,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarFooter,
-  SidebarInset,
+  SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { Separator } from '@/components/ui/separator';
 import { Logo } from '@/components/logo';
 import { UserNav } from '@/components/user-nav';
-import { LayoutDashboard, Settings, LogOut } from 'lucide-react';
-import { getAuth, signOut } from 'firebase/auth';
-
-const navItems = [
-  { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/settings', icon: Settings, label: 'Settings' },
-];
+import { LayoutDashboard } from 'lucide-react';
 
 function MainLayout({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
   const pathname = usePathname();
-  const auth = getAuth();
-  
-  const handleLogout = () => {
-    signOut(auth).then(() => {
-      router.push('/login');
-    });
-  };
-  
+
   return (
     <div className="min-h-screen bg-background">
       <Sidebar>
@@ -50,35 +34,22 @@ function MainLayout({ children }: { children: React.ReactNode }) {
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
-            {navItems.map((item) => (
-              <SidebarMenuItem key={item.href}>
-                <Link href={item.href}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={pathname.startsWith(item.href)}
-                    tooltip={{ children: item.label }}
-                  >
-                    <span>
-                      <item.icon />
-                      <span>{item.label}</span>
-                    </span>
-                  </SidebarMenuButton>
-                </Link>
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-        </SidebarContent>
-        <SidebarFooter>
-          <Separator className="my-2" />
-          <SidebarMenu>
             <SidebarMenuItem>
-                <SidebarMenuButton onClick={handleLogout}>
-                  <LogOut/>
-                  <span>Logout</span>
+              <Link href="/dashboard">
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname.startsWith('/dashboard')}
+                  tooltip={{ children: 'Dashboard' }}
+                >
+                  <span>
+                    <LayoutDashboard />
+                    <span>Dashboard</span>
+                  </span>
                 </SidebarMenuButton>
+              </Link>
             </SidebarMenuItem>
           </SidebarMenu>
-        </SidebarFooter>
+        </SidebarContent>
       </Sidebar>
       <SidebarInset>
         <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-6">
@@ -92,20 +63,16 @@ function MainLayout({ children }: { children: React.ReactNode }) {
   );
 }
 
-
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { isUserLoading, user, userProfile } = useUser();
+  const { isUserLoading, user } = useUser();
   const router = useRouter();
   
   useEffect(() => {
-    // If auth is done loading and there's no user, redirect to login.
     if (!isUserLoading && !user) {
       router.push('/login');
     }
   }, [isUserLoading, user, router]);
 
-  // Use a single, reliable loading state.
-  // Show loading indicator until BOTH user authentication and profile fetching are complete.
   if (isUserLoading) {
     return (
        <div className="flex h-screen w-screen items-center justify-center">
@@ -117,9 +84,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     )
   }
 
-  // After loading, if there's still no user or profile, we are redirecting.
-  // Rendering null prevents children from rendering prematurely.
-  if (!user || !userProfile) {
+  if (!user) {
     return null;
   }
 

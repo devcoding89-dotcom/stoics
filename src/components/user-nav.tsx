@@ -9,20 +9,20 @@ import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useUser } from '@/firebase';
-import { LogOut, Settings } from 'lucide-react';
-import Link from 'next/link';
+import { LogOut } from 'lucide-react';
 import { getAuth, signOut } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
 
 export function UserNav() {
   const { user, userProfile } = useUser();
   const auth = getAuth();
+  const router = useRouter();
 
   if (!user || !userProfile) {
     return null;
@@ -33,7 +33,9 @@ export function UserNav() {
   const userAvatar = userProfile.avatar || user.photoURL;
 
   const handleLogout = () => {
-    signOut(auth);
+    signOut(auth).then(() => {
+      router.push('/login');
+    });
   };
 
   return (
@@ -56,17 +58,6 @@ export function UserNav() {
               </p>
             </div>
           </DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuGroup>
-            <Link href="/settings" passHref>
-              <DropdownMenuItem asChild>
-                <span>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
-                </span>
-              </DropdownMenuItem>
-            </Link>
-          </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleLogout}>
             <LogOut className="mr-2 h-4 w-4" />

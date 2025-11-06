@@ -41,7 +41,6 @@ import { Logo } from '@/components/logo';
 import { useToast } from '@/hooks/use-toast';
 import type { User as AppUser } from '@/lib/types';
 import { supportedLanguages, supportedLanguageCodes } from '@/lib/languages';
-import { useTranslation } from '@/hooks/use-translation';
 
 const formSchema = z.object({
   firstName: z.string().min(2, 'First name must be at least 2 characters.'),
@@ -61,7 +60,6 @@ export default function RegisterPage() {
   const { toast } = useToast();
   const auth = getAuth();
   const firestore = getFirestore();
-  const { t, isLoaded } = useTranslation();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -71,6 +69,7 @@ export default function RegisterPage() {
       email: '',
       password: '',
       language: 'en',
+      role: 'student'
     },
   });
 
@@ -80,10 +79,7 @@ export default function RegisterPage() {
         auth,
         values.email,
         values.password
-      ).catch((error) => {
-        console.error('Firebase Auth Error:', error);
-        throw error;
-      });
+      );
       const firebaseUser = userCredential.user;
 
       await updateProfile(firebaseUser, {
@@ -123,20 +119,18 @@ export default function RegisterPage() {
       });
     }
   };
-  
-  if (!isLoaded) return null;
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
       <div className="mb-8 flex items-center gap-2">
         <Logo className="h-8 w-8" />
-        <span className="text-2xl font-bold font-headline">{t('global.appName')}</span>
+        <span className="text-2xl font-bold font-headline">Stoics Educational Services</span>
       </div>
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl">{t('register.title')}</CardTitle>
+          <CardTitle className="text-2xl">Create an account</CardTitle>
           <CardDescription>
-            {t('register.description')}
+            Enter your details below to start your journey with us.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -148,9 +142,9 @@ export default function RegisterPage() {
                   name="firstName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('register.firstNameLabel')}</FormLabel>
+                      <FormLabel>First Name</FormLabel>
                       <FormControl>
-                        <Input placeholder={t('register.firstNamePlaceholder')} {...field} />
+                        <Input placeholder="John" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -161,9 +155,9 @@ export default function RegisterPage() {
                   name="lastName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('register.lastNameLabel')}</FormLabel>
+                      <FormLabel>Last Name</FormLabel>
                       <FormControl>
-                        <Input placeholder={t('register.lastNamePlaceholder')} {...field} />
+                        <Input placeholder="Doe" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -175,7 +169,7 @@ export default function RegisterPage() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('register.emailLabel')}</FormLabel>
+                    <FormLabel>Email</FormLabel>
                     <FormControl>
                       <Input
                         type="email"
@@ -192,7 +186,7 @@ export default function RegisterPage() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('register.passwordLabel')}</FormLabel>
+                    <FormLabel>Password</FormLabel>
                     <FormControl>
                       <Input type="password" placeholder="••••••••" {...field} />
                     </FormControl>
@@ -206,17 +200,17 @@ export default function RegisterPage() {
                   name="role"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('register.roleLabel')}</FormLabel>
+                      <FormLabel>I am a...</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder={t('register.rolePlaceholder')} />
+                            <SelectValue placeholder="Select a role" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="student">{t('roles.student')}</SelectItem>
-                          <SelectItem value="teacher">{t('roles.teacher')}</SelectItem>
-                          <SelectItem value="parent">{t('roles.parent')}</SelectItem>
+                          <SelectItem value="student">Student</SelectItem>
+                          <SelectItem value="teacher">Teacher</SelectItem>
+                          <SelectItem value="parent">Parent</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -228,11 +222,11 @@ export default function RegisterPage() {
                   name="language"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('register.languageLabel')}</FormLabel>
+                      <FormLabel>Language</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder={t('register.languagePlaceholder')} />
+                            <SelectValue placeholder="Select a language" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -247,15 +241,15 @@ export default function RegisterPage() {
                 />
               </div>
               <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? t('register.creatingAccount') : t('register.createAccountButton')}
+                {form.formState.isSubmitting ? 'Creating Account...' : 'Create Account'}
               </Button>
             </form>
           </Form>
 
           <div className="mt-4 text-center text-sm">
-            {t('register.alreadyHaveAccount')}{' '}
+            Already have an account?{' '}
             <Link href="/login" className="underline">
-              {t('register.signInLink')}
+              Sign in
             </Link>
           </div>
         </CardContent>

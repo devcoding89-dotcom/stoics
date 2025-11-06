@@ -3,7 +3,6 @@ import './globals.css';
 import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
-import { LanguageGate } from '@/components/language-gate';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 
 export const metadata: Metadata = {
@@ -26,9 +25,7 @@ export default function RootLayout({
       <body className={cn('font-body antialiased')}>
         <FirebaseClientProvider>
             <FirebaseErrorListener />
-            <LanguageGate>
-              {children}
-            </LanguageGate>
+            {children}
             <Toaster />
         </FirebaseClientProvider>
       </body>

@@ -18,14 +18,14 @@ export default function DashboardPage() {
     <>
       <PageHeader
         title="Dashboard"
-        description={`Welcome back, ${welcomeName}! Here's your overview for today.`}
+        description={`Welcome back, ${welcomeName}! This is your fresh start.`}
       />
       <Card>
         <CardHeader>
           <CardTitle>Welcome!</CardTitle>
         </CardHeader>
         <CardContent>
-          <p>You have successfully logged in. This is your dashboard.</p>
+          <p>You have successfully logged into your new, stable application. From here, you can ask me to build out any features you need.</p>
           <p className="mt-4">Your role is: <strong>{userProfile.role}</strong></p>
         </CardContent>
       </Card>
