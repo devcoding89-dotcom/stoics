@@ -24,7 +24,7 @@ export default function Home() {
         return (
             <div className="flex h-screen w-screen items-center justify-center">
                 <div className="flex flex-col items-center gap-4">
-                    <Logo className="h-12 w-12 animate-pulse" />
+                    <Logo className="h-12 w-auto animate-pulse" />
                     <p className="text-muted-foreground">Loading...</p>
                 </div>
             </div>
@@ -39,7 +39,7 @@ export default function Home() {
         <div className="flex min-h-screen flex-col">
             <header className="container mx-auto flex h-20 items-center justify-between px-4 md:px-6">
                 <div className="flex items-center gap-2">
-                    <Logo className="h-8 w-8" />
+                    <Logo className="h-8 w-auto" />
                 </div>
                 <nav className="flex items-center gap-4">
                     <Button variant="ghost" asChild>
@@ -53,7 +53,7 @@ export default function Home() {
 
             <main className="flex-1">
                 <section className="container mx-auto flex flex-col items-center justify-center px-4 py-20 text-center md:px-6 md:py-32">
-                    <Logo className="h-24 w-24 mb-6" />
+                    <Logo className="h-24 w-auto mb-6" />
                     <h1 className="text-4xl font-extrabold tracking-tighter sm:text-5xl md:text-6xl font-headline">
                         Stoics Educational Institute & Services
                     </h1>

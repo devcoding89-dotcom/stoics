@@ -30,7 +30,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
       <Sidebar>
         <SidebarHeader>
           <div className="flex items-center gap-2 p-2">
-            <Logo />
+            <Logo className="h-8 w-auto" />
             <span className="font-bold text-lg font-headline">Stoics Educational Institute & Services</span>
           </div>
         </SidebarHeader>
@@ -141,7 +141,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     return (
        <div className="flex h-screen w-screen items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <Logo className="h-12 w-12 animate-pulse" />
+          <Logo className="h-12 w-auto animate-pulse" />
           <p className="text-muted-foreground">Loading your experience...</p>
         </div>
       </div>

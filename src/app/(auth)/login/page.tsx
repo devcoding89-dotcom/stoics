@@ -136,7 +136,7 @@ export default function LoginPage() {
   if (isUserLoading || user) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background">
-        <Logo className="h-12 w-12 animate-pulse" />
+        <Logo className="h-12 w-auto animate-pulse" />
       </div>
     );
   }
@@ -144,7 +144,7 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
       <div className="mb-8 flex items-center gap-2">
-        <Logo className="h-8 w-8" />
+        <Logo className="h-8 w-auto" />
         <span className="text-2xl font-bold font-headline">Stoics Educational Institute & Services</span>
       </div>
       <Card className="w-full max-w-sm">
