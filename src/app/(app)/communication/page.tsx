@@ -64,13 +64,13 @@ const Announcements = () => {
 }
 
 const Chat = () => {
-  const { userProfile } = useUser();
+  const { user, userProfile } = useUser();
   const firestore = useFirestore();
   
   const usersQuery = useMemoFirebase(() => {
-    if (!firestore || userProfile?.role !== 'admin') return null; // Only admins can list all users
+    if (!firestore || !user || userProfile?.role !== 'admin') return null; // Only admins can list all users
     return query(collection(firestore, 'users'));
-  }, [firestore, userProfile]);
+  }, [firestore, user, userProfile]);
 
   const { data: users, isLoading: usersLoading } = useCollection<AppUser>(usersQuery);
   const [selectedContact, setSelectedContact] = React.useState<AppUser | null>(null);

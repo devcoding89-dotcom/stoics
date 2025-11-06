@@ -144,7 +144,7 @@ export default function LessonsPage() {
 
 
   const lessonsQuery = useMemoFirebase(() => {
-    if (!user || !userProfile) return null;
+    if (!user || !userProfile || !firestore) return null;
     
     switch(userProfile.role) {
       case 'student':

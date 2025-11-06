@@ -27,7 +27,7 @@ const StudentListForLesson = ({ studentIds }: { studentIds: string[] }) => {
   const firestore = getFirestore();
 
   const studentsQuery = useMemoFirebase(() => {
-    if (!studentIds || studentIds.length === 0) return null;
+    if (!firestore || !studentIds || studentIds.length === 0) return null;
     return query(collection(firestore, 'users'), where(documentId(), 'in', studentIds));
   }, [firestore, studentIds]);
   
@@ -89,7 +89,7 @@ const TeacherAttendance = () => {
   const [selectedLessonId, setSelectedLessonId] = React.useState<string | undefined>();
 
   const lessonsQuery = useMemoFirebase(() => {
-    if (!user) return null;
+    if (!user || !firestore) return null;
     return query(collection(firestore, 'users', user.uid, 'lessons'));
   }, [firestore, user]);
   const { data: lessons, isLoading: lessonsLoading } = useCollection<Lesson>(lessonsQuery);
@@ -142,7 +142,7 @@ const ParentOrStudentAttendance = () => {
   const firestore = getFirestore();
 
   const attendanceQuery = useMemoFirebase(() => {
-    if (!user) return null;
+    if (!user || !firestore) return null;
     return query(collection(firestore, 'users', user.uid, 'attendances'));
   }, [firestore, user]);
 
