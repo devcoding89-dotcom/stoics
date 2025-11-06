@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
-import { useUser, useCollection, useMemoFirebase } from '@/firebase';
+import { useUser, useCollection, useMemoFirebase, useFirestore } from '@/firebase';
 import { getFirestore, collection, doc, updateDoc } from 'firebase/firestore';
 import type { User } from '@/lib/types';
 import { capitalize } from '@/lib/utils';
@@ -22,10 +22,13 @@ import { useToast } from '@/hooks/use-toast';
 
 export default function ManageUsersPage() {
   const { userProfile } = useUser();
-  const firestore = getFirestore();
+  const firestore = useFirestore();
   const { toast } = useToast();
 
-  const usersQuery = useMemoFirebase(() => collection(firestore, 'users'), [firestore]);
+  const usersQuery = useMemoFirebase(() => {
+    if (!firestore || !userProfile) return null;
+    return collection(firestore, 'users')
+  }, [firestore, userProfile]);
   const { data: users, isLoading } = useCollection<User>(usersQuery);
 
   if (!userProfile || userProfile.role !== 'admin') {

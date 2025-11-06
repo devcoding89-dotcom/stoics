@@ -13,7 +13,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { useUser, useCollection, useMemoFirebase } from '@/firebase';
+import { useUser, useCollection, useMemoFirebase, useFirestore } from '@/firebase';
 import { Badge } from '@/components/ui/badge';
 import { capitalize } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -24,7 +24,7 @@ import type { Lesson, Attendance, User } from '@/lib/types';
 import React from 'react';
 
 const StudentListForLesson = ({ studentIds }: { studentIds: string[] }) => {
-  const firestore = getFirestore();
+  const firestore = useFirestore();
 
   const studentsQuery = useMemoFirebase(() => {
     if (!firestore || !studentIds || studentIds.length === 0) return null;
@@ -85,7 +85,7 @@ const StudentListForLesson = ({ studentIds }: { studentIds: string[] }) => {
 
 const TeacherAttendance = () => {
   const { user } = useUser();
-  const firestore = getFirestore();
+  const firestore = useFirestore();
   const [selectedLessonId, setSelectedLessonId] = React.useState<string | undefined>();
 
   const lessonsQuery = useMemoFirebase(() => {
@@ -138,13 +138,13 @@ const TeacherAttendance = () => {
 };
 
 const ParentOrStudentAttendance = () => {
-  const { user } = useUser();
-  const firestore = getFirestore();
+  const { user, userProfile } = useUser();
+  const firestore = useFirestore();
 
   const attendanceQuery = useMemoFirebase(() => {
-    if (!user || !firestore) return null;
+    if (!user || !firestore || !userProfile) return null;
     return query(collection(firestore, 'users', user.uid, 'attendances'));
-  }, [firestore, user]);
+  }, [firestore, user, userProfile]);
 
   const { data: attendance, isLoading } = useCollection<Attendance>(attendanceQuery);
 
@@ -185,9 +185,9 @@ const ParentOrStudentAttendance = () => {
 }
 
 export default function AttendancePage() {
-  const { userProfile } = useUser();
+  const { userProfile, isUserLoading } = useUser();
 
-  if (!userProfile) {
+  if (isUserLoading || !userProfile) {
     return null; // Or a loading indicator
   }
 

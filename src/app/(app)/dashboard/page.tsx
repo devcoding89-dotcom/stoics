@@ -195,11 +195,12 @@ const ParentDashboard = () => (
 
 const AdminDashboard = () => {
     const firestore = useFirestore();
+    const { user, userProfile } = useUser();
     
     const usersQuery = useMemoFirebase(() => {
-        if (!firestore) return null;
+        if (!firestore || !user || !userProfile) return null;
         return collection(firestore, 'users');
-    }, [firestore]);
+    }, [firestore, user, userProfile]);
     
     const { data: users, isLoading: usersLoading } = useCollection<User>(usersQuery);
 

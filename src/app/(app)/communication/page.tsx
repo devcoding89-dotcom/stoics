@@ -68,7 +68,7 @@ const Chat = () => {
   const firestore = useFirestore();
   
   const usersQuery = useMemoFirebase(() => {
-    if (!firestore || !user || userProfile?.role !== 'admin') return null; // Only admins can list all users
+    if (!firestore || !user || !userProfile || userProfile?.role !== 'admin') return null; // Only admins can list all users
     return query(collection(firestore, 'users'));
   }, [firestore, user, userProfile]);
 

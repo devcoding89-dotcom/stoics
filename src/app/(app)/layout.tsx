@@ -157,7 +157,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
 
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { isUserLoading, user, isUserProfileLoading, userProfile } = useUser();
+  const { isUserLoading, user, userProfile } = useUser();
   const router = useRouter();
   
   useEffect(() => {
@@ -167,10 +167,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
   }, [isUserLoading, user, router]);
 
-  // Combined loading state: wait for both auth and profile fetch.
-  const isLoading = isUserLoading || isUserProfileLoading;
-
-  if (isLoading) {
+  if (isUserLoading || !userProfile) {
     return (
        <div className="flex h-screen w-screen items-center justify-center">
         <div className="flex flex-col items-center gap-4">
@@ -183,7 +180,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   // If loading is complete but there is no user, redirecting.
   // Returning null prevents children from rendering prematurely.
-  if (!user || !userProfile) {
+  if (!user) {
     return null;
   }
 
