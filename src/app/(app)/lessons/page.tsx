@@ -21,31 +21,33 @@ import { useUser, useCollection, useMemoFirebase } from '@/firebase';
 import type { Lesson } from '@/lib/types';
 import { BookPlus, MoreHorizontal } from 'lucide-react';
 import { format } from 'date-fns';
-import { collection, query, where, getFirestore, orderBy } from 'firebase/firestore';
+import { collection, query, where, getFirestore, orderBy, collectionGroup } from 'firebase/firestore';
 
 export default function LessonsPage() {
   const { user, userProfile } = useUser();
   const firestore = getFirestore();
 
   const lessonsQuery = useMemoFirebase(() => {
-    if (!userProfile) return null;
-    const coll = collection(firestore, 'lessons');
+    if (!user || !userProfile) return null;
     
     switch(userProfile.role) {
       case 'student':
-        return query(coll, where('studentIds', 'array-contains', userProfile.id), orderBy('scheduledDateTime', 'desc'));
+        // Students can't query the nested collections directly without teacherId.
+        // A top-level 'lessons' collection group query is needed for this role.
+        return query(collectionGroup(firestore, 'lessons'), where('studentIds', 'array-contains', user.uid), orderBy('scheduledDateTime', 'desc'));
       case 'teacher':
-        return query(coll, where('teacherId', '==', userProfile.id), orderBy('scheduledDateTime', 'desc'));
+        return query(collection(firestore, 'users', user.uid, 'lessons'), orderBy('scheduledDateTime', 'desc'));
       case 'admin':
-         return query(coll, orderBy('scheduledDateTime', 'desc'));
+         // Admins can see all lessons via a collection group query.
+         return query(collectionGroup(firestore, 'lessons'), orderBy('scheduledDateTime', 'desc'));
       case 'parent':
-        // This requires a more complex data model, e.g. parent having a list of child IDs.
-        // For now, we return null to show no lessons.
+        // This requires knowing the child's UID. For this demo, we assume the parent can't see lessons directly.
+        // A better data model would link parent and student accounts.
         return null; 
       default:
         return null;
     }
-  }, [firestore, userProfile]);
+  }, [firestore, user, userProfile]);
 
   const { data: lessons, isLoading } = useCollection<Lesson>(lessonsQuery);
 

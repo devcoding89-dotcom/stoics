@@ -30,7 +30,7 @@ const TeacherAttendance = () => {
 
   const lessonsQuery = useMemoFirebase(() => {
     if (!user) return null;
-    return query(collection(firestore, 'lessons'), where('teacherId', '==', user.uid));
+    return query(collection(firestore, 'users', user.uid, 'lessons'));
   }, [firestore, user]);
   const { data: lessons, isLoading: lessonsLoading } = useCollection<Lesson>(lessonsQuery);
 

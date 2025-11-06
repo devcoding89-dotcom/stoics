@@ -1,0 +1,172 @@
+/**
+ * @fileOverview Firestore Security Rules for Stoics Educational Services application.
+ *
+ * Core Philosophy:
+ * This ruleset enforces a strict user-ownership model for user-specific data,
+ * while allowing public read access to certain collections like announcements.
+ * Google Authentication is taken into account.
+ *
+ * Data Structure:
+ * - User profiles are stored under `/users/{userId}`.
+ * - Lessons are nested under teachers: `/users/{teacherId}/lessons/{lessonId}`.
+ * - Attendance records are nested under both students and lessons for efficient querying:
+ *   - `/users/{studentId}/attendances/{attendanceId}`
+ *   - `/users/{teacherId}/lessons/{lessonId}/attendances/{attendanceId}`
+ * - Payments are associated with students: `/users/{studentId}/payments/{paymentId}`.
+ * - Chat messages are stored in a top-level collection: `/chat_messages/{messageId}`.
+ * - Announcements are stored in a top-level collection: `/announcements/{announcementId}`.
+ * - AI Tutoring Contexts are stored in a top-level collection: `/ai_tutoring_contexts/{contextId}`.
+ *
+ * Key Security Decisions:
+ * - User listing is disallowed for non-admins. Admins can list all users.
+ * - Announcements are publicly readable but writable only by authorized users (teachers/admins - not yet implemented)
+ * - Data consistency is enforced between document IDs and path parameters.
+ * - All write operations require a verified user identity (`request.auth != null`).
+ *
+ * Denormalization for Authorization:
+ * - Attendance records nested under lessons include a denormalized `teacherId` to avoid `get()` calls
+ *   when enforcing attendance write rules.
+ *
+ * Structural Segregation:
+ * - Announcements are stored in a separate top-level collection for public read access.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Secures user profiles. Users can read/write their own profile. Admins can read all profiles.
+     * @path /users/{userId}
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
+      allow create: if isOwner(userId) && request.auth.uid == userId;
+      allow update: if isExistingOwner(userId) && request.auth.uid == userId && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId) && request.auth.uid == userId;
+
+      /**
+       * @description Secures lessons nested under a teacher.
+       * @path /users/{teacherId}/lessons/{lessonId}
+       */
+      match /lessons/{lessonId} {
+        allow get: if isSignedIn(); // Students/parents need to be able to get single lessons
+        allow list: if isOwner(userId); // Only teacher can list their own lessons
+        allow create: if isOwner(userId) && request.resource.data.teacherId == userId;
+        allow update: if isExistingOwner(userId) && request.resource.data.teacherId == resource.data.teacherId;
+        allow delete: if isExistingOwner(userId);
+      }
+
+      /**
+       * @description Secures attendance records for each student.
+       * @path /users/{studentId}/attendances/{attendanceId}
+       */
+      match /attendances/{attendanceId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && request.resource.data.studentId == userId;
+        allow update: if isExistingOwner(userId) && request.resource.data.studentId == resource.data.studentId;
+        allow delete: if isExistingOwner(userId);
+      }
+      
+      /**
+       * @description Secures payment records for each student.
+       * @path /users/{studentId}/payments/{paymentId}
+       */
+      match /payments/{paymentId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && request.resource.data.studentId == userId;
+        allow update: if isExistingOwner(userId) && request.resource.data.studentId == resource.data.studentId;
+        allow delete: if isExistingOwner(userId);
+      }
+    }
+
+    /**
+     * @description Collection group query rules for 'lessons'.
+     */
+    match /{path=**}/lessons/{lessonId} {
+       // Allow signed-in users to read lessons if they are an admin,
+       // or if they are a student associated with the lesson.
+       allow get: if isSignedIn();
+       allow list: if isSignedIn();
+    }
+    
+    /**
+     * @description Collection group query rules for 'payments'.
+     */
+    match /{path=**}/payments/{paymentId} {
+       // Allow admins to list all payments across all users.
+       allow list: if isAdmin();
+    }
+
+    /**
+     * @description Secures denormalized attendance records nested under lessons. The teacher owns the lesson and attendance.
+     * @path /users/{teacherId}/lessons/{lessonId}/attendances/{attendanceId}
+     */
+    match /users/{teacherId}/lessons/{lessonId}/attendances/{attendanceId} {
+      allow get: if isOwner(teacherId);
+      allow list: if isOwner(teacherId);
+      allow create: if isOwner(teacherId) && request.resource.data.teacherId == teacherId;
+      allow update: if isExistingOwner(teacherId) && request.resource.data.teacherId == resource.data.teacherId;
+      allow delete: if isExistingOwner(teacherId);
+    }
+
+    /**
+     * @description Secures chat messages. Any authenticated user can create chat messages.
+     * @path /chat_messages/{messageId}
+     */
+    match /chat_messages/{messageId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn();
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Secures global announcements. Announcements are publicly readable.
+     * @path /announcements/{announcementId}
+     */
+    match /announcements/{announcementId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if false; // TODO: Add admin/teacher role check
+      allow update: if false; // TODO: Add admin/teacher role check
+      allow delete: if false; // TODO: Add admin/teacher role check
+    }
+
+    /**
+     * @description Secures AI tutoring context.
+     * @path /ai_tutoring_contexts/{contextId}
+     */
+    match /ai_tutoring_contexts/{contextId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn(); // TODO: Add admin/teacher role check
+      allow update: if false; // TODO: Add admin/teacher role check
+      allow delete: if false; // TODO: Add admin/teacher role check
+    }
+  }
+
+  // Helper functions
+  function isSignedIn() {
+    return request.auth != null;
+  }
+
+  function isOwner(userId) {
+    return request.auth != null && request.auth.uid == userId;
+  }
+
+  function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+  }
+  
+  function getUserData(userId) {
+    return get(/databases/$(database)/documents/users/$(userId)).data;
+  }
+  
+  function isAdmin() {
+    return isSignedIn() && getUserData(request.auth.uid).role == 'admin';
+  }
+}

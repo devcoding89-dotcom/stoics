@@ -25,7 +25,9 @@ const StudentDashboard = () => {
 
   const lessonsQuery = useMemoFirebase(() => {
     if (!user) return null;
-    return query(collection(firestore, 'lessons'), where('studentIds', 'array-contains', user.uid), limit(1));
+    // This query is hypothetical as students aren't directly linked to lessons in a queryable way in the root collection
+    // This part of the UI may not show data until the data model is adjusted
+    return null; 
   }, [firestore, user]);
 
   const announcementsQuery = useMemoFirebase(() => {
@@ -58,10 +60,11 @@ const StudentDashboard = () => {
               <p className="text-xs text-muted-foreground">{upcomingLesson.subject}</p>
               <div className="flex items-center gap-2 mt-4">
                 <Avatar className="h-8 w-8">
-                  <AvatarFallback>{upcomingLesson.teacher.charAt(0)}</AvatarFallback>
+                  {/* In a real app, you would fetch teacher details based on teacherId */}
+                  <AvatarFallback>{upcomingLesson.teacherId.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="text-sm font-medium">{upcomingLesson.teacher}</p>
+                  <p className="text-sm font-medium">{upcomingLesson.teacherId}</p>
                   <p className="text-xs text-muted-foreground">{format(new Date(upcomingLesson.scheduledDateTime), "EEEE, MMMM d 'at' h:mm a")}</p>
                 </div>
               </div>
@@ -108,15 +111,17 @@ const TeacherDashboard = () => {
 
   const lessonsQuery = useMemoFirebase(() => {
     if (!user) return null;
-    return query(collection(firestore, 'lessons'), where('teacherId', '==', user.uid));
+    return query(collection(firestore, 'users', user.uid, 'lessons'));
   }, [firestore, user]);
 
   const { data: lessons, isLoading: lessonsLoading } = useCollection<Lesson>(lessonsQuery);
   const upcomingLessons = lessons?.filter(l => new Date(l.scheduledDateTime) > new Date()).slice(0, 2) || [];
 
+  const studentCount = lessons?.reduce((acc, l) => acc + (l.studentIds?.length || 0), 0) || '0';
+
   const stats = [
     { title: "Total Lessons", value: lessons?.length.toString() || '0', icon: BookOpenCheck },
-    { title: "Students Taught", value: lessons?.reduce((acc, l) => acc + (l.studentIds?.length || 0), 0) || '0', icon: UserCheck },
+    { title: "Students Taught", value: studentCount, icon: UserCheck },
     { title: "Monthly Earnings", value: "$0", icon: DollarSign }, // Placeholder
   ]
 
@@ -193,15 +198,17 @@ const ParentDashboard = () => (
 const AdminDashboard = () => {
     const firestore = getFirestore();
     const usersQuery = useMemoFirebase(() => collection(firestore, 'users'), [firestore]);
-    const lessonsQuery = useMemoFirebase(() => collection(firestore, 'lessons'), [firestore]);
+    // Admin cannot query all nested lessons directly without knowing teacher IDs.
+    // This would require a more complex aggregation or a separate top-level collection for all lessons if admins need this view.
+    // const lessonsQuery = useMemoFirebase(() => collection(firestore, 'lessons'), [firestore]);
     
     const { data: users, isLoading: usersLoading } = useCollection(usersQuery);
-    const { data: lessons, isLoading: lessonsLoading } = useCollection(lessonsQuery);
+    // const { data: lessons, isLoading: lessonsLoading } = useCollection(lessonsQuery);
 
     const stats = [
       { title: "Total Students", value: users?.filter(u => u.role === 'student').length.toString() || '0', icon: Users },
       { title: "Total Teachers", value: users?.filter(u => u.role === 'teacher').length.toString() || '0', icon: UserCheck },
-      { title: "Total Lessons", value: lessons?.length.toString() || '0', icon: BookOpenCheck },
+      { title: "Total Lessons", value: 'N/A', icon: BookOpenCheck }, // Cannot be calculated with current rules
       { title: "Revenue This Month", value: "$0", icon: DollarSign }, // Placeholder
     ]
 
@@ -214,7 +221,7 @@ const AdminDashboard = () => {
             <stat.icon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{usersLoading || lessonsLoading ? '...' : stat.value}</div>
+            <div className="text-2xl font-bold">{usersLoading ? '...' : stat.value}</div>
           </CardContent>
         </Card>
       ))}

@@ -29,7 +29,7 @@ import { Badge } from '@/components/ui/badge';
 import { DollarSign } from 'lucide-react';
 import { capitalize } from '@/lib/utils';
 import { format } from 'date-fns';
-import { collection, query, getFirestore, orderBy } from 'firebase/firestore';
+import { collection, query, getFirestore, orderBy, collectionGroup } from 'firebase/firestore';
 
 function PaymentDialog() {
   return (
@@ -78,7 +78,7 @@ export default function PaymentsPage() {
     
     // Admins see all payments. Students/parents see their own. Teachers don't see this collection directly.
     if (userProfile.role === 'admin') {
-      return query(collection(firestore, 'payments'), orderBy('paymentDate', 'desc'));
+      return query(collectionGroup(firestore, 'payments'), orderBy('paymentDate', 'desc'));
     }
     if (userProfile.role === 'student' || userProfile.role === 'parent') {
       return query(collection(firestore, 'users', user.uid, 'payments'), orderBy('paymentDate', 'desc'));
