@@ -22,7 +22,7 @@ import { useUser, useCollection, useMemoFirebase, useFirestore } from '@/firebas
 import type { Lesson, User } from '@/lib/types';
 import { BookPlus, MoreHorizontal } from 'lucide-react';
 import { format } from 'date-fns';
-import { collection, query, where, orderBy, collectionGroup, addDoc, getDocs } from 'firebase/firestore';
+import { collection, query, where, orderBy, collectionGroup, addDoc } from 'firebase/firestore';
 import {
   Dialog,
   DialogContent,
@@ -56,26 +56,13 @@ function CreateLessonDialog({ user, afterCreate }: { user: User; afterCreate: ()
     setIsLoading(true);
     try {
       const lessonsRef = collection(firestore, 'users', user.id, 'lessons');
-      
-      // Fetch all students to enroll them in the new lesson
-      const studentsQuery = query(collection(firestore, 'users'), where('role', '==', 'student'));
-      const studentsSnapshot = await getDocs(studentsQuery);
-      const studentIds = studentsSnapshot.docs.map(doc => doc.id);
-
-      if (studentIds.length === 0) {
-        toast({
-            title: 'No Students Found',
-            description: 'There are no students in the system to enroll in this lesson.',
-            variant: 'default',
-        });
-      }
 
       const newLesson: Omit<Lesson, 'id'> = {
         title,
         subject,
         teacherId: user.id,
         scheduledDateTime: new Date().toISOString(),
-        studentIds: studentIds, 
+        studentIds: [], // Start with an empty list of students
         materials: '',
         resources: ''
       };
@@ -84,7 +71,7 @@ function CreateLessonDialog({ user, afterCreate }: { user: User; afterCreate: ()
       
       toast({
         title: 'Lesson Created!',
-        description: `${title} has been added and all students enrolled.`,
+        description: `${title} has been added. You can now manage student enrollment.`,
         className: 'bg-accent text-accent-foreground',
       });
       afterCreate(); // Close dialog
@@ -105,7 +92,7 @@ function CreateLessonDialog({ user, afterCreate }: { user: User; afterCreate: ()
       <DialogHeader>
         <DialogTitle>Create a New Lesson</DialogTitle>
         <DialogDescription>
-          Fill in the details below to schedule a new lesson. All current students will be enrolled.
+          Fill in the details below to schedule a new lesson. You can add students after creation.
         </DialogDescription>
       </DialogHeader>
       <div className="space-y-4 py-4">
