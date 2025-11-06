@@ -7,13 +7,12 @@ import { Logo } from '@/components/logo';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export default function Home() {
     const { user, isUserLoading } = useUser();
     const router = useRouter();
-    const [isNavigating, setIsNavigating] = useState(false);
 
 
     useEffect(() => {
@@ -22,12 +21,8 @@ export default function Home() {
         }
     }, [user, isUserLoading, router]);
     
-    const handleLoginClick = () => {
-        setIsNavigating(true);
-        router.push('/login');
-    };
 
-    if (isUserLoading || user || isNavigating) {
+    if (isUserLoading || user) {
         return (
             <div className="flex h-screen w-screen items-center justify-center">
                 <div className="flex flex-col items-center gap-4">
@@ -49,8 +44,8 @@ export default function Home() {
                     <Logo className="h-8 w-auto" />
                 </div>
                 <nav className="flex items-center gap-4">
-                    <Button variant="ghost" onClick={handleLoginClick}>
-                        Log In
+                    <Button variant="ghost" asChild>
+                        <Link href="/login">Log In</Link>
                     </Button>
                     <Button asChild>
                         <Link href="/register">Sign Up</Link>
