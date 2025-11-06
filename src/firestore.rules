@@ -128,7 +128,6 @@ service cloud.firestore {
     }
 
     /**
-
      * @description Secures global announcements. Announcements are publicly readable.
      * @path /announcements/{announcementId}
      */

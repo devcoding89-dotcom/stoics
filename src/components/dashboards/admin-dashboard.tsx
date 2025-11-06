@@ -9,7 +9,7 @@ import type { User as AppUser } from '@/lib/types';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
 import { capitalize } from '@/lib/utils';
-import { Shield, UserCheck } from 'lucide-react';
+import { UserCheck } from 'lucide-react';
 
 interface AdminDashboardProps {
   user: FirebaseUser;
