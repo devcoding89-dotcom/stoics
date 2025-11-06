@@ -52,8 +52,8 @@ service cloud.firestore {
        * @path /users/{teacherId}/lessons/{lessonId}
        */
       match /lessons/{lessonId} {
-        allow get: if isSignedIn(); // Students/parents need to be able to get single lessons
-        allow list: if isOwner(userId); // Only teacher can list their own lessons
+        allow get: if isSignedIn() && (isOwner(userId) || request.auth.uid in resource.data.studentIds || isAdmin());
+        allow list: if isOwner(userId) || isAdmin(); // Teacher can list their own lessons
         allow create: if isOwner(userId) && request.resource.data.teacherId == userId;
         // Teacher can update their own lesson, including studentIds
         allow update: if isExistingOwner(userId) && request.resource.data.teacherId == resource.data.teacherId;
@@ -93,7 +93,7 @@ service cloud.firestore {
        // or if they are a student associated with the lesson.
        allow get: if isSignedIn();
        // This allows a student to query for their own lessons across all teachers.
-       allow list: if isSignedIn() && (isAdmin() || request.query.where.studentIds.includes(request.auth.uid));
+       allow list: if isSignedIn() && (isAdmin() || (request.query.filters.size() > 0 && request.query.filters[0].field == 'studentIds' && request.query.filters[0].op == 'array-contains' && request.query.filters[0].value == request.auth.uid));
     }
     
     /**

@@ -26,7 +26,7 @@ export function StudentDashboard({ user, userProfile }: StudentDashboardProps) {
   const lessonsQuery = useMemoFirebase(() => {
     if (!firestore || !userProfile.id) return null;
     return query(
-      collectionGroup(firestore, 'lessons'), 
+      collectionGroup(firestore, 'lessons'),
       where('studentIds', 'array-contains', userProfile.id),
       orderBy('scheduledDateTime', 'asc'),
       limit(3)
