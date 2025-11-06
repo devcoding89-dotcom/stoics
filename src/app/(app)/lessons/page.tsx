@@ -199,36 +199,36 @@ export default function LessonsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading && (
+              {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center">Loading lessons...</TableCell>
                 </TableRow>
-              )}
-              {!isLoading && lessons && lessons.length > 0 && lessons.map((lesson) => (
-                <TableRow key={lesson.id}>
-                  <TableCell className="font-medium">{lesson.title}</TableCell>
-                  <TableCell>{lesson.subject}</TableCell>
-                  <TableCell>{lesson.teacherId}</TableCell> {/* TODO: Fetch teacher name */}
-                  <TableCell>{format(new Date(lesson.scheduledDateTime), "MM/dd/yyyy h:mm a")}</TableCell>
-                  <TableCell className="text-right">
-                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Open menu</span>
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>View Details</DropdownMenuItem>
-                        {isTeacher && <DropdownMenuItem>Edit Lesson</DropdownMenuItem>}
-                        {(isTeacher || userProfile.role === 'admin') && <DropdownMenuItem className="text-destructive">Delete Lesson</DropdownMenuItem>}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
-               {!isLoading && (!lessons || lessons.length === 0) && (
+              ) : lessons && lessons.length > 0 ? (
+                lessons.map((lesson) => (
+                  <TableRow key={lesson.id}>
+                    <TableCell className="font-medium">{lesson.title}</TableCell>
+                    <TableCell>{lesson.subject}</TableCell>
+                    <TableCell>{lesson.teacherId}</TableCell> {/* TODO: Fetch teacher name */}
+                    <TableCell>{format(new Date(lesson.scheduledDateTime), "MM/dd/yyyy h:mm a")}</TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Open menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuItem>View Details</DropdownMenuItem>
+                          {isTeacher && <DropdownMenuItem>Edit Lesson</DropdownMenuItem>}
+                          {(isTeacher || userProfile.role === 'admin') && <DropdownMenuItem className="text-destructive">Delete Lesson</DropdownMenuItem>}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
                 <TableRow>
                   <TableCell colSpan={5} className="h-24 text-center">
                     No lessons found.
