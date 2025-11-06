@@ -1,3 +1,22 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "collaborative-learning",
+      "description": "A group of diverse students collaborating on a project in a modern classroom.",
+      "imageUrl": "https://images.unsplash.com/photo-1649920442906-3c8ef428fb6e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxzdHVkZW50cyUyMGNsYXNzcm9vbXxlbnwwfHx8fDE3NjI0MTgwNDV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "students classroom"
+    },
+    {
+      "id": "unified-platform",
+      "description": "A clean and modern dashboard interface showing charts and notifications.",
+      "imageUrl": "https://images.unsplash.com/photo-1758411898021-ef0dadaaa295?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxkYXNoYm9hcmQlMjBpbnRlcmZhY2V8ZW58MHx8fHwxNzYyMzk2OTA2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "dashboard interface"
+    },
+    {
+      "id": "ai-powered-support",
+      "description": "An illustration of a friendly robot or AI brain circuit, symbolizing artificial intelligence.",
+      "imageUrl": "https://images.unsplash.com/photo-1686386084459-8d9d14400a4b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxyb2JvdCUyMGlsbHVzdHJhdGlvbnxlbnwwfHx8fDE3NjI0MTM4NDF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "robot illustration"
+    }
+  ]
 }

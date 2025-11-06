@@ -1,13 +1,14 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, Zap, BrainCircuit } from 'lucide-react';
 import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export default function Home() {
     const { user, isUserLoading } = useUser();
@@ -29,6 +30,10 @@ export default function Home() {
             </div>
         );
     }
+    
+    const collaborativeLearningImage = PlaceHolderImages.find(p => p.id === 'collaborative-learning');
+    const unifiedPlatformImage = PlaceHolderImages.find(p => p.id === 'unified-platform');
+    const aiPoweredSupportImage = PlaceHolderImages.find(p => p.id === 'ai-powered-support');
 
     return (
         <div className="flex min-h-screen flex-col">
@@ -50,49 +55,70 @@ export default function Home() {
             <main className="flex-1">
                 <section className="container mx-auto flex flex-col items-center justify-center px-4 py-20 text-center md:px-6 md:py-32">
                     <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl font-headline">
-                        A Digital Learning Companion
+                        Empowering Minds, Connecting Futures
                     </h1>
                     <p className="mx-auto mt-4 max-w-[700px] text-lg text-muted-foreground">
-                        Empowering students, teachers, and parents with a unified platform for education management and AI-powered support.
+                        A unified platform for students, teachers, and parents to collaborate, learn, and grow together.
                     </p>
                     <Button asChild size="lg" className="mt-8">
-                        <Link href="/register">Get Started Today</Link>
+                        <Link href="/register">Join Our Community</Link>
                     </Button>
                 </section>
 
                 <section className="bg-muted py-20">
                     <div className="container mx-auto grid grid-cols-1 gap-8 px-4 md:grid-cols-3 md:px-6">
-                        <Card>
-                            <CardHeader className="flex flex-row items-center gap-4">
-                                <div className="rounded-full bg-primary/10 p-3">
-                                    <CheckCircle className="h-6 w-6 text-primary" />
-                                </div>
-                                <CardTitle>Stable & Secure</CardTitle>
+                        <Card className="overflow-hidden">
+                            {collaborativeLearningImage && (
+                                <Image
+                                    src={collaborativeLearningImage.imageUrl}
+                                    alt="Students collaborating"
+                                    width={600}
+                                    height={400}
+                                    className="w-full h-48 object-cover"
+                                    data-ai-hint={collaborativeLearningImage.imageHint}
+                                />
+                            )}
+                            <CardHeader>
+                                <CardTitle>Collaborative Learning</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p>Built on a reliable foundation with secure Firebase authentication, ensuring your data is always safe and accessible.</p>
+                                <p>Engage in a shared learning environment where teachers can create lessons, and students can access materials anytime.</p>
                             </CardContent>
                         </Card>
-                        <Card>
-                            <CardHeader className="flex flex-row items-center gap-4">
-                                <div className="rounded-full bg-primary/10 p-3">
-                                    <Zap className="h-6 w-6 text-primary" />
-                                </div>
-                                <CardTitle>Ready to Scale</CardTitle>
+                        <Card className="overflow-hidden">
+                             {unifiedPlatformImage && (
+                                <Image
+                                    src={unifiedPlatformImage.imageUrl}
+                                    alt="Dashboard view"
+                                    width={600}
+                                    height={400}
+                                    className="w-full h-48 object-cover"
+                                    data-ai-hint={unifiedPlatformImage.imageHint}
+                                />
+                            )}
+                            <CardHeader>
+                                <CardTitle>Unified Platform</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p>A clean and minimal starting point, ready for you to build upon. Add features for lessons, payments, and more.</p>
+                                <p>A single, reliable place for parents to track attendance, manage payments, and communicate with teachers seamlessly.</p>
                             </CardContent>
                         </Card>
-                        <Card>
-                            <CardHeader className="flex flex-row items-center gap-4">
-                                <div className="rounded-full bg-primary/10 p-3">
-                                    <BrainCircuit className="h-6 w-6 text-primary" />
-                                </div>
-                                <CardTitle>AI-Powered</CardTitle>
+                        <Card className="overflow-hidden">
+                            {aiPoweredSupportImage && (
+                                <Image
+                                    src={aiPoweredSupportImage.imageUrl}
+                                    alt="AI bot illustration"
+                                    width={600}
+                                    height={400}
+                                    className="w-full h-48 object-cover"
+                                    data-ai-hint={aiPoweredSupportImage.imageHint}
+                                />
+                            )}
+                            <CardHeader>
+                                <CardTitle>AI-Powered Support</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p>Integrated with cutting-edge AI to provide homework assistance, tutor customization, and future innovations.</p>
+                                <p>Leverage cutting-edge AI for homework help and personalized tutoring, with customizable teacher-led instructions.</p>
                             </CardContent>
                         </Card>
                     </div>
