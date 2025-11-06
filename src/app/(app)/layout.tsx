@@ -38,7 +38,6 @@ import {
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getAuth, signOut } from 'firebase/auth';
-import type { User } from '@/lib/types';
 
 const navItems = {
   shared: [
@@ -82,7 +81,7 @@ function getNavigation(role: UserRole) {
 }
 
 function MainLayout({ children }: { children: React.ReactNode }) {
-  const { user, isUserLoading, userProfile } = useUser();
+  const { user, userProfile, isUserLoading } = useUser();
   const router = useRouter();
   const pathname = usePathname();
   const auth = getAuth();
