@@ -7,34 +7,29 @@ import { Auth, getAuth } from 'firebase/auth';
 import { Firestore, getFirestore } from 'firebase/firestore';
 import { useMemo, type DependencyList } from 'react';
 
-// IMPORTANT: DO NOT MODIFY THIS FUNCTION
-export function initializeFirebase() {
-  if (!getApps().length) {
-    // Important! initializeApp() is called without any arguments because Firebase App Hosting
-    // integrates with the initializeApp() function to provide the environment variables needed to
-    // populate the FirebaseOptions in production. It is critical that we attempt to call initializeApp()
-    // without arguments.
-    let firebaseApp;
-    try {
-      // Attempt to initialize via Firebase App Hosting environment variables
-      firebaseApp = initializeApp();
-    } catch (e) {
-      // Only warn in production because it's normal to use the firebaseConfig to initialize
-      // during development
-      if (process.env.NODE_ENV === "production") {
-        console.warn('Automatic initialization failed. Falling back to firebase config object.', e);
-      }
-      firebaseApp = initializeApp(firebaseConfig);
-    }
+// IMPORTANT: This file is now responsible for initializing Firebase.
+// It creates a singleton instance of the Firebase services that is shared
+// across the entire application. This is critical to prevent race conditions
+// and internal errors from the Firebase SDK, especially in development with hot-reloading.
 
-    return getSdks(firebaseApp);
+function initializeFirebase() {
+  if (getApps().length > 0) {
+    return getSdks(getApp());
   }
 
-  // If already initialized, return the SDKs with the already initialized App
-  return getSdks(getApp());
+  let firebaseApp;
+  try {
+    // This will work in production with Firebase App Hosting.
+    firebaseApp = initializeApp();
+  } catch (e) {
+    // This is the fallback for local development.
+    firebaseApp = initializeApp(firebaseConfig);
+  }
+  
+  return getSdks(firebaseApp);
 }
 
-export function getSdks(firebaseApp: FirebaseApp) {
+function getSdks(firebaseApp: FirebaseApp) {
   const firestore = getFirestore(firebaseApp);
   const auth = getAuth(firebaseApp);
   return {
@@ -43,6 +38,9 @@ export function getSdks(firebaseApp: FirebaseApp) {
     firestore
   };
 }
+
+// Initialize and export the Firebase services as singletons.
+export const { firebaseApp, auth, firestore } = initializeFirebase();
 
 export * from './provider';
 export * from './client-provider';

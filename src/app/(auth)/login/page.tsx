@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -7,7 +8,7 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
 } from 'firebase/auth';
-import { doc, getDoc, getFirestore, collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, getFirestore, collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -33,7 +34,7 @@ type LoginStep = 'start' | 'otp';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { user, isUserLoading, setUser: setGlobalUser, setUserProfile: setGlobalUserProfile } = useFirebase();
+  const { user, isUserLoading, setUser: setGlobalUser, setUserProfile: setGlobalUserProfile } = useUser();
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [loginStep, setLoginStep] = useState<LoginStep>('start');
   const [email, setEmail] = useState('');
@@ -43,7 +44,9 @@ export default function LoginPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!isUserLoading && user) {
+    // Only redirect if user is loaded and present.
+    // This prevents redirects during hot-reloads or before auth state is known.
+    if (user && !isUserLoading) {
       router.push('/dashboard');
     }
   }, [user, isUserLoading, router]);
@@ -166,6 +169,7 @@ export default function LoginPage() {
     }
   };
 
+  // While checking auth state, show a loading spinner.
   if (isUserLoading) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background">
@@ -174,12 +178,10 @@ export default function LoginPage() {
     );
   }
   
+  // If user is already logged in (e.g. from a previous session), the useEffect will redirect them.
+  // Rendering null here prevents the login form from flashing briefly.
   if (user) {
-     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-background">
-        <Logo className="h-12 w-12 animate-pulse" />
-      </div>
-    );
+     return null;
   }
 
 
