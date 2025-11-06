@@ -17,17 +17,18 @@ import {
 } from 'lucide-react';
 import { capitalize } from '@/lib/utils';
 import { format } from 'date-fns';
-import { collection, query, where, getFirestore, limit } from 'firebase/firestore';
+import { collection, query, where, getFirestore, limit, collectionGroup } from 'firebase/firestore';
 
 const StudentDashboard = () => {
   const { user } = useUser();
   const firestore = getFirestore();
 
   // In a real app, you would have a way to associate students with lessons.
-  // For now, this query is disabled for students as there's no direct link in the top-level.
   const lessonsQuery = useMemoFirebase(() => {
-    return null; 
-  }, []);
+    if (!user) return null; 
+    // This query is for demonstration. A real implementation would be more robust.
+    return query(collectionGroup(firestore, 'lessons'), where('studentIds', 'array-contains', user.uid), limit(1));
+  }, [firestore, user]);
 
   const announcementsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
@@ -251,9 +252,9 @@ const dashboardComponents: Record<UserRole, React.ComponentType> = {
 };
 
 export default function DashboardPage() {
-  const { user, userProfile } = useUser();
+  const { user, userProfile, isUserLoading, isUserProfileLoading } = useUser();
   
-  if (!userProfile || !user) {
+  if (isUserLoading || isUserProfileLoading || !userProfile || !user) {
     return null; // Or a loading indicator
   }
 

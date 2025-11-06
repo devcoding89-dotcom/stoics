@@ -4,7 +4,7 @@
 import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useUser } from '@/firebase';
+import { useUser } from '@/context/user-context';
 import type { UserRole } from '@/lib/types';
 
 import {
@@ -80,7 +80,7 @@ function getNavigation(role: UserRole) {
 }
 
 function MainLayout({ children }: { children: React.ReactNode }) {
-  const { user, isUserLoading, userProfile } = useUser();
+  const { user, isUserLoading, userProfile, isUserProfileLoading } = useUser();
   const router = useRouter();
   const pathname = usePathname();
   const auth = getAuth();
@@ -92,7 +92,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
     }
   }, [user, isUserLoading, router]);
 
-  if (isUserLoading || !userProfile) {
+  if (isUserLoading || isUserProfileLoading || !userProfile) {
     return (
       <div className="flex h-screen w-screen items-center justify-center">
         <div className="flex flex-col items-center gap-4">

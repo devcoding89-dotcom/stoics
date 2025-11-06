@@ -5,6 +5,7 @@ import { UserProvider } from '@/context/user-context';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { LanguageGate } from '@/components/language-gate';
+import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 
 export const metadata: Metadata = {
   title: 'Stoics Educational Services',
@@ -26,6 +27,7 @@ export default function RootLayout({
       <body className={cn('font-body antialiased')}>
         <FirebaseClientProvider>
           <UserProvider>
+            <FirebaseErrorListener />
             <LanguageGate>
               {children}
             </LanguageGate>
