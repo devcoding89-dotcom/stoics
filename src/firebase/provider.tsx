@@ -19,7 +19,7 @@ export interface FirebaseContextState {
   auth: Auth;
   user: User | null;
   userProfile: AppUser | null;
-  isUserLoading: boolean; 
+  isUserLoading: boolean;
 }
 
 export const FirebaseContext = createContext<FirebaseContextState | undefined>(undefined);
@@ -37,7 +37,6 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setIsUserLoading(true);
-
       if (firebaseUser) {
         setUser(firebaseUser);
         const userRef = doc(firestore, 'users', firebaseUser.uid);

@@ -156,7 +156,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
 
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { isUserLoading, user, userProfile, isUserProfileLoading } = useUser();
+  const { isUserLoading, user, userProfile } = useUser();
   const router = useRouter();
   
   useEffect(() => {
@@ -166,8 +166,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
   }, [isUserLoading, user, router]);
 
-  // Combined loading state. Show loading until both auth and profile are done.
-  if (isUserLoading || isUserProfileLoading || !userProfile) {
+  // Show loading indicator until user/profile is loaded or if there's no user and we are about to redirect.
+  if (isUserLoading || !userProfile) {
     return (
        <div className="flex h-screen w-screen items-center justify-center">
         <div className="flex flex-col items-center gap-4">
@@ -177,12 +177,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </div>
     )
   }
-
-  // If loading is complete but there is no user, redirecting.
+  
+  // If loading is complete but there is still no user, redirecting.
   // Returning null prevents children from rendering prematurely.
   if (!user) {
     return null;
   }
+
 
   return (
     <SidebarProvider>

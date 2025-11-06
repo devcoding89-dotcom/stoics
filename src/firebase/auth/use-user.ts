@@ -7,10 +7,9 @@ export interface UseUserHook {
     user: FirebaseUser | null;
     userProfile: AppUser | null;
     isUserLoading: boolean;
-    isUserProfileLoading: boolean;
 }
 
 export function useUser(): UseUserHook {
-  const { user, userProfile, isUserLoading, isUserProfileLoading } = useFirebase();
-  return { user, userProfile, isUserLoading, isUserProfileLoading };
+  const { user, userProfile, isUserLoading } = useFirebase();
+  return { user, userProfile, isUserLoading };
 };
