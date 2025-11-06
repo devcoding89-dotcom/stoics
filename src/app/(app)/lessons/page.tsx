@@ -22,7 +22,7 @@ import { useUser, useCollection, useMemoFirebase } from '@/firebase';
 import type { Lesson, User } from '@/lib/types';
 import { BookPlus, MoreHorizontal } from 'lucide-react';
 import { format } from 'date-fns';
-import { collection, query, where, getFirestore, orderBy, collectionGroup, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, getFirestore, orderBy, collectionGroup, addDoc, getDocs } from 'firebase/firestore';
 import {
   Dialog,
   DialogContent,
@@ -35,7 +35,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 function CreateLessonDialog({ user, afterCreate }: { user: User; afterCreate: () => void }) {
   const [title, setTitle] = React.useState('');
@@ -56,17 +55,26 @@ function CreateLessonDialog({ user, afterCreate }: { user: User; afterCreate: ()
     setIsLoading(true);
     try {
       const lessonsRef = collection(firestore, 'users', user.id, 'lessons');
-      // In a real app, studentIds would be assigned based on enrollment.
-      // For now, we'll assign some mock student IDs for demonstration.
-      // This assumes student users with these IDs exist.
-      const mockStudentIds = ['student1-mock-id', 'student2-mock-id'];
+      
+      // Fetch all students to enroll them in the new lesson
+      const studentsQuery = query(collection(firestore, 'users'), where('role', '==', 'student'));
+      const studentsSnapshot = await getDocs(studentsQuery);
+      const studentIds = studentsSnapshot.docs.map(doc => doc.id);
+
+      if (studentIds.length === 0) {
+        toast({
+            title: 'No Students Found',
+            description: 'There are no students in the system to enroll in this lesson.',
+            variant: 'default',
+        });
+      }
 
       const newLesson: Omit<Lesson, 'id'> = {
         title,
         subject,
         teacherId: user.id,
-        scheduledDateTime: new Date().toISOString(), // Default to now
-        studentIds: mockStudentIds, 
+        scheduledDateTime: new Date().toISOString(),
+        studentIds: studentIds, 
         materials: '',
         resources: ''
       };
@@ -75,7 +83,7 @@ function CreateLessonDialog({ user, afterCreate }: { user: User; afterCreate: ()
       
       toast({
         title: 'Lesson Created!',
-        description: `${title} has been added.`,
+        description: `${title} has been added and all students enrolled.`,
         className: 'bg-accent text-accent-foreground',
       });
       afterCreate(); // Close dialog
@@ -96,7 +104,7 @@ function CreateLessonDialog({ user, afterCreate }: { user: User; afterCreate: ()
       <DialogHeader>
         <DialogTitle>Create a New Lesson</DialogTitle>
         <DialogDescription>
-          Fill in the details below to schedule a new lesson.
+          Fill in the details below to schedule a new lesson. All current students will be enrolled.
         </DialogDescription>
       </DialogHeader>
       <div className="space-y-4 py-4">
@@ -146,6 +154,7 @@ export default function LessonsPage() {
       case 'admin':
          return query(collectionGroup(firestore, 'lessons'), orderBy('scheduledDateTime', 'desc'));
       case 'parent':
+        // TODO: This would require linking parents to students. For now, it returns nothing.
         return null; 
       default:
         return null;

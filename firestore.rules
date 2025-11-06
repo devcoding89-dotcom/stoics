@@ -89,10 +89,10 @@ service cloud.firestore {
      * @description Collection group query rules for 'lessons'.
      */
     match /{path=**}/lessons/{lessonId} {
-       // Allow signed-in users to read lessons if they are an admin,
+       // Allow signed-in users to read lessons if they are an admin, the teacher,
        // or if they are a student associated with the lesson.
        allow get: if isSignedIn();
-       allow list: if isSignedIn();
+       allow list: if isSignedIn() && (isAdmin() || request.auth.uid in resource.data.studentIds);
     }
     
     /**
