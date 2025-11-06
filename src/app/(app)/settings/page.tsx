@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { PageHeader } from '@/components/page-header';
-import { useUser } from '@/context/user-context';
+import { useUser } from '@/firebase';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -70,9 +70,9 @@ function AiPersonalityCustomizer() {
 }
 
 export default function SettingsPage() {
-  const { userProfile, loading } = useUser();
+  const { userProfile, isUserProfileLoading } = useUser();
   
-  if (loading || !userProfile) {
+  if (isUserProfileLoading || !userProfile) {
     return null;
   }
 

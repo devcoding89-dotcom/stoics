@@ -4,7 +4,7 @@
 import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useUser } from '@/context/user-context';
+import { useUser } from '@/firebase';
 import type { UserRole } from '@/lib/types';
 
 import {
@@ -92,7 +92,18 @@ function MainLayout({ children }: { children: React.ReactNode }) {
     }
   }, [user, isUserLoading, router]);
 
-  if (isUserLoading || isUserProfileLoading || !userProfile) {
+  const handleLogout = () => {
+    signOut(auth);
+  };
+  
+  const handleLinkClick = (e: React.MouseEvent) => {
+    // Only close on mobile
+    if (window.innerWidth < 768) {
+      setOpenMobile(false);
+    }
+  };
+
+  if (isUserLoading || isUserProfileLoading || !userProfile || !user) {
     return (
       <div className="flex h-screen w-screen items-center justify-center">
         <div className="flex flex-col items-center gap-4">
@@ -104,14 +115,6 @@ function MainLayout({ children }: { children: React.ReactNode }) {
   }
   
   const navigation = getNavigation(userProfile.role);
-
-  const handleLogout = () => {
-    signOut(auth);
-  };
-  
-  const handleLinkClick = () => {
-    setOpenMobile(false);
-  };
 
   return (
     <div className="min-h-screen bg-background">

@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { cn } from '@/lib/utils';
-import { UserProvider } from '@/context/user-context';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { LanguageGate } from '@/components/language-gate';
@@ -26,13 +25,11 @@ export default function RootLayout({
       </head>
       <body className={cn('font-body antialiased')}>
         <FirebaseClientProvider>
-          <UserProvider>
             <FirebaseErrorListener />
             <LanguageGate>
               {children}
             </LanguageGate>
             <Toaster />
-          </UserProvider>
         </FirebaseClientProvider>
       </body>
     </html>
