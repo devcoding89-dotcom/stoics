@@ -52,7 +52,7 @@ service cloud.firestore {
        * @path /users/{teacherId}/lessons/{lessonId}
        */
       match /lessons/{lessonId} {
-        allow get: if isSignedIn();
+        allow get: if isSignedIn(); // Students/parents need to be able to get single lessons
         allow list: if isOwner(userId); // Only teacher can list their own lessons
         allow create: if isOwner(userId) && request.resource.data.teacherId == userId;
         // Teacher can update their own lesson, including studentIds
@@ -134,9 +134,9 @@ service cloud.firestore {
     match /announcements/{announcementId} {
       allow get: if true;
       allow list: if true;
-      allow create: if false; // TODO: Add admin/teacher role check
-      allow update: if false; // TODO: Add admin/teacher role check
-      allow delete: if false; // TODO: Add admin/teacher role check
+      allow create: if isTeacherOrAdmin();
+      allow update: if isTeacherOrAdmin();
+      allow delete: if isTeacherOrAdmin();
     }
 
     /**
@@ -146,9 +146,9 @@ service cloud.firestore {
     match /ai_tutoring_contexts/{contextId} {
       allow get: if true;
       allow list: if true;
-      allow create: if isSignedIn(); // TODO: Add admin/teacher role check
-      allow update: if false; // TODO: Add admin/teacher role check
-      allow delete: if false; // TODO: Add admin/teacher role check
+      allow create: if isTeacherOrAdmin();
+      allow update: if isTeacherOrAdmin();
+      allow delete: if isTeacherOrAdmin();
     }
   }
 
@@ -171,6 +171,10 @@ service cloud.firestore {
   
   function isAdmin() {
     return isSignedIn() && getUserData(request.auth.uid).role == 'admin';
+  }
+  
+  function isTeacherOrAdmin() {
+    return isSignedIn() && (getUserData(request.auth.uid).role == 'admin' || getUserData(request.auth.uid).role == 'teacher');
   }
   
   function isUpdatingOtp() {

@@ -12,6 +12,7 @@ import { ArrowRight, BookCopy, Calendar, Megaphone } from 'lucide-react';
 import { capitalize } from '@/lib/utils';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, where, orderBy, limit, collectionGroup } from 'firebase/firestore';
+import { format } from 'date-fns';
 
 interface StudentDashboardProps {
   user: FirebaseUser;
@@ -33,11 +34,21 @@ export function StudentDashboard({ user, userProfile }: StudentDashboardProps) {
   }, [firestore]);
   const { data: announcements, isLoading: announcementsLoading } = useCollection<Announcement>(announcementsQuery);
 
+  // Fetch lessons where the student is enrolled
+  const lessonsQuery = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return query(
+      collectionGroup(firestore, 'lessons'),
+      where('studentIds', 'array-contains', user.uid),
+      orderBy('scheduledDateTime', 'desc'),
+      limit(5)
+    );
+  }, [firestore, user]);
+  const { data: upcomingLessons, isLoading: lessonsLoading } = useCollection<Lesson>(lessonsQuery);
+
+
   // Homework data - will be empty for now
   const homeworkData: Homework[] = [];
-
-  const lessonsLoading = false;
-  const upcomingLessons: Lesson[] = [];
 
   return (
     <>
@@ -63,11 +74,26 @@ export function StudentDashboard({ user, userProfile }: StudentDashboardProps) {
                 <TableRow>
                   <TableHead>Lesson</TableHead>
                   <TableHead className="hidden sm:table-cell">Teacher</TableHead>
-                  <TableHead>Time</TableHead>
+                  <TableHead>Date</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow><TableCell colSpan={3} className="text-center">Upcoming lessons are currently unavailable.</TableCell></TableRow>
+                {lessonsLoading && (
+                  <TableRow>
+                    <TableCell colSpan={3} className="text-center">Loading your lessons...</TableCell>
+                  </TableRow>
+                )}
+                {!lessonsLoading && upcomingLessons && upcomingLessons.length > 0 ? (
+                  upcomingLessons.map(lesson => (
+                    <TableRow key={lesson.id}>
+                        <TableCell className="font-medium">{lesson.title}</TableCell>
+                        <TableCell className="hidden sm:table-cell">{lesson.teacherName}</TableCell>
+                        <TableCell>{format(new Date(lesson.scheduledDateTime), 'PPP')}</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                    !lessonsLoading && <TableRow><TableCell colSpan={3} className="text-center">You are not enrolled in any upcoming lessons.</TableCell></TableRow>
+                )}
               </TableBody>
             </Table>
           </CardContent>

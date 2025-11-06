@@ -5,13 +5,14 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { collection, serverTimestamp } from 'firebase/firestore';
+import { collection, serverTimestamp, query, where, orderBy } from 'firebase/firestore';
 
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -20,16 +21,18 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { useFirestore, useUser } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, Check, ChevronsUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import type { User as AppUser } from '@/lib/types';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
+import { Badge } from '@/components/ui/badge';
 
 const formSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters.'),
@@ -39,6 +42,7 @@ const formSchema = z.object({
   }),
   materials: z.string().optional(),
   resources: z.string().optional(),
+  studentIds: z.array(z.string()).optional(),
 });
 
 export default function CreateLessonPage() {
@@ -47,6 +51,18 @@ export default function CreateLessonPage() {
   const { user } = useUser();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  // Fetch all student users to populate the multi-select
+  const studentsQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(
+      collection(firestore, 'users'), 
+      where('role', '==', 'student'),
+      orderBy('lastName', 'asc')
+    );
+  }, [firestore]);
+  const { data: students, isLoading: studentsLoading } = useCollection<AppUser>(studentsQuery);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -55,8 +71,11 @@ export default function CreateLessonPage() {
       subject: '',
       materials: '',
       resources: '',
+      studentIds: [],
     },
   });
+  
+  const selectedStudentIds = form.watch('studentIds') || [];
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     if (!user || !firestore) {
@@ -73,12 +92,14 @@ export default function CreateLessonPage() {
     const lessonData = {
       ...values,
       teacherId: user.uid,
+      teacherName: user.displayName || 'Unnamed Teacher',
       scheduledDateTime: values.scheduledDateTime.toISOString(),
+      studentIds: values.studentIds || [],
       createdAt: serverTimestamp(),
     };
     
     addDocumentNonBlocking(lessonsRef, lessonData)
-      .then(() => {
+      .then((docRef) => {
         toast({
           title: 'Lesson Created',
           description: `The lesson "${values.title}" has been successfully created.`,
@@ -87,7 +108,6 @@ export default function CreateLessonPage() {
       })
       .catch((error) => {
         console.error('Error creating lesson:', error);
-        // Let the global error handler catch permission errors.
         if (!(error instanceof FirestorePermissionError)) {
             toast({
                 title: 'Error creating lesson',
@@ -148,7 +168,7 @@ export default function CreateLessonPage() {
                   name="scheduledDateTime"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel>Scheduled Date & Time</FormLabel>
+                      <FormLabel>Scheduled Date</FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -184,6 +204,77 @@ export default function CreateLessonPage() {
                     </FormItem>
                   )}
                 />
+                
+              <FormField
+                control={form.control}
+                name="studentIds"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Assign Students</FormLabel>
+                    <Popover open={open} onOpenChange={setOpen}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            className={cn(
+                              "w-full justify-between h-auto",
+                              !field.value?.length && "text-muted-foreground"
+                            )}
+                          >
+                             <div className="flex flex-wrap gap-1">
+                                {selectedStudentIds.length > 0 ? (
+                                  students?.filter(s => selectedStudentIds.includes(s.id)).map(s => (
+                                    <Badge key={s.id} variant="secondary">{`${s.firstName} ${s.lastName}`}</Badge>
+                                  ))
+                                ) : (
+                                  "Select students..."
+                                )}
+                              </div>
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                        <Command>
+                          <CommandInput placeholder="Search students..." />
+                          <CommandEmpty>No students found.</CommandEmpty>
+                          <CommandGroup>
+                            {studentsLoading && <CommandItem>Loading...</CommandItem>}
+                            {students?.map((student) => (
+                              <CommandItem
+                                value={`${student.firstName} ${student.lastName}`}
+                                key={student.id}
+                                onSelect={() => {
+                                  const currentIds = field.value || [];
+                                  const newIds = currentIds.includes(student.id)
+                                      ? currentIds.filter(id => id !== student.id)
+                                      : [...currentIds, student.id];
+                                  field.onChange(newIds);
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    field.value?.includes(student.id)
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                                {`${student.firstName} ${student.lastName}`}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    <FormDescription>
+                      Select one or more students to enroll in this lesson.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}
