@@ -10,8 +10,9 @@ interface FirebaseClientProviderProps {
 }
 
 export function FirebaseClientProvider({ children }: FirebaseClientProviderProps) {
-  // The Firebase services are now imported as singletons,
-  // so we just pass them directly to the provider.
+  // The Firebase services are now imported as singletons from '@/firebase/index.ts',
+  // so we just pass them directly to the provider. This ensures they are
+  // initialized only once for the entire application lifecycle.
   return (
     <FirebaseProvider
       firebaseApp={firebaseApp}

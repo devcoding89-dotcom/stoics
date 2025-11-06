@@ -13,27 +13,28 @@ import { useMemo, type DependencyList } from 'react';
 // and internal errors from the Firebase SDK, especially in development with hot-reloading.
 
 function initializeFirebase() {
-  if (getApps().length > 0) {
-    return getSdks(getApp());
-  }
-
-  let firebaseApp;
-  try {
-    // This will work in production with Firebase App Hosting.
-    firebaseApp = initializeApp();
-  } catch (e) {
-    // This is the fallback for local development.
-    firebaseApp = initializeApp(firebaseConfig);
+  const apps = getApps();
+  if (apps.length > 0) {
+    return getSdks(apps[0]); // Return existing app instance
   }
   
-  return getSdks(firebaseApp);
+  // In a production App Hosting environment, the config is automatically provided.
+  // In local dev, we fall back to our explicit config file.
+  let app: FirebaseApp;
+  try {
+     app = initializeApp();
+  } catch (e) {
+     app = initializeApp(firebaseConfig);
+  }
+
+  return getSdks(app);
 }
 
-function getSdks(firebaseApp: FirebaseApp) {
-  const firestore = getFirestore(firebaseApp);
-  const auth = getAuth(firebaseApp);
+function getSdks(app: FirebaseApp) {
+  const firestore = getFirestore(app);
+  const auth = getAuth(app);
   return {
-    firebaseApp,
+    firebaseApp: app,
     auth,
     firestore
   };
