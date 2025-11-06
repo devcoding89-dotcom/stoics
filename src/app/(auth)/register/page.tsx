@@ -107,16 +107,19 @@ export default function RegisterPage() {
 
       router.push('/login');
     } catch (error: any) {
-      console.error('Registration error:', error);
-      let errorMessage = 'Failed to create account. Please try again.';
       if (error.code === 'auth/email-already-in-use') {
-        errorMessage = 'This email is already in use by another account.';
+        form.setError('email', {
+          type: 'manual',
+          message: 'This email is already in use. Please try another email or log in.',
+        });
+      } else {
+        console.error('Registration error:', error);
+        toast({
+          title: 'Registration Failed',
+          description: 'Failed to create account. Please try again.',
+          variant: 'destructive',
+        });
       }
-      toast({
-        title: 'Registration Failed',
-        description: errorMessage,
-        variant: 'destructive',
-      });
     }
   };
 
