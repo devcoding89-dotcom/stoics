@@ -1,7 +1,7 @@
 'use client';
 
 import { PageHeader } from '@/components/page-header';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -10,24 +10,8 @@ import type { User as AppUser, Lesson, Announcement, Homework } from '@/lib/type
 import Link from 'next/link';
 import { ArrowRight, BookCopy, Calendar, Megaphone } from 'lucide-react';
 import { capitalize } from '@/lib/utils';
-
-
-// Mock data - in a real app, this would come from Firestore
-const upcomingLessons: Lesson[] = [
-  { id: '1', title: 'Algebra II', subject: 'Math', teacher: 'Mr. Davison', scheduledDateTime: '2023-10-27T10:00:00Z', teacherId: '' },
-  { id: '2', title: 'World History', subject: 'History', teacher: 'Ms. Gable', scheduledDateTime: '2023-10-27T13:00:00Z', teacherId: '' },
-  { id: '3', title: 'Creative Writing', subject: 'English', teacher: 'Mr. Poe', scheduledDateTime: '2023-10-28T11:00:00Z', teacherId: '' },
-];
-
-const announcements: Announcement[] = [
-  { id: '1', title: 'Parent-Teacher Conference', content: 'Sign-ups for the parent-teacher conference are now available.', timestamp: '2023-10-25T09:00:00Z', authorId: 'admin', audience: 'all' },
-  { id: '2', title: 'Mid-term Exam Schedule', content: 'The mid-term exam schedule for all classes has been posted.', timestamp: '2023-10-24T14:00:00Z', authorId: 'admin', audience: 'all' },
-];
-
-const homeworkData: Homework[] = [
-    { id: '1', studentName: 'Alex Doe', subject: 'Math', status: 'completed', submittedDate: '2023-10-26' },
-    { id: '2', studentName: 'Alex Doe', subject: 'Science', status: 'pending', submittedDate: '2023-10-27' },
-];
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { collection, query, where, orderBy, limit, collectionGroup } from 'firebase/firestore';
 
 interface StudentDashboardProps {
   user: FirebaseUser;
@@ -36,6 +20,33 @@ interface StudentDashboardProps {
 
 export function StudentDashboard({ user, userProfile }: StudentDashboardProps) {
   const welcomeName = userProfile.firstName || user.displayName || 'Student';
+  const firestore = useFirestore();
+
+  // Fetch upcoming lessons for the current student
+  const lessonsQuery = useMemoFirebase(() => {
+    if (!firestore || !userProfile.id) return null;
+    return query(
+      collectionGroup(firestore, 'lessons'), 
+      where('studentIds', 'array-contains', userProfile.id),
+      orderBy('scheduledDateTime', 'asc'),
+      limit(3)
+    );
+  }, [firestore, userProfile.id]);
+  const { data: upcomingLessons, isLoading: lessonsLoading } = useCollection<Lesson>(lessonsQuery);
+
+  // Fetch announcements
+  const announcementsQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(
+        collection(firestore, 'announcements'), 
+        orderBy('timestamp', 'desc'), 
+        limit(2)
+    );
+  }, [firestore]);
+  const { data: announcements, isLoading: announcementsLoading } = useCollection<Announcement>(announcementsQuery);
+
+  // Homework data - will be empty for now
+  const homeworkData: Homework[] = [];
 
   return (
     <>
@@ -65,16 +76,23 @@ export function StudentDashboard({ user, userProfile }: StudentDashboardProps) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {upcomingLessons.map(lesson => (
-                  <TableRow key={lesson.id}>
-                    <TableCell>
-                        <div className="font-medium">{lesson.title}</div>
-                        <div className="text-sm text-muted-foreground">{lesson.subject}</div>
-                    </TableCell>
-                    <TableCell>{lesson.teacher}</TableCell>
-                    <TableCell>{new Date(lesson.scheduledDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell>
-                  </TableRow>
-                ))}
+                {lessonsLoading && (
+                    <TableRow><TableCell colSpan={3} className="text-center">Loading lessons...</TableCell></TableRow>
+                )}
+                {!lessonsLoading && upcomingLessons && upcomingLessons.length > 0 ? (
+                  upcomingLessons.map(lesson => (
+                    <TableRow key={lesson.id}>
+                      <TableCell>
+                          <div className="font-medium">{lesson.title}</div>
+                          <div className="text-sm text-muted-foreground">{lesson.subject}</div>
+                      </TableCell>
+                      <TableCell>{lesson.teacher || 'N/A'}</TableCell>
+                      <TableCell>{new Date(lesson.scheduledDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                    !lessonsLoading && <TableRow><TableCell colSpan={3} className="text-center">No upcoming lessons.</TableCell></TableRow>
+                )}
               </TableBody>
             </Table>
           </CardContent>
@@ -92,12 +110,17 @@ export function StudentDashboard({ user, userProfile }: StudentDashboardProps) {
             </Button>
           </CardHeader>
           <CardContent className="flex-1 space-y-4">
-            {announcements.map(announcement => (
-              <div key={announcement.id} className="border-l-4 border-primary pl-4">
-                <p className="font-medium">{announcement.title}</p>
-                <p className="text-sm text-muted-foreground">{announcement.content}</p>
-              </div>
-            ))}
+             {announcementsLoading && <p className="text-muted-foreground">Loading announcements...</p>}
+            {!announcementsLoading && announcements && announcements.length > 0 ? (
+              announcements.map(announcement => (
+                <div key={announcement.id} className="border-l-4 border-primary pl-4">
+                  <p className="font-medium">{announcement.title}</p>
+                  <p className="text-sm text-muted-foreground">{announcement.content}</p>
+                </div>
+              ))
+            ) : (
+                !announcementsLoading && <p className="text-muted-foreground">No recent announcements.</p>
+            )}
           </CardContent>
         </Card>
 
@@ -122,15 +145,21 @@ export function StudentDashboard({ user, userProfile }: StudentDashboardProps) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {homeworkData.map(hw => (
-                  <TableRow key={hw.id}>
-                    <TableCell className="font-medium">{hw.subject}</TableCell>
-                    <TableCell>
-                      <Badge variant={hw.status === 'completed' ? 'default' : 'secondary'} className={hw.status === 'completed' ? 'bg-green-500/80': ''}>{capitalize(hw.status)}</Badge>
-                    </TableCell>
-                    <TableCell>{hw.submittedDate}</TableCell>
-                  </TableRow>
-                ))}
+                {homeworkData.length > 0 ? (
+                    homeworkData.map(hw => (
+                    <TableRow key={hw.id}>
+                        <TableCell className="font-medium">{hw.subject}</TableCell>
+                        <TableCell>
+                        <Badge variant={hw.status === 'completed' ? 'default' : 'secondary'} className={hw.status === 'completed' ? 'bg-green-500/80': ''}>{capitalize(hw.status)}</Badge>
+                        </TableCell>
+                        <TableCell>{hw.submittedDate}</TableCell>
+                    </TableRow>
+                    ))
+                ) : (
+                    <TableRow>
+                        <TableCell colSpan={3} className="text-center">No homework assignments to display.</TableCell>
+                    </TableRow>
+                )}
               </TableBody>
             </Table>
           </CardContent>
