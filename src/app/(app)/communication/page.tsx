@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import type { ChatContact, ChatMessage, Announcement, User as AppUser } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { Send, Megaphone, PlusCircle } from 'lucide-react';
+import { Send, Megaphone, PlusCircle, MessagesSquare } from 'lucide-react';
 import { useUser, useCollection, useMemoFirebase } from '@/firebase';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { getFirestore, collection, query, orderBy } from 'firebase/firestore';
