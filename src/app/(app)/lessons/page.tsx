@@ -62,7 +62,7 @@ export default function LessonsPage() {
     admin: { title: "All Lessons", description: "An overview of all scheduled lessons in the system." },
   };
 
-  const { title, description } = pageDetails[userProfile.role];
+  const { title, description } = pageDetails[userProfile.role] || pageDetails.student;
 
   return (
     <>
