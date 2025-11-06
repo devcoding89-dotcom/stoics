@@ -1,7 +1,7 @@
 'use client';
 
 import { useUser, useCollection, useMemoFirebase, useFirestore } from '@/firebase';
-import type { UserRole, Lesson, Announcement, Payment } from '@/lib/types';
+import type { UserRole, Lesson, Announcement, Payment, User } from '@/lib/types';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -201,7 +201,7 @@ const AdminDashboard = () => {
         return collection(firestore, 'users');
     }, [firestore]);
     
-    const { data: users, isLoading: usersLoading } = useCollection(usersQuery);
+    const { data: users, isLoading: usersLoading } = useCollection<User>(usersQuery);
 
     const stats = [
       { title: "Total Students", value: users?.filter(u => u.role === 'student').length.toString() || '0', icon: Users },
