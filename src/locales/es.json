@@ -1,0 +1,70 @@
+{
+  "global": {
+    "appName": "Servicios Educativos Stoics"
+  },
+  "languageGate": {
+    "title": "Seleccione su idioma",
+    "description": "Elija su idioma preferido para continuar."
+  },
+  "home": {
+    "registerButton": "Registrarse",
+    "loginButton": "Iniciar sesión",
+    "heroTitle": "El futuro de la educación, conectado.",
+    "heroSubtitle": "Servicios Educativos Stoics es una plataforma todo en uno diseñada para optimizar la comunicación y la gestión de las instituciones educativas, acercando a estudiantes, profesores y padres.",
+    "getStartedButton": "Empezar",
+    "featuresTitle": "Todo lo que necesita en un solo lugar",
+    "featuresSubtitle": "Descubra las potentes funciones que hacen de Servicios Educativos Stoics la solución perfecta para los entornos de aprendizaje modernos.",
+    "footerRights": "© {year} Servicios Educativos Stoics. Todos los derechos reservados.",
+    "footerPrivacy": "Política de privacidad",
+    "footerTerms": "Términos de servicio"
+  },
+  "features": {
+    "roles": {
+      "title": "Roles de usuario",
+      "description": "Acceso basado en roles para estudiantes, profesores, padres y administradores para una experiencia personalizada."
+    },
+    "lessons": {
+      "title": "Gestión de lecciones",
+      "description": "Los profesores могут programar lecciones fácilmente y compartir materiales y recursos con los estudiantes."
+    },
+    "attendance": {
+      "title": "Seguimiento de asistencia",
+      "description": "Registro de asistencia simple y eficiente para profesores y administradores."
+    },
+    "payments": {
+      "title": "Procesamiento de pagos",
+      "description": "Pasarela de pago integrada y segura con historial de pagos detallado para todas las partes."
+    },
+    "communication": {
+      "title": "Centro de comunicación",
+      "description": "Chat en tiempo real y anuncios para mantener a todos conectados e informados."
+    },
+    "aiTutor": {
+      "title": "Herramienta de tutoría con IA",
+      "description": "Un compañero digital inteligente para ayudar a los estudiantes con las tareas en cualquier momento."
+    }
+  },
+  "register": {
+    "title": "Crear una cuenta",
+    "description": "Ingrese sus datos a continuación para comenzar su viaje con nosotros.",
+    "firstNameLabel": "Nombre",
+    "firstNamePlaceholder": "John",
+    "lastNameLabel": "Apellido",
+    "lastNamePlaceholder": "Doe",
+    "emailLabel": "Correo electrónico",
+    "passwordLabel": "Contraseña",
+    "roleLabel": "Soy un...",
+    "rolePlaceholder": "Seleccione un rol",
+    "languageLabel": "Idioma",
+    "languagePlaceholder": "Seleccione un idioma",
+    "createAccountButton": "Crear cuenta",
+    "creatingAccount": "Creando cuenta...",
+    "alreadyHaveAccount": "¿Ya tiene una cuenta?",
+    "signInLink": "Iniciar sesión"
+  },
+  "roles": {
+    "student": "Estudiante",
+    "teacher": "Profesor",
+    "parent": "Padre"
+  }
+}

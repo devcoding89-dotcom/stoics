@@ -1,0 +1,70 @@
+{
+  "global": {
+    "appName": "Services Éducatifs Stoics"
+  },
+  "languageGate": {
+    "title": "Sélectionnez votre langue",
+    "description": "Choisissez votre langue préférée pour continuer."
+  },
+  "home": {
+    "registerButton": "S'inscrire",
+    "loginButton": "Connexion",
+    "heroTitle": "L'avenir de l'éducation, connecté.",
+    "heroSubtitle": "Services Éducatifs Stoics est une plateforme tout-en-un conçue pour rationaliser la communication et la gestion des établissements d'enseignement, rapprochant les étudiants, les enseignants et les parents.",
+    "getStartedButton": "Commencer",
+    "featuresTitle": "Tout ce dont vous avez besoin en un seul endroit",
+    "featuresSubtitle": "Découvrez les fonctionnalités puissantes qui font de Services Éducatifs Stoics la solution parfaite pour les environnements d'apprentissage modernes.",
+    "footerRights": "© {year} Services Éducatifs Stoics. Tous droits réservés.",
+    "footerPrivacy": "Politique de confidentialité",
+    "footerTerms": "Conditions d'utilisation"
+  },
+  "features": {
+    "roles": {
+      "title": "Rôles des utilisateurs",
+      "description": "Accès basé sur les rôles pour les étudiants, les enseignants, les parents et les administrateurs pour une expérience personnalisée."
+    },
+    "lessons": {
+      "title": "Gestion des leçons",
+      "description": "Les enseignants peuvent facilement planifier des leçons et partager du matériel et des ressources avec les étudiants."
+    },
+    "attendance": {
+      "title": "Suivi des présences",
+      "description": "Enregistrement simple et efficace des présences pour les enseignants et les administrateurs."
+    },
+    "payments": {
+      "title": "Traitement des paiements",
+      "description": "Passerelle de paiement intégrée et sécurisée avec un historique de paiement détaillé pour toutes les parties."
+    },
+    "communication": {
+      "title": "Centre de communication",
+      "description": "Chat en temps réel et annonces pour garder tout le monde connecté et informé."
+    },
+    "aiTutor": {
+      "title": "Outil de tutorat par IA",
+      "description": "Un compagnon numérique intelligent pour aider les étudiants à faire leurs devoirs à tout moment."
+    }
+  },
+  "register": {
+    "title": "Créer un compte",
+    "description": "Entrez vos coordonnées ci-dessous pour commencer votre voyage avec nous.",
+    "firstNameLabel": "Prénom",
+    "firstNamePlaceholder": "John",
+    "lastNameLabel": "Nom de famille",
+    "lastNamePlaceholder": "Doe",
+    "emailLabel": "E-mail",
+    "passwordLabel": "Mot de passe",
+    "roleLabel": "Je suis un(e)...",
+    "rolePlaceholder": "Sélectionnez un rôle",
+    "languageLabel": "Langue",
+    "languagePlaceholder": "Sélectionnez une langue",
+    "createAccountButton": "Créer un compte",
+    "creatingAccount": "Création du compte...",
+    "alreadyHaveAccount": "Vous avez déjà un compte ?",
+    "signInLink": "Se connecter"
+  },
+  "roles": {
+    "student": "Étudiant",
+    "teacher": "Enseignant",
+    "parent": "Parent"
+  }
+}

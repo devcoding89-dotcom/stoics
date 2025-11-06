@@ -1,0 +1,70 @@
+{
+  "global": {
+    "appName": "Stoics Educational Services"
+  },
+  "languageGate": {
+    "title": "Select Your Language",
+    "description": "Choose your preferred language to continue."
+  },
+  "home": {
+    "registerButton": "Register",
+    "loginButton": "Login",
+    "heroTitle": "The Future of Education, Connected.",
+    "heroSubtitle": "Stoics Educational Services is an all-in-one platform designed to streamline communication and management for educational institutions, bringing students, teachers, and parents closer together.",
+    "getStartedButton": "Get Started",
+    "featuresTitle": "Everything You Need in One Place",
+    "featuresSubtitle": "Discover the powerful features that make Stoics Educational Services the perfect solution for modern learning environments.",
+    "footerRights": "© {year} Stoics Educational Services. All rights reserved.",
+    "footerPrivacy": "Privacy Policy",
+    "footerTerms": "Terms of Service"
+  },
+  "features": {
+    "roles": {
+      "title": "User Roles",
+      "description": "Role-based access for students, teachers, parents, and admins for a tailored experience."
+    },
+    "lessons": {
+      "title": "Lesson Management",
+      "description": "Teachers can easily schedule lessons, and share materials and resources with students."
+    },
+    "attendance": {
+      "title": "Attendance Tracking",
+      "description": "Simple and efficient attendance recording for teachers and administrators."
+    },
+    "payments": {
+      "title": "Payment Processing",
+      "description": "Integrated and secure payment gateway with detailed payment history for all parties."
+    },
+    "communication": {
+      "title": "Communication Hub",
+      "description": "Real-time chat and announcements to keep everyone connected and informed."
+    },
+    "aiTutor": {
+      "title": "AI Tutoring Tool",
+      "description": "A smart digital companion to help students with homework anytime."
+    }
+  },
+  "register": {
+    "title": "Create an account",
+    "description": "Enter your details below to start your journey with us.",
+    "firstNameLabel": "First Name",
+    "firstNamePlaceholder": "John",
+    "lastNameLabel": "Last Name",
+    "lastNamePlaceholder": "Doe",
+    "emailLabel": "Email",
+    "passwordLabel": "Password",
+    "roleLabel": "I am a...",
+    "rolePlaceholder": "Select a role",
+    "languageLabel": "Language",
+    "languagePlaceholder": "Select a language",
+    "createAccountButton": "Create Account",
+    "creatingAccount": "Creating Account...",
+    "alreadyHaveAccount": "Already have an account?",
+    "signInLink": "Sign in"
+  },
+  "roles": {
+    "student": "Student",
+    "teacher": "Teacher",
+    "parent": "Parent"
+  }
+}

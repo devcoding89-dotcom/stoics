@@ -5,26 +5,30 @@ import { Logo } from './logo';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { supportedLanguages } from '@/lib/languages';
+import { useTranslation } from '@/hooks/use-translation';
 
 
 export function LanguageGate({ children }: { children: React.ReactNode }) {
     const [language, setLanguage] = useState<string | null>(null);
     const [isClient, setIsClient] = useState(false);
+    const { t, isLoaded, setLanguage: setAppLanguage } = useTranslation();
 
     useEffect(() => {
         setIsClient(true);
         const storedLanguage = localStorage.getItem('preferred_language');
         if (storedLanguage) {
             setLanguage(storedLanguage);
+            setAppLanguage(storedLanguage);
         }
-    }, []);
+    }, [setAppLanguage]);
 
     const handleLanguageSelect = (langCode: string) => {
         localStorage.setItem('preferred_language', langCode);
         setLanguage(langCode);
+        setAppLanguage(langCode);
     };
 
-    if (!isClient || language === null) {
+    if (!isClient || !isLoaded || language === null) {
         return (
             <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
                  <div className="mb-8 flex items-center gap-2">
@@ -33,9 +37,9 @@ export function LanguageGate({ children }: { children: React.ReactNode }) {
                 </div>
                 <Card className="w-full max-w-sm text-center">
                     <CardHeader>
-                        <CardTitle className="text-2xl">Select Your Language</CardTitle>
+                        <CardTitle className="text-2xl">{isLoaded ? t('languageGate.title') : 'Select Your Language'}</CardTitle>
                         <CardDescription>
-                            Choose your preferred language to continue.
+                            {isLoaded ? t('languageGate.description') : 'Choose your preferred language to continue.'}
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="flex flex-col gap-3">

@@ -41,6 +41,7 @@ import { Logo } from '@/components/logo';
 import { useToast } from '@/hooks/use-toast';
 import type { User as AppUser } from '@/lib/types';
 import { supportedLanguages, supportedLanguageCodes } from '@/lib/languages';
+import { useTranslation } from '@/hooks/use-translation';
 
 const formSchema = z.object({
   firstName: z.string().min(2, 'First name must be at least 2 characters.'),
@@ -60,6 +61,7 @@ export default function RegisterPage() {
   const { toast } = useToast();
   const auth = getAuth();
   const firestore = getFirestore();
+  const { t, isLoaded } = useTranslation();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -74,25 +76,20 @@ export default function RegisterPage() {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      // 1. Create user in Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         values.email,
         values.password
       ).catch((error) => {
-        // This catch block specifically handles the Firebase Auth error
-        // and prevents it from bubbling up to the Next.js error overlay in dev mode.
         console.error('Firebase Auth Error:', error);
-        throw error; // Re-throw to be caught by the outer try-catch
+        throw error;
       });
       const firebaseUser = userCredential.user;
 
-      // 2. Update Firebase Auth profile
       await updateProfile(firebaseUser, {
         displayName: `${values.firstName} ${values.lastName}`,
       });
 
-      // 3. Create user document in Firestore
       const userRef = doc(firestore, 'users', firebaseUser.uid);
       const newUserProfile: AppUser = {
         id: firebaseUser.uid,
@@ -102,7 +99,7 @@ export default function RegisterPage() {
         role: values.role,
         language: values.language,
         avatar: '',
-        verified: false, // Admins will verify new users
+        verified: false,
       };
       await setDoc(userRef, newUserProfile);
 
@@ -114,7 +111,7 @@ export default function RegisterPage() {
 
       router.push('/login');
     } catch (error: any) {
-      console.error('Registration error:', error); // Log the full error for debugging
+      console.error('Registration error:', error);
       let errorMessage = 'Failed to create account. Please try again.';
       if (error.code === 'auth/email-already-in-use') {
         errorMessage = 'This email is already in use by another account.';
@@ -126,18 +123,20 @@ export default function RegisterPage() {
       });
     }
   };
+  
+  if (!isLoaded) return null;
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
       <div className="mb-8 flex items-center gap-2">
         <Logo className="h-8 w-8" />
-        <span className="text-2xl font-bold font-headline">Stoics Educational Services</span>
+        <span className="text-2xl font-bold font-headline">{t('global.appName')}</span>
       </div>
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl">Create an account</CardTitle>
+          <CardTitle className="text-2xl">{t('register.title')}</CardTitle>
           <CardDescription>
-            Enter your details below to start your journey with us.
+            {t('register.description')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -149,9 +148,9 @@ export default function RegisterPage() {
                   name="firstName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>First Name</FormLabel>
+                      <FormLabel>{t('register.firstNameLabel')}</FormLabel>
                       <FormControl>
-                        <Input placeholder="John" {...field} />
+                        <Input placeholder={t('register.firstNamePlaceholder')} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -162,9 +161,9 @@ export default function RegisterPage() {
                   name="lastName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Last Name</FormLabel>
+                      <FormLabel>{t('register.lastNameLabel')}</FormLabel>
                       <FormControl>
-                        <Input placeholder="Doe" {...field} />
+                        <Input placeholder={t('register.lastNamePlaceholder')} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -176,7 +175,7 @@ export default function RegisterPage() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>{t('register.emailLabel')}</FormLabel>
                     <FormControl>
                       <Input
                         type="email"
@@ -193,7 +192,7 @@ export default function RegisterPage() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>{t('register.passwordLabel')}</FormLabel>
                     <FormControl>
                       <Input type="password" placeholder="••••••••" {...field} />
                     </FormControl>
@@ -207,17 +206,17 @@ export default function RegisterPage() {
                   name="role"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>I am a...</FormLabel>
+                      <FormLabel>{t('register.roleLabel')}</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select a role" />
+                            <SelectValue placeholder={t('register.rolePlaceholder')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="student">Student</SelectItem>
-                          <SelectItem value="teacher">Teacher</SelectItem>
-                          <SelectItem value="parent">Parent</SelectItem>
+                          <SelectItem value="student">{t('roles.student')}</SelectItem>
+                          <SelectItem value="teacher">{t('roles.teacher')}</SelectItem>
+                          <SelectItem value="parent">{t('roles.parent')}</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -229,11 +228,11 @@ export default function RegisterPage() {
                   name="language"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Language</FormLabel>
+                      <FormLabel>{t('register.languageLabel')}</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select a language" />
+                            <SelectValue placeholder={t('register.languagePlaceholder')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -248,15 +247,15 @@ export default function RegisterPage() {
                 />
               </div>
               <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? 'Creating Account...' : 'Create Account'}
+                {form.formState.isSubmitting ? t('register.creatingAccount') : t('register.createAccountButton')}
               </Button>
             </form>
           </Form>
 
           <div className="mt-4 text-center text-sm">
-            Already have an account?{' '}
+            {t('register.alreadyHaveAccount')}{' '}
             <Link href="/login" className="underline">
-              Sign in
+              {t('register.signInLink')}
             </Link>
           </div>
         </CardContent>
