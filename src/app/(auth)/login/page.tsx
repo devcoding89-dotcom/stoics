@@ -64,7 +64,13 @@ export default function LoginPage() {
       }
 
       router.push('/dashboard');
-    } catch (error) {
+    } catch (error: any) {
+      // Don't show an error if the user closes the popup
+      if (error.code === 'auth/popup-closed-by-user') {
+        setIsSigningIn(false);
+        return;
+      }
+      
       console.error('Google Sign-In Error:', error);
       toast({
         title: 'Sign-in Failed',
