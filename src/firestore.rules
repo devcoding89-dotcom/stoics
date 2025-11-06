@@ -21,7 +21,7 @@
  * - User listing is disallowed for non-admins. Admins can list all users.
  * - Announcements are publicly readable but writable only by authorized users (teachers/admins - not yet implemented)
  * - Data consistency is enforced between document IDs and path parameters.
- * - All write operations require a verified user identity (`request.auth != null`).
+ * - All write operations require a verified user identity (`request.auth != null`), except for OTP updates.
  *
  * Denormalization for Authorization:
  * - Attendance records nested under lessons include a denormalized `teacherId` to avoid `get()` calls
@@ -42,7 +42,9 @@ service cloud.firestore {
       allow get: if isOwner(userId) || isAdmin();
       allow list: if isAdmin();
       allow create: if isOwner(userId) && request.auth.uid == userId;
-      allow update: if isExistingOwner(userId) && request.auth.uid == userId && request.resource.data.id == resource.data.id;
+      // Allow updating own profile.
+      // Allow unauthenticated update only for otp and otpExpiry fields.
+      allow update: if (isExistingOwner(userId) && request.auth.uid == userId && request.resource.data.id == resource.data.id) || isUpdatingOtp();
       allow delete: if isExistingOwner(userId) && request.auth.uid == userId;
 
       /**
@@ -168,5 +170,10 @@ service cloud.firestore {
   
   function isAdmin() {
     return isSignedIn() && getUserData(request.auth.uid).role == 'admin';
+  }
+  
+  function isUpdatingOtp() {
+    let changedKeys = request.resource.data.diff(resource.data).affectedKeys();
+    return !isSignedIn() && changedKeys.hasAll(['otp', 'otpExpiry']) && changedKeys.size() == 2;
   }
 }

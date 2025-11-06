@@ -11,6 +11,8 @@ export interface User {
   avatar?: string;
   verified: boolean;
   language: string;
+  otp?: string;
+  otpExpiry?: string;
 }
 
 export type Lesson = {
@@ -37,7 +39,7 @@ export type Attendance = {
 };
 
 export type Payment = {
-  id: string; // The doc ID is the paymentId
+  id:string; // The doc ID is the paymentId
   studentId: string;
   amount: number;
   paymentDate: string;
@@ -78,5 +80,3 @@ export type Homework = {
   status: 'completed' | 'pending';
   submittedDate: string;
 };
-
-    
