@@ -163,7 +163,6 @@ export function AdminDashboard({ user, userProfile }: AdminDashboardProps) {
               <SelectContent>
                 <SelectItem value="student">Student</SelectItem>
                 <SelectItem value="teacher">Teacher</SelectItem>
-                <SelectItem value="parent">Parent</SelectItem>
                 <SelectItem value="admin">Admin</SelectItem>
               </SelectContent>
             </Select>

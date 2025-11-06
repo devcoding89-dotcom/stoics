@@ -47,7 +47,7 @@ const formSchema = z.object({
   lastName: z.string().min(2, 'Last name must be at least 2 characters.'),
   email: z.string().email('Please enter a valid email address.'),
   password: z.string().min(6, 'Password must be at least 6 characters.'),
-  role: z.enum(['student', 'teacher', 'parent'], {
+  role: z.enum(['student', 'teacher'], {
     required_error: 'You need to select a role.',
   }),
   language: z.enum(supportedLanguageCodes, {
@@ -213,7 +213,6 @@ export default function RegisterPage() {
                         <SelectContent>
                           <SelectItem value="student">Student</SelectItem>
                           <SelectItem value="teacher">Teacher</SelectItem>
-                          <SelectItem value="parent">Parent</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />

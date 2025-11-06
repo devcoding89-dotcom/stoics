@@ -1,7 +1,7 @@
 import { type User as FirebaseUser } from 'firebase/auth';
 import { type Timestamp } from 'firebase/firestore';
 
-export type UserRole = "student" | "teacher" | "parent" | "admin";
+export type UserRole = "student" | "teacher" | "admin";
 
 export interface User {
   id: string;
