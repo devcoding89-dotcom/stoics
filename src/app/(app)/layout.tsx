@@ -176,6 +176,19 @@ function MainLayout({ children }: { children: React.ReactNode }) {
 
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
+  const { isUserLoading, isUserProfileLoading } = useUser();
+
+  if (isUserLoading || isUserProfileLoading) {
+    return (
+       <div className="flex h-screen w-screen items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Logo className="h-12 w-12 animate-pulse" />
+          <Skeleton className="h-4 w-48 mt-2" />
+        </div>
+      </div>
+    )
+  }
+
   return (
     <SidebarProvider>
       <MainLayout>{children}</MainLayout>

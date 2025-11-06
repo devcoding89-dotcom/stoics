@@ -43,25 +43,22 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   const [isUserProfileLoading, setIsUserProfileLoading] = useState(true); // For Firestore profile
 
   useEffect(() => {
-    // Reset states
-    setIsUserLoading(true);
-    setIsUserProfileLoading(true);
-
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       setIsUserLoading(false); // Auth check is complete
 
       if (firebaseUser) {
-        // If there's an auth user, start fetching their profile
         setIsUserProfileLoading(true);
         const userRef = doc(firestore, 'users', firebaseUser.uid);
         try {
           const userSnap = await getDoc(userRef);
           if (userSnap.exists()) {
-            setUserProfile(userSnap.data() as AppUser);
+            setUserProfile({ ...userSnap.data(), id: userSnap.id } as AppUser);
           } else {
+            // This case can happen if the user record is created in Auth but not in Firestore yet.
+            // Or if the user is deleted from Firestore but not Auth.
             console.warn(`No Firestore profile found for user ${firebaseUser.uid}.`);
-            setUserProfile(null); // No profile exists
+            setUserProfile(null); 
           }
         } catch (error) {
           console.error("Error fetching user profile:", error);
@@ -70,16 +67,16 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
           setIsUserProfileLoading(false); // Profile fetch attempt is complete
         }
       } else {
-        // No auth user, so no profile to fetch.
+        // No auth user, so no profile to fetch. Clear all user state.
         setUserProfile(null);
         setIsUserProfileLoading(false); // No profile loading needed.
       }
     });
 
-    return () => unsubscribe(); // Cleanup subscription
+    return () => unsubscribe(); // Cleanup subscription on component unmount
   }, [auth, firestore]);
 
-  // Memoize the context value to prevent unnecessary re-renders
+  // Memoize the context value to prevent unnecessary re-renders of consuming components
   const contextValue = useMemo((): FirebaseContextState => ({
     firebaseApp,
     firestore,
