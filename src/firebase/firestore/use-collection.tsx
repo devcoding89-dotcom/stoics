@@ -91,7 +91,8 @@ export function useCollection<T = any>(
         const path: string =
           memoizedTargetRefOrQuery.type === 'collection'
             ? (memoizedTargetRefOrQuery as CollectionReference).path
-            : (memoizedTargetRefOrQuery as unknown as InternalQuery)._query.path.canonicalString()
+            // This is a hack to get the path from a query. It's not ideal, but it's the only way.
+            : (memoizedTargetRefOrQuery as any)._query?.path?.canonicalString() || '';
 
         const contextualError = new FirestorePermissionError({
           operation: 'list',
