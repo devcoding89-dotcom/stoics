@@ -63,8 +63,8 @@ const sendOtpFlow = ai.defineFlow(
     
     let userId;
     if (querySnapshot.empty) {
-      // For this prototype, we are not creating a new user here.
-      // A real implementation might create a user record at this stage.
+      // User does not exist, so we should not send an OTP.
+      // Throw an error to be handled by the client.
       throw new Error("User with this email does not exist. Please register first.");
     } else {
       userId = querySnapshot.docs[0].id;

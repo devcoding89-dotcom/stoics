@@ -119,8 +119,8 @@ export default function LoginPage() {
     } catch (error: any) {
       console.error('OTP Send Error:', error);
       toast({
-        title: 'Error',
-        description: error.message || 'Could not send OTP. Please check if the user exists.',
+        title: 'Login Error',
+        description: error.message || 'Could not send OTP. Please check the email and try again.',
         variant: 'destructive',
       });
     } finally {
@@ -150,8 +150,14 @@ export default function LoginPage() {
         if (userData.otp !== otp) {
             throw new Error('Invalid OTP. Please try again.');
         }
-
-        if (userData.otpExpiry && new Date(userData.otpExpiry.seconds * 1000) < now) {
+        
+        // Firestore timestamps can be tricky. This checks for both a plain ISO string
+        // and a Firestore Timestamp object.
+        const otpExpiryDate = userData.otpExpiry instanceof Date 
+          ? userData.otpExpiry 
+          : new Date((userData.otpExpiry as any)?.seconds * 1000 || userData.otpExpiry);
+          
+        if (otpExpiryDate < now) {
             throw new Error('OTP has expired. Please request a new one.');
         }
         
@@ -204,39 +210,39 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent>
           {loginStep === 'start' ? (
-            <div className="flex flex-col gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="name@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={isSigningIn}
-                />
-              </div>
-              <Button onClick={handleEmailContinue} disabled={isSigningIn || !email}>
-                {isSigningIn ? 'Sending...' : 'Continue with Email'}
-              </Button>
-              
+            <div className="grid gap-4">
+               <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    placeholder="name@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={isSigningIn}
+                  />
+               </div>
+                <Button onClick={handleEmailContinue} disabled={isSigningIn || !email}>
+                  {isSigningIn ? 'Continuing...' : 'Continue with Email'}
+                </Button>
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <span className="w-full border-t" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">Or</span>
+                  <span className="bg-background px-2 text-muted-foreground">
+                    Or
+                  </span>
                 </div>
               </div>
-
-               <Button
+              <Button
                 variant="outline"
                 onClick={handleGoogleSignIn}
                 disabled={isSigningIn}
                 className="w-full"
               >
                 {isSigningIn ? (
-                  'Signing in...'
+                  'Redirecting...'
                 ) : (
                   <>
                     <FcGoogle className="mr-2 h-5 w-5" /> Continue with Google
@@ -261,7 +267,7 @@ export default function LoginPage() {
                 <Button onClick={handleOtpSignIn} disabled={isSigningIn || !otp}>
                     {isSigningIn ? 'Verifying...' : 'Sign In'}
                 </Button>
-                <Button variant="link" onClick={() => setLoginStep('start')}>
+                <Button variant="link" onClick={() => setLoginStep('start')} disabled={isSigningIn}>
                     Use a different email
                 </Button>
              </div>
