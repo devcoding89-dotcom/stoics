@@ -93,7 +93,7 @@ service cloud.firestore {
        // or if they are a student associated with the lesson.
        allow get: if isSignedIn();
        // This allows a student to query for their own lessons across all teachers.
-       allow list: if isSignedIn() && (request.query.where.studentIds.includes(request.auth.uid) || isAdmin());
+       allow list: if isSignedIn() && (request.query.where['studentIds'].includes(request.auth.uid) || isAdmin());
     }
     
     /**
@@ -148,8 +148,8 @@ service cloud.firestore {
       allow get: if true;
       allow list: if true;
       allow create: if isSignedIn(); // TODO: Add admin/teacher role check
-      allow update: if false; // TODO: Add admin/teacher role check
-      allow delete: if false; // TODO: Add admin/teacher role check
+      update: if false; // TODO: Add admin/teacher role check
+      delete: if false; // TODO: Add admin/teacher role check
     }
   }
 
