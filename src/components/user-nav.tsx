@@ -58,10 +58,12 @@ export function UserNav() {
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
-            <Link href="/settings">
-              <DropdownMenuItem>
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Settings</span>
+            <Link href="/settings" passHref>
+              <DropdownMenuItem asChild>
+                <span>
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </span>
               </DropdownMenuItem>
             </Link>
           </DropdownMenuGroup>
