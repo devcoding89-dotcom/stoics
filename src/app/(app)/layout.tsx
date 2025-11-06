@@ -37,6 +37,7 @@ import {
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getAuth, signOut } from 'firebase/auth';
+import type { User } from '@/lib/types';
 
 const navItems = {
   shared: [
@@ -87,10 +88,11 @@ function MainLayout({ children }: { children: React.ReactNode }) {
   const { setOpenMobile } = useSidebar();
   
   useEffect(() => {
-    if (!isUserLoading && !user) {
+    // Wait until loading is complete before checking for user
+    if (!isUserLoading && !isUserProfileLoading && !user) {
       router.push('/login');
     }
-  }, [user, isUserLoading, router]);
+  }, [user, isUserLoading, isUserProfileLoading, router]);
 
   const handleLogout = () => {
     signOut(auth);
@@ -103,6 +105,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Display a loading skeleton while waiting for user and profile data
   if (isUserLoading || isUserProfileLoading || !userProfile || !user) {
     return (
       <div className="flex h-screen w-screen items-center justify-center">

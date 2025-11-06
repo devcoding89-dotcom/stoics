@@ -1,12 +1,11 @@
+
 'use client';
 
 import { firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { Auth, getAuth, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
-import { Firestore, getFirestore, doc, getDoc, setDoc, DocumentData } from 'firebase/firestore'
-import React, { DependencyList, createContext, useContext, useEffect, useState, useMemo, ReactNode } from 'react';
-import type { User as AppUser, UserRole } from '@/lib/types';
-import { FirebaseClientProvider } from './client-provider';
+import { Auth, getAuth } from 'firebase/auth';
+import { Firestore, getFirestore } from 'firebase/firestore';
+import { useMemo, type DependencyList } from 'react';
 
 // IMPORTANT: DO NOT MODIFY THIS FUNCTION
 export function initializeFirebase() {
@@ -45,53 +44,6 @@ export function getSdks(firebaseApp: FirebaseApp) {
   };
 }
 
-export interface UserContextState {
-  user: FirebaseUser | null;
-  userProfile: AppUser | null;
-  isUserLoading: boolean;
-  isUserProfileLoading: boolean;
-}
-
-export const UserContext = createContext<UserContextState | undefined>(undefined);
-
-export function useUser(): UserContextState {
-  const [user, setUser] = useState<FirebaseUser | null>(null);
-  const [userProfile, setUserProfile] = useState<AppUser | null>(null);
-  const [isUserLoading, setIsUserLoading] = useState(true);
-  const [isUserProfileLoading, setIsUserProfileLoading] = useState(true);
-  
-  const auth = getAuth();
-  const firestore = getFirestore();
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setUser(firebaseUser);
-      setIsUserLoading(false);
-      
-      if (firebaseUser) {
-        setIsUserProfileLoading(true);
-        const userRef = doc(firestore, 'users', firebaseUser.uid);
-        const userSnap = await getDoc(userRef);
-        if (userSnap.exists()) {
-          setUserProfile(userSnap.data() as AppUser);
-        } else {
-          // If the user exists in Auth but not in Firestore, treat as not fully logged in.
-          setUserProfile(null);
-        }
-        setIsUserProfileLoading(false);
-      } else {
-        // No user, so no profile to load.
-        setUserProfile(null);
-        setIsUserProfileLoading(false);
-      }
-    });
-
-    return () => unsubscribe();
-  }, [auth, firestore]);
-
-  return { user, userProfile, isUserLoading, isUserProfileLoading };
-}
-
 export * from './provider';
 export * from './client-provider';
 export * from './firestore/use-collection';
@@ -100,3 +52,14 @@ export * from './non-blocking-updates';
 export * from './non-blocking-login';
 export * from './errors';
 export * from './error-emitter';
+
+type MemoFirebase <T> = T & {__memo?: boolean};
+
+export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T | (MemoFirebase<T>) {
+  const memoized = useMemo(factory, deps);
+  
+  if(typeof memoized !== 'object' || memoized === null) return memoized;
+  (memoized as MemoFirebase<T>).__memo = true;
+  
+  return memoized;
+}
