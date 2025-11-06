@@ -75,10 +75,12 @@ export function useUser(): UserContextState {
         if (userSnap.exists()) {
           setUserProfile(userSnap.data() as AppUser);
         } else {
+          // If the user exists in Auth but not in Firestore, treat as not fully logged in.
           setUserProfile(null);
         }
         setIsUserProfileLoading(false);
       } else {
+        // No user, so no profile to load.
         setUserProfile(null);
         setIsUserProfileLoading(false);
       }
