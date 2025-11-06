@@ -16,36 +16,37 @@ export type Lesson = {
   id: string;
   title: string;
   subject: string;
-  teacher: string;
   teacherId: string;
-  date: string;
-  time: string;
-  students: { id: string, name: string, avatar: string }[];
+  scheduledDateTime: string;
+  studentIds?: string[];
 };
 
 export type AttendanceStatus = "present" | "absent" | "late";
 
 export type Attendance = {
+  id: string; // The doc ID is the attendanceId
   lessonId: string;
   studentId: string;
-  status: AttendanceStatus;
+  attendanceStatus: AttendanceStatus;
+  date: string; // The date of the lesson
 };
 
 export type Payment = {
-  id: string;
-  studentName: string;
+  id: string; // The doc ID is the paymentId
+  studentId: string;
   amount: number;
-  date: string;
-  status: "paid" | "pending" | "overdue";
+  paymentDate: string;
+  paymentMethod: string;
+  transactionId: string;
 };
 
 export type Announcement = {
-  id: string;
+  id: string; // The doc ID is the announcementId
+  authorId: string;
   title: string;
   content: string;
-  author: string;
-  date: string;
-  role: 'teacher' | 'admin';
+  timestamp: string;
+  audience: string;
 };
 
 export type ChatContact = {
@@ -58,11 +59,11 @@ export type ChatContact = {
 };
 
 export type ChatMessage = {
-  id: string;
-  sender: string;
-  content: string;
+  id: string; // The doc ID is the messageId
+  senderId: string;
+  recipientId: string;
+  message: string;
   timestamp: string;
-  isMe: boolean;
 };
 
 export type Homework = {

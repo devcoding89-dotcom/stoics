@@ -1,9 +1,8 @@
-
 'use client';
 
 import React from 'react';
 import { PageHeader } from '@/components/page-header';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -14,15 +13,20 @@ import {
 } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
-import { useUser } from '@/context/user-context';
-import { allMockUsers } from '@/lib/data';
-import { User } from '@/lib/types';
+import { useUser, useCollection, useMemoFirebase } from '@/firebase';
+import { getFirestore, collection, doc, updateDoc } from 'firebase/firestore';
+import type { User } from '@/lib/types';
 import { capitalize } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
 
 export default function ManageUsersPage() {
   const { userProfile } = useUser();
-  const [users, setUsers] = React.useState<User[]>(allMockUsers);
+  const firestore = getFirestore();
+  const { toast } = useToast();
+
+  const usersQuery = useMemoFirebase(() => collection(firestore, 'users'), [firestore]);
+  const { data: users, isLoading } = useCollection<User>(usersQuery);
 
   if (!userProfile || userProfile.role !== 'admin') {
     return (
@@ -33,12 +37,22 @@ export default function ManageUsersPage() {
     );
   }
 
-  const handleVerificationChange = (userId: string, verified: boolean) => {
-    setUsers(currentUsers =>
-      currentUsers.map(user =>
-        user.id === userId ? { ...user, verified } : user
-      )
-    );
+  const handleVerificationChange = async (userId: string, verified: boolean) => {
+    const userRef = doc(firestore, 'users', userId);
+    try {
+      await updateDoc(userRef, { verified });
+      toast({
+        title: 'Success',
+        description: `User verification status updated.`,
+      });
+    } catch (error) {
+      console.error("Failed to update user verification", error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update user status.',
+        variant: 'destructive'
+      });
+    }
   };
 
   return (
@@ -59,13 +73,14 @@ export default function ManageUsersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.map(user => (
+              {isLoading && <TableRow><TableCell colSpan={4} className="text-center">Loading users...</TableCell></TableRow>}
+              {!isLoading && users && users.map(user => (
                 <TableRow key={user.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar className="h-9 w-9">
                         <AvatarImage src={user.avatar} alt={user.firstName} />
-                        <AvatarFallback>{user.firstName.charAt(0)}</AvatarFallback>
+                        <AvatarFallback>{user.firstName?.charAt(0) || 'U'}</AvatarFallback>
                       </Avatar>
                       <div className="font-medium">{user.firstName} {user.lastName}</div>
                     </div>
@@ -84,6 +99,7 @@ export default function ManageUsersPage() {
                   </TableCell>
                 </TableRow>
               ))}
+               {!isLoading && (!users || users.length === 0) && <TableRow><TableCell colSpan={4} className="text-center">No users found.</TableCell></TableRow>}
             </TableBody>
           </Table>
         </CardContent>

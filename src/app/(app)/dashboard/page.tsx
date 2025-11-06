@@ -1,9 +1,8 @@
 'use client';
 
-import { useUser } from '@/context/user-context';
-import type { UserRole } from '@/lib/types';
+import { useUser, useCollection, useMemoFirebase } from '@/firebase';
+import type { UserRole, Lesson, Announcement, Payment } from '@/lib/types';
 import { PageHeader } from '@/components/page-header';
-import { mockLessons, mockAnnouncements, mockHomework, mockPayments } from '@/lib/data';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -14,15 +13,37 @@ import {
   Megaphone,
   BarChart,
   Users,
-  Activity,
   UserCheck
 } from 'lucide-react';
 import { capitalize } from '@/lib/utils';
 import { format } from 'date-fns';
+import { collection, query, where, getFirestore, limit } from 'firebase/firestore';
 
 const StudentDashboard = () => {
-  const upcomingLesson = mockLessons[0];
-  const recentHomework = mockHomework[0];
+  const { user } = useUser();
+  const firestore = getFirestore();
+
+  const lessonsQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    return query(collection(firestore, 'lessons'), where('studentIds', 'array-contains', user.uid), limit(1));
+  }, [firestore, user]);
+
+  const announcementsQuery = useMemoFirebase(() => {
+    return query(collection(firestore, 'announcements'), limit(2));
+  }, [firestore]);
+  
+  const paymentsQuery = useMemoFirebase(() => {
+    if(!user) return null;
+    return query(collection(firestore, 'users', user.uid, 'payments'), limit(1));
+  }, [firestore, user]);
+
+  const { data: lessons, isLoading: lessonsLoading } = useCollection<Lesson>(lessonsQuery);
+  const { data: announcements, isLoading: announcementsLoading } = useCollection<Announcement>(announcementsQuery);
+  const { data: payments, isLoading: paymentsLoading } = useCollection<Payment>(paymentsQuery);
+
+  const upcomingLesson = lessons?.[0];
+  const recentPayment = payments?.[0];
+
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       <Card className="lg:col-span-2">
@@ -31,31 +52,35 @@ const StudentDashboard = () => {
           <BookOpenCheck className="h-5 w-5 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{upcomingLesson.title}</div>
-          <p className="text-xs text-muted-foreground">{upcomingLesson.subject}</p>
-          <div className="flex items-center gap-2 mt-4">
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={`https://i.pravatar.cc/150?u=evelyn`} alt={upcomingLesson.teacher} />
-              <AvatarFallback>{upcomingLesson.teacher.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="text-sm font-medium">{upcomingLesson.teacher}</p>
-              <p className="text-xs text-muted-foreground">{format(new Date(upcomingLesson.date), "EEEE, MMMM d")} at {upcomingLesson.time}</p>
-            </div>
-          </div>
+          {lessonsLoading ? <p>Loading...</p> : upcomingLesson ? (
+            <>
+              <div className="text-2xl font-bold">{upcomingLesson.title}</div>
+              <p className="text-xs text-muted-foreground">{upcomingLesson.subject}</p>
+              <div className="flex items-center gap-2 mt-4">
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback>{upcomingLesson.teacher.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="text-sm font-medium">{upcomingLesson.teacher}</p>
+                  <p className="text-xs text-muted-foreground">{format(new Date(upcomingLesson.scheduledDateTime), "EEEE, MMMM d 'at' h:mm a")}</p>
+                </div>
+              </div>
+            </>
+          ) : <p>No upcoming lessons.</p>}
         </CardContent>
       </Card>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-lg font-medium">Recent Homework</CardTitle>
-          <ClipboardList className="h-5 w-5 text-muted-foreground" />
+          <CardTitle className="text-lg font-medium">Recent Payment</CardTitle>
+          <DollarSign className="h-5 w-5 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{recentHomework.subject}</div>
-          <div className="flex items-center gap-2 mt-2">
-            <Badge variant={recentHomework.status === 'completed' ? 'default' : 'secondary'} className="bg-accent text-accent-foreground">{capitalize(recentHomework.status)}</Badge>
-            <p className="text-xs text-muted-foreground">Submitted: {recentHomework.submittedDate}</p>
-          </div>
+          {paymentsLoading ? <p>Loading...</p> : recentPayment ? (
+            <>
+              <div className="text-2xl font-bold">${recentPayment.amount.toFixed(2)}</div>
+              <p className="text-xs text-muted-foreground">Paid on {format(new Date(recentPayment.paymentDate), "MMMM d, yyyy")}</p>
+            </>
+          ) : <p>No recent payments.</p>}
         </CardContent>
       </Card>
       <Card className="lg:col-span-3">
@@ -64,13 +89,13 @@ const StudentDashboard = () => {
             <Megaphone className="h-5 w-5 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-            {mockAnnouncements.slice(0, 2).map((ann) => (
+            {announcementsLoading ? <p>Loading...</p> : announcements && announcements.length > 0 ? announcements.map((ann) => (
               <div key={ann.id} className="mb-4 last:mb-0">
                 <p className="text-sm font-semibold">{ann.title}</p>
                 <p className="text-sm text-muted-foreground">{ann.content}</p>
-                <p className="text-xs text-muted-foreground mt-1">{ann.author} - {ann.date}</p>
+                <p className="text-xs text-muted-foreground mt-1">{format(new Date(ann.timestamp), "MMMM d, yyyy")}</p>
               </div>
-            ))}
+            )) : <p>No announcements.</p>}
         </CardContent>
       </Card>
     </div>
@@ -78,11 +103,23 @@ const StudentDashboard = () => {
 };
 
 const TeacherDashboard = () => {
+  const { user } = useUser();
+  const firestore = getFirestore();
+
+  const lessonsQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    return query(collection(firestore, 'lessons'), where('teacherId', '==', user.uid));
+  }, [firestore, user]);
+
+  const { data: lessons, isLoading: lessonsLoading } = useCollection<Lesson>(lessonsQuery);
+  const upcomingLessons = lessons?.filter(l => new Date(l.scheduledDateTime) > new Date()).slice(0, 2) || [];
+
   const stats = [
-    { title: "Today's Lessons", value: "3", icon: BookOpenCheck },
-    { title: "Pending Attendance", value: "1", icon: UserCheck },
-    { title: "Monthly Earnings", value: "$2,450", icon: DollarSign },
+    { title: "Total Lessons", value: lessons?.length.toString() || '0', icon: BookOpenCheck },
+    { title: "Students Taught", value: lessons?.reduce((acc, l) => acc + (l.studentIds?.length || 0), 0) || '0', icon: UserCheck },
+    { title: "Monthly Earnings", value: "$0", icon: DollarSign }, // Placeholder
   ]
+
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       {stats.map(stat => (
@@ -92,35 +129,28 @@ const TeacherDashboard = () => {
             <stat.icon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stat.value}</div>
+            <div className="text-2xl font-bold">{lessonsLoading ? '...' : stat.value}</div>
           </CardContent>
         </Card>
       ))}
        <Card className="lg:col-span-3">
         <CardHeader>
           <CardTitle>Upcoming Lessons</CardTitle>
-          <CardDescription>Your scheduled lessons for the rest of the day.</CardDescription>
+          <CardDescription>Your next scheduled lessons.</CardDescription>
         </CardHeader>
         <CardContent>
+          {lessonsLoading ? <p>Loading lessons...</p> : upcomingLessons.length > 0 ? (
            <ul className="space-y-4">
-            {mockLessons.slice(0,2).map(lesson => (
+            {upcomingLessons.map(lesson => (
               <li key={lesson.id} className="flex items-center justify-between">
                 <div>
                   <p className="font-semibold">{lesson.title}</p>
-                  <p className="text-sm text-muted-foreground">{lesson.subject} at {lesson.time}</p>
-                </div>
-                <div className="flex -space-x-2 overflow-hidden">
-                  {lesson.students.slice(0,3).map(student => (
-                    <Avatar key={student.id} className="inline-block h-8 w-8 rounded-full ring-2 ring-background">
-                      <AvatarImage src={student.avatar} />
-                      <AvatarFallback>{student.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                  ))}
-                  {lesson.students.length > 3 && <Avatar className="h-8 w-8 border-2 border-background bg-muted text-muted-foreground"><AvatarFallback>+{lesson.students.length - 3}</AvatarFallback></Avatar>}
+                  <p className="text-sm text-muted-foreground">{lesson.subject} at {format(new Date(lesson.scheduledDateTime), 'h:mm a')}</p>
                 </div>
               </li>
             ))}
            </ul>
+          ) : <p>No upcoming lessons found.</p>}
         </CardContent>
       </Card>
     </div>
@@ -135,8 +165,8 @@ const ParentDashboard = () => (
             <BookOpenCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockLessons[0].title}</div>
-            <p className="text-xs text-muted-foreground">{mockLessons[0].subject} - Today at {mockLessons[0].time}</p>
+             {/* This would require knowing the child's ID, which is not in the current data model for parents. */}
+            <p className="text-muted-foreground">Feature coming soon.</p>
           </CardContent>
         </Card>
         <Card>
@@ -145,8 +175,7 @@ const ParentDashboard = () => (
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${mockPayments[0].amount}</div>
-            <p className="text-xs text-muted-foreground">Paid on {mockPayments[0].date}</p>
+            <p className="text-muted-foreground">Feature coming soon.</p>
           </CardContent>
         </Card>
         <Card>
@@ -155,20 +184,27 @@ const ParentDashboard = () => (
             <UserCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">100%</div>
-            <p className="text-xs text-muted-foreground">This month</p>
+            <p className="text-muted-foreground">Feature coming soon.</p>
           </CardContent>
         </Card>
     </div>
 );
 
 const AdminDashboard = () => {
+    const firestore = getFirestore();
+    const usersQuery = useMemoFirebase(() => collection(firestore, 'users'), [firestore]);
+    const lessonsQuery = useMemoFirebase(() => collection(firestore, 'lessons'), [firestore]);
+    
+    const { data: users, isLoading: usersLoading } = useCollection(usersQuery);
+    const { data: lessons, isLoading: lessonsLoading } = useCollection(lessonsQuery);
+
     const stats = [
-    { title: "Total Students", value: "150", icon: Users },
-    { title: "Total Teachers", value: "12", icon: UserCheck },
-    { title: "Total Lessons Today", value: "25", icon: BookOpenCheck },
-    { title: "Revenue This Month", value: "$12,500", icon: DollarSign },
-  ]
+      { title: "Total Students", value: users?.filter(u => u.role === 'student').length.toString() || '0', icon: Users },
+      { title: "Total Teachers", value: users?.filter(u => u.role === 'teacher').length.toString() || '0', icon: UserCheck },
+      { title: "Total Lessons", value: lessons?.length.toString() || '0', icon: BookOpenCheck },
+      { title: "Revenue This Month", value: "$0", icon: DollarSign }, // Placeholder
+    ]
+
   return (
      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
       {stats.map(stat => (
@@ -178,7 +214,7 @@ const AdminDashboard = () => {
             <stat.icon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stat.value}</div>
+            <div className="text-2xl font-bold">{usersLoading || lessonsLoading ? '...' : stat.value}</div>
           </CardContent>
         </Card>
       ))}
@@ -188,7 +224,6 @@ const AdminDashboard = () => {
           <CardDescription>Overview of platform usage.</CardDescription>
         </CardHeader>
         <CardContent className="pl-2">
-           {/* A chart would go here. For now, a placeholder */}
            <div className="h-[350px] w-full flex items-center justify-center bg-secondary/50 rounded-lg">
              <BarChart className="h-16 w-16 text-muted-foreground/50"/>
            </div>

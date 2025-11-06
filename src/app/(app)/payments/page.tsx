@@ -3,10 +3,7 @@
 import React from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-} from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -26,12 +23,13 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useUser } from '@/context/user-context';
-import { mockPayments } from '@/lib/data';
+import { useUser, useCollection, useMemoFirebase } from '@/firebase';
+import type { Payment } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { DollarSign } from 'lucide-react';
 import { capitalize } from '@/lib/utils';
 import { format } from 'date-fns';
+import { collection, query, getFirestore, orderBy } from 'firebase/firestore';
 
 function PaymentDialog() {
   return (
@@ -46,7 +44,7 @@ function PaymentDialog() {
         <DialogHeader>
           <DialogTitle>Make a Payment</DialogTitle>
           <DialogDescription>
-            Enter payment details below. Click submit when you're done.
+            This is a mock payment form. No real transaction will be made.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -54,25 +52,13 @@ function PaymentDialog() {
             <Label htmlFor="name" className="text-right">
               Cardholder Name
             </Label>
-            <Input id="name" defaultValue="Maria Garcia" className="col-span-3" />
+            <Input id="name" defaultValue="Jane Doe" className="col-span-3" />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="card-number" className="text-right">
               Card Number
             </Label>
             <Input id="card-number" placeholder="**** **** **** 1234" className="col-span-3" />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="expiry" className="text-right">
-              Expiry
-            </Label>
-            <Input id="expiry" placeholder="MM/YY" className="col-span-3" />
-          </div>
-           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="cvc" className="text-right">
-              CVC
-            </Label>
-            <Input id="cvc" placeholder="123" className="col-span-3" />
           </div>
         </div>
         <DialogFooter>
@@ -84,10 +70,27 @@ function PaymentDialog() {
 }
 
 export default function PaymentsPage() {
-  const { userProfile } = useUser();
+  const { user, userProfile } = useUser();
+  const firestore = getFirestore();
+
+  const paymentsQuery = useMemoFirebase(() => {
+    if (!user || !userProfile) return null;
+    
+    // Admins see all payments. Students/parents see their own. Teachers don't see this collection directly.
+    if (userProfile.role === 'admin') {
+      return query(collection(firestore, 'payments'), orderBy('paymentDate', 'desc'));
+    }
+    if (userProfile.role === 'student' || userProfile.role === 'parent') {
+      return query(collection(firestore, 'users', user.uid, 'payments'), orderBy('paymentDate', 'desc'));
+    }
+    return null;
+  }, [firestore, user, userProfile]);
+
+  const { data: payments, isLoading } = useCollection<Payment>(paymentsQuery);
+
   if (!userProfile) return null;
 
-  const canMakePayment = userProfile.role === 'parent' || userProfile.role === 'admin';
+  const canMakePayment = userProfile.role === 'parent' || userProfile.role === 'student';
 
   const pageDetails = {
     student: { title: "My Payments", description: "Here is your payment history." },
@@ -97,6 +100,19 @@ export default function PaymentsPage() {
   };
 
   const { title, description } = pageDetails[userProfile.role];
+
+  if (userProfile.role === 'teacher') {
+    return (
+      <>
+        <PageHeader title={title} description={description} />
+        <Card>
+          <CardContent className="pt-6">
+            <p>Teacher earnings are not yet implemented.</p>
+          </CardContent>
+        </Card>
+      </>
+    )
+  }
 
   return (
     <>
@@ -111,31 +127,26 @@ export default function PaymentsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Transaction ID</TableHead>
-                <TableHead>Student</TableHead>
+                <TableHead>Student ID</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {mockPayments.map((payment) => (
+              {isLoading && <TableRow><TableCell colSpan={5} className="text-center">Loading payments...</TableCell></TableRow>}
+              {!isLoading && payments && payments.map((payment) => (
                 <TableRow key={payment.id}>
-                  <TableCell className="font-mono text-xs">{payment.id}</TableCell>
-                  <TableCell className="font-medium">{payment.studentName}</TableCell>
+                  <TableCell className="font-mono text-xs">{payment.transactionId}</TableCell>
+                  <TableCell className="font-medium">{payment.studentId}</TableCell>
                   <TableCell>${payment.amount.toFixed(2)}</TableCell>
-                  <TableCell>{format(new Date(payment.date), "MM/dd/yyyy")}</TableCell>
+                  <TableCell>{format(new Date(payment.paymentDate), "MM/dd/yyyy")}</TableCell>
                   <TableCell>
-                    <Badge variant={payment.status === 'paid' ? 'default' : 'secondary'}
-                      className={
-                        payment.status === 'paid' ? 'bg-green-100 text-green-800' :
-                        payment.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'
-                      }
-                    >
-                      {capitalize(payment.status)}
-                    </Badge>
+                    <Badge>Paid</Badge>
                   </TableCell>
                 </TableRow>
               ))}
+              {!isLoading && (!payments || payments.length === 0) && <TableRow><TableCell colSpan={5} className="text-center">No payments found.</TableCell></TableRow>}
             </TableBody>
           </Table>
         </CardContent>
