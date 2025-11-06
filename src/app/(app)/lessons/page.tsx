@@ -67,6 +67,8 @@ function CreateLessonDialog({ user, afterCreate }: { user: User; afterCreate: ()
         teacherId: user.id,
         scheduledDateTime: new Date().toISOString(), // Default to now
         studentIds: mockStudentIds, 
+        materials: '',
+        resources: ''
       };
 
       await addDoc(lessonsRef, newLesson);
@@ -197,8 +199,12 @@ export default function LessonsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading && <TableRow><TableCell colSpan={5} className="text-center">Loading lessons...</TableCell></TableRow>}
-              {!isLoading && lessons && lessons.map((lesson) => (
+              {isLoading && (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center">Loading lessons...</TableCell>
+                </TableRow>
+              )}
+              {!isLoading && lessons && lessons.length > 0 && lessons.map((lesson) => (
                 <TableRow key={lesson.id}>
                   <TableCell className="font-medium">{lesson.title}</TableCell>
                   <TableCell>{lesson.subject}</TableCell>
@@ -222,7 +228,11 @@ export default function LessonsPage() {
                   </TableCell>
                 </TableRow>
               ))}
-               {!isLoading && (!lessons || lessons.length === 0) && <TableRow><TableCell colSpan={5} className="text-center">No lessons found.</TableCell></TableRow>}
+               {!isLoading && (!lessons || lessons.length === 0) && (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center">No lessons found.</TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>
