@@ -18,11 +18,11 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useUser, useCollection, useMemoFirebase } from '@/firebase';
+import { useUser, useCollection, useMemoFirebase, useFirestore } from '@/firebase';
 import type { Lesson, User } from '@/lib/types';
 import { BookPlus, MoreHorizontal } from 'lucide-react';
 import { format } from 'date-fns';
-import { collection, query, where, getFirestore, orderBy, collectionGroup, addDoc, getDocs } from 'firebase/firestore';
+import { collection, query, where, orderBy, collectionGroup, addDoc, getDocs } from 'firebase/firestore';
 import {
   Dialog,
   DialogContent,
@@ -41,7 +41,7 @@ function CreateLessonDialog({ user, afterCreate }: { user: User; afterCreate: ()
   const [subject, setSubject] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
   const { toast } = useToast();
-  const firestore = getFirestore();
+  const firestore = useFirestore();
 
   const handleCreateLesson = async () => {
     if (!title || !subject) {
@@ -139,7 +139,7 @@ function CreateLessonDialog({ user, afterCreate }: { user: User; afterCreate: ()
 
 export default function LessonsPage() {
   const { user, userProfile } = useUser();
-  const firestore = getFirestore();
+  const firestore = useFirestore();
   const [isCreateDialogOpen, setCreateDialogOpen] = React.useState(false);
 
 

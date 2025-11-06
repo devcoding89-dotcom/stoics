@@ -6,7 +6,8 @@ import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { Auth, getAuth } from 'firebase/auth';
 import { Firestore, getFirestore } from 'firebase/firestore';
 import { useMemo, type DependencyList } from 'react';
-
+import type { User as FirebaseUser } from 'firebase/auth';
+import type { User as AppUser } from '@/lib/types';
 // IMPORTANT: DO NOT MODIFY THIS FUNCTION
 export function initializeFirebase() {
   if (!getApps().length) {
@@ -63,3 +64,13 @@ export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T | 
   
   return memoized;
 }
+
+export interface UseUserHook {
+    user: FirebaseUser | null;
+    userProfile: AppUser | null;
+    isUserLoading: boolean;
+}
+export function useUser(): UseUserHook {
+  const { user, userProfile, isUserLoading } = useFirebase();
+  return { user, userProfile, isUserLoading };
+};

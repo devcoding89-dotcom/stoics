@@ -14,7 +14,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
 import { useUser, useCollection, useMemoFirebase, useFirestore } from '@/firebase';
-import { getFirestore, collection, doc, updateDoc } from 'firebase/firestore';
+import { collection, doc, updateDoc } from 'firebase/firestore';
 import type { User } from '@/lib/types';
 import { capitalize } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -41,6 +41,7 @@ export default function ManageUsersPage() {
   }
 
   const handleVerificationChange = async (userId: string, verified: boolean) => {
+    if (!firestore) return;
     const userRef = doc(firestore, 'users', userId);
     try {
       await updateDoc(userRef, { verified });

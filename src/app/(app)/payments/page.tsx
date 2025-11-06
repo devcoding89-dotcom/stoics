@@ -24,13 +24,13 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useUser, useCollection, useMemoFirebase } from '@/firebase';
+import { useUser, useCollection, useMemoFirebase, useFirestore } from '@/firebase';
 import type { Payment } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { DollarSign } from 'lucide-react';
 import { capitalize } from '@/lib/utils';
 import { format } from 'date-fns';
-import { collection, query, getFirestore, orderBy, collectionGroup } from 'firebase/firestore';
+import { collection, query, orderBy, collectionGroup } from 'firebase/firestore';
 
 function PaymentDialog() {
   return (
@@ -72,10 +72,10 @@ function PaymentDialog() {
 
 export default function PaymentsPage() {
   const { user, userProfile } = useUser();
-  const firestore = getFirestore();
+  const firestore = useFirestore();
 
   const paymentsQuery = useMemoFirebase(() => {
-    if (!user || !userProfile) return null;
+    if (!user || !userProfile || !firestore) return null;
     
     // Admins see all payments. Students/parents see their own. Teachers don't see this collection directly.
     if (userProfile.role === 'admin') {

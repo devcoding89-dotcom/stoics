@@ -19,17 +19,18 @@ import { capitalize } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { getFirestore, collection, query, where, documentId } from 'firebase/firestore';
+import { collection, query, where, documentId } from 'firebase/firestore';
 import type { Lesson, Attendance, User } from '@/lib/types';
 import React from 'react';
 
 const StudentListForLesson = ({ studentIds }: { studentIds: string[] }) => {
   const firestore = useFirestore();
+  const { userProfile } = useUser();
 
   const studentsQuery = useMemoFirebase(() => {
-    if (!firestore || !studentIds || studentIds.length === 0) return null;
+    if (!firestore || !userProfile || !studentIds || studentIds.length === 0) return null;
     return query(collection(firestore, 'users'), where(documentId(), 'in', studentIds));
-  }, [firestore, studentIds]);
+  }, [firestore, userProfile, studentIds]);
   
   const { data: students, isLoading: studentsLoading } = useCollection<User>(studentsQuery);
 
@@ -84,14 +85,14 @@ const StudentListForLesson = ({ studentIds }: { studentIds: string[] }) => {
 
 
 const TeacherAttendance = () => {
-  const { user } = useUser();
+  const { user, userProfile } = useUser();
   const firestore = useFirestore();
   const [selectedLessonId, setSelectedLessonId] = React.useState<string | undefined>();
 
   const lessonsQuery = useMemoFirebase(() => {
-    if (!user || !firestore) return null;
+    if (!user || !firestore || !userProfile) return null;
     return query(collection(firestore, 'users', user.uid, 'lessons'));
-  }, [firestore, user]);
+  }, [firestore, user, userProfile]);
   const { data: lessons, isLoading: lessonsLoading } = useCollection<Lesson>(lessonsQuery);
 
   const lesson = lessons?.find(l => l.id === selectedLessonId);

@@ -16,26 +16,26 @@ import {
 } from 'lucide-react';
 import { capitalize } from '@/lib/utils';
 import { format } from 'date-fns';
-import { collection, query, where, getFirestore, limit, collectionGroup } from 'firebase/firestore';
+import { collection, query, where, limit, collectionGroup } from 'firebase/firestore';
 
 const StudentDashboard = () => {
-  const { user } = useUser();
+  const { user, userProfile } = useUser();
   const firestore = useFirestore();
 
   const lessonsQuery = useMemoFirebase(() => {
-    if (!user || !firestore) return null;
+    if (!user || !firestore || !userProfile) return null;
     return query(collectionGroup(firestore, 'lessons'), where('studentIds', 'array-contains', user.uid), limit(1));
-  }, [firestore, user]);
+  }, [firestore, user, userProfile]);
 
   const announcementsQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
+    if (!firestore || !userProfile) return null;
     return query(collection(firestore, 'announcements'), limit(2));
-  }, [firestore]);
+  }, [firestore, userProfile]);
   
   const paymentsQuery = useMemoFirebase(() => {
-    if(!user || !firestore) return null;
+    if(!user || !firestore || !userProfile) return null;
     return query(collection(firestore, 'users', user.uid, 'payments'), limit(1));
-  }, [firestore, user]);
+  }, [firestore, user, userProfile]);
 
   const { data: lessons, isLoading: lessonsLoading } = useCollection<Lesson>(lessonsQuery);
   const { data: announcements, isLoading: announcementsLoading } = useCollection<Announcement>(announcementsQuery);
@@ -104,13 +104,13 @@ const StudentDashboard = () => {
 };
 
 const TeacherDashboard = () => {
-  const { user } = useUser();
+  const { user, userProfile } = useUser();
   const firestore = useFirestore();
 
   const lessonsQuery = useMemoFirebase(() => {
-    if (!user || !firestore) return null;
+    if (!user || !firestore || !userProfile) return null;
     return query(collection(firestore, 'users', user.uid, 'lessons'));
-  }, [firestore, user]);
+  }, [firestore, user, userProfile]);
 
   const { data: lessons, isLoading: lessonsLoading } = useCollection<Lesson>(lessonsQuery);
   const upcomingLessons = lessons?.filter(l => new Date(l.scheduledDateTime) > new Date()).slice(0, 2) || [];

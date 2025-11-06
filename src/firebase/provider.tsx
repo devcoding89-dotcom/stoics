@@ -101,8 +101,3 @@ export const useFirebaseApp = (): FirebaseApp => {
   const { firebaseApp } = useFirebase();
   return firebaseApp;
 };
-
-export const useUser = () => {
-  const { user, userProfile, isUserLoading } = useFirebase();
-  return { user, userProfile, isUserLoading };
-};
