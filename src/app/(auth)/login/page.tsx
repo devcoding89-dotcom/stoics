@@ -26,7 +26,7 @@ import type { User as AppUser } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
 import { FcGoogle } from 'react-icons/fc';
 import { useToast } from '@/hooks/use-toast';
-import { sendOtp } from '@/ai/flows/send-otp';
+import { sendOtp } from '@/ai/flows/send-otp-flow';
 import { useFirebase } from '@/firebase/provider';
 
 type LoginStep = 'start' | 'otp';

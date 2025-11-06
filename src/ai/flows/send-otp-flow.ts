@@ -42,7 +42,7 @@ export async function sendOtp(input: SendOtpInput): Promise<SendOtpOutput> {
   return sendOtpFlow(input);
 }
 
-const sendOtpFlow = ai.defineFlow(
+export const sendOtpFlow = ai.defineFlow(
   {
     name: 'sendOtpFlow',
     inputSchema: SendOtpInputSchema,
