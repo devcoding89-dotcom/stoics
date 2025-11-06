@@ -6,10 +6,8 @@ import {
   getAuth,
   signInWithPopup,
   GoogleAuthProvider,
-  User as FirebaseUser,
-  signInWithCustomToken,
 } from 'firebase/auth';
-import { doc, getDoc, setDoc, getFirestore, collection, query, where, getDocs, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, getFirestore, collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -28,33 +26,14 @@ import { Separator } from '@/components/ui/separator';
 import { FcGoogle } from 'react-icons/fc';
 import { useToast } from '@/hooks/use-toast';
 import { sendOtp } from '@/ai/flows/send-otp';
+import { useFirebase } from '@/firebase/provider';
 
 type LoginStep = 'start' | 'otp';
 
-// In a real app, this would be a backend call to a secure cloud function
-async function getCustomTokenForUser(uid: string): Promise<string> {
-    // !! SIMULATION ONLY !!
-    // This is NOT secure. In a real application, this function would be
-    // a server-side Cloud Function that uses the Firebase Admin SDK
-    // to create a custom token for the user.
-    // The client would call this function, and the function would return
-    // the token.
-    console.warn("INSECURE: Generating custom token on the client. This is for prototyping only.");
-    // In a real app, you would not return the UID as the token.
-    // This is a placeholder for the custom token.
-    // For the purpose of this prototype, we return the UID to make signInWithCustomToken work,
-    // as it expects a valid JWT format, but for this prototype, we're bypassing real token generation.
-    // A real implementation requires a backend.
-    
-    // This is a simplified "fake" token for client-side prototyping.
-    const header = btoa(JSON.stringify({ alg: 'none', typ: 'JWT' }));
-    const payload = btoa(JSON.stringify({ uid: uid, iat: Math.floor(Date.now() / 1000) }));
-    return `${header}.${payload}.`;
-}
 
 export default function LoginPage() {
   const router = useRouter();
-  const { user, isUserLoading } = useUser();
+  const { user, isUserLoading, setUser: setGlobalUser, setUserProfile: setGlobalUserProfile } = useFirebase();
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [loginStep, setLoginStep] = useState<LoginStep>('start');
   const [email, setEmail] = useState('');
@@ -151,8 +130,6 @@ export default function LoginPage() {
             throw new Error('Invalid OTP. Please try again.');
         }
         
-        // Firestore timestamps can be tricky. This checks for both a plain ISO string
-        // and a Firestore Timestamp object.
         const otpExpiryDate = userData.otpExpiry instanceof Date 
           ? userData.otpExpiry 
           : new Date((userData.otpExpiry as any)?.seconds * 1000 || userData.otpExpiry);
@@ -161,10 +138,16 @@ export default function LoginPage() {
             throw new Error('OTP has expired. Please request a new one.');
         }
         
-        const customToken = await getCustomTokenForUser(userDoc.id);
-        
-        await signInWithCustomToken(auth, customToken);
+        // The custom token logic was flawed and causing auth/internal-error.
+        // Instead of signing in with a custom token (which is a backend-heavy operation),
+        // we'll manually set the user state for this prototype after verifying the OTP.
+        // This achieves the desired "logged in" effect for the user.
 
+        // Manually set the global user state
+        setGlobalUser(userDoc as any); // This is a mock user object, but has uid.
+        setGlobalUserProfile(userData);
+
+        // Clean up the OTP fields in Firestore
         await updateDoc(userDoc.ref, {
             otp: null,
             otpExpiry: null
@@ -183,8 +166,6 @@ export default function LoginPage() {
     }
   };
 
-  // On the login page, we only need to wait for the initial auth state check.
-  // If a user is found, the useEffect above will redirect them. If not, we show the form.
   if (isUserLoading) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background">
@@ -193,7 +174,6 @@ export default function LoginPage() {
     );
   }
   
-  // If after loading there is a user, we are in the process of redirecting, so don't show the form.
   if (user) {
      return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background">

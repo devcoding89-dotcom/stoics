@@ -20,6 +20,8 @@ export interface FirebaseContextState {
   user: User | null;
   userProfile: AppUser | null;
   isUserLoading: boolean;
+  setUser: (user: User | null) => void;
+  setUserProfile: (profile: AppUser | null) => void;
 }
 
 export const FirebaseContext = createContext<FirebaseContextState | undefined>(undefined);
@@ -69,6 +71,8 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     user,
     userProfile,
     isUserLoading,
+    setUser, 
+    setUserProfile
   }), [firebaseApp, firestore, auth, user, userProfile, isUserLoading]);
 
   return (
