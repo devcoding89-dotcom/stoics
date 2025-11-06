@@ -58,6 +58,7 @@ export default function LoginPage() {
           role: 'student', // Default role
           avatar: firebaseUser.photoURL || '',
           verified: true, // Auto-verified with Google
+          language: 'en', // Default language
         };
         await setDoc(userRef, newUserProfile);
       }
@@ -125,3 +126,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
+    

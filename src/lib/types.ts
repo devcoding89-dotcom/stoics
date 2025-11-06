@@ -10,6 +10,7 @@ export interface User {
   role: UserRole;
   avatar?: string;
   verified: boolean;
+  language: string;
 }
 
 export type Lesson = {
@@ -77,3 +78,5 @@ export type Homework = {
   status: 'completed' | 'pending';
   submittedDate: string;
 };
+
+    
