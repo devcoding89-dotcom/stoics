@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, serverTimestamp } from 'firebase/firestore';
 
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,6 +28,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 const formSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters.'),
@@ -56,7 +58,7 @@ export default function CreateLessonPage() {
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
     if (!user || !firestore) {
       toast({
         title: 'Error',
@@ -67,31 +69,36 @@ export default function CreateLessonPage() {
     }
     setIsSubmitting(true);
 
-    try {
-      const lessonsRef = collection(firestore, 'users', user.uid, 'lessons');
-      await addDoc(lessonsRef, {
-        ...values,
-        teacherId: user.uid,
-        scheduledDateTime: values.scheduledDateTime.toISOString(),
-        createdAt: serverTimestamp(),
-      });
-      
-      toast({
-        title: 'Lesson Created',
-        description: `The lesson "${values.title}" has been successfully created.`,
-      });
-
-      router.push('/dashboard');
-    } catch (error) {
-      console.error('Error creating lesson:', error);
-      toast({
-        title: 'Error creating lesson',
-        description: 'An unexpected error occurred. Please try again.',
-        variant: 'destructive',
-      });
-    } finally {
+    const lessonsRef = collection(firestore, 'users', user.uid, 'lessons');
+    const lessonData = {
+      ...values,
+      teacherId: user.uid,
+      scheduledDateTime: values.scheduledDateTime.toISOString(),
+      createdAt: serverTimestamp(),
+    };
+    
+    addDocumentNonBlocking(lessonsRef, lessonData)
+      .then(() => {
+        toast({
+          title: 'Lesson Created',
+          description: `The lesson "${values.title}" has been successfully created.`,
+        });
+        router.push('/dashboard');
+      })
+      .catch((error) => {
+        console.error('Error creating lesson:', error);
+        // Let the global error handler catch permission errors.
+        if (!(error instanceof FirestorePermissionError)) {
+            toast({
+                title: 'Error creating lesson',
+                description: error.message || 'An unexpected error occurred. Please try again.',
+                variant: 'destructive',
+            });
+        }
+      })
+      .finally(() => {
         setIsSubmitting(false);
-    }
+      });
   };
 
   return (
