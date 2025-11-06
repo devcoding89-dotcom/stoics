@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect } from 'react';
@@ -17,6 +18,7 @@ import {
   SidebarFooter,
   SidebarInset,
   SidebarTrigger,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { Separator } from '@/components/ui/separator';
 import { Logo } from '@/components/logo';
@@ -77,11 +79,12 @@ function getNavigation(role: UserRole) {
   return uniqueNavs;
 }
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+function MainLayout({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading, userProfile } = useUser();
   const router = useRouter();
   const pathname = usePathname();
   const auth = getAuth();
+  const { setOpenMobile } = useSidebar();
   
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -105,57 +108,71 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const handleLogout = () => {
     signOut(auth);
   };
+  
+  const handleLinkClick = () => {
+    setOpenMobile(false);
+  };
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen bg-background">
-        <Sidebar>
-          <SidebarHeader>
-            <div className="flex items-center gap-2 p-2">
-              <Logo />
-              <span className="font-bold text-lg font-headline">Stoics Educational Services</span>
-            </div>
-          </SidebarHeader>
-          <SidebarContent>
-            <SidebarMenu>
-              {navigation.map((item) => (
-                <SidebarMenuItem key={item.href}>
-                  <Link href={item.href}>
-                    <SidebarMenuButton
-                      isActive={pathname.startsWith(item.href)}
-                      tooltip={{ children: item.label }}
-                    >
+    <div className="min-h-screen bg-background">
+      <Sidebar>
+        <SidebarHeader>
+          <div className="flex items-center gap-2 p-2">
+            <Logo />
+            <span className="font-bold text-lg font-headline">Stoics Educational Services</span>
+          </div>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarMenu>
+            {navigation.map((item) => (
+              <SidebarMenuItem key={item.href}>
+                <Link href={item.href} onClick={handleLinkClick}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname.startsWith(item.href)}
+                    tooltip={{ children: item.label }}
+                  >
+                    <span>
                       <item.icon />
                       <span>{item.label}</span>
-                    </SidebarMenuButton>
-                  </Link>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarContent>
-          <SidebarFooter>
-            <Separator className="my-2" />
-            <SidebarMenu>
-              <SidebarMenuItem>
-                 <SidebarMenuButton onClick={handleLogout}>
-                   <LogOut/>
-                   <span>Logout</span>
-                 </SidebarMenuButton>
+                    </span>
+                  </SidebarMenuButton>
+                </Link>
               </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarFooter>
-        </Sidebar>
-        <SidebarInset>
-          <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-6">
-            <SidebarTrigger className="md:hidden" />
-            <div className="flex-1">
-              {/* Optional: Breadcrumbs or Page Title */}
-            </div>
-            <UserNav />
-          </header>
-          <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
-        </SidebarInset>
-      </div>
-    </SidebarProvider>
+            ))}
+          </SidebarMenu>
+        </SidebarContent>
+        <SidebarFooter>
+          <Separator className="my-2" />
+          <SidebarMenu>
+            <SidebarMenuItem>
+                <SidebarMenuButton onClick={handleLogout}>
+                  <LogOut/>
+                  <span>Logout</span>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
+      </Sidebar>
+      <SidebarInset>
+        <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-6">
+          <SidebarTrigger className="md:hidden" />
+          <div className="flex-1">
+            {/* Optional: Breadcrumbs or Page Title */}
+          </div>
+          <UserNav />
+        </header>
+        <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
+      </SidebarInset>
+    </div>
   );
+}
+
+
+export default function AppLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <SidebarProvider>
+      <MainLayout>{children}</MainLayout>
+    </SidebarProvider>
+  )
 }
