@@ -1,3 +1,4 @@
+
 {
   "global": {
     "appName": "Servizi Educativi Stoics"
@@ -27,7 +28,7 @@
       "title": "Gestione delle lezioni",
       "description": "Gli insegnanti possono programmare facilmente lezioni e condividere materiali e risorse con gli studenti."
     },
-realName"attendance": {
+    "attendance": {
       "title": "Monitoraggio delle presenze",
       "description": "Registrazione delle presenze semplice ed efficiente per insegnanti e amministratori."
     },

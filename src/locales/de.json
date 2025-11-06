@@ -1,3 +1,4 @@
+
 {
   "global": {
     "appName": "Stoics Bildungsdienste"
@@ -51,7 +52,7 @@
     "firstNamePlaceholder": "John",
     "lastNameLabel": "Nachname",
     "lastNamePlaceholder": "Doe",
-realName"emailLabel": "E-Mail",
+    "emailLabel": "E-Mail",
     "passwordLabel": "Passwort",
     "roleLabel": "Ich bin ein...",
     "rolePlaceholder": "Wählen Sie eine Rolle",
