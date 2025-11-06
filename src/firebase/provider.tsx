@@ -19,7 +19,8 @@ export interface FirebaseContextState {
   auth: Auth;
   user: User | null;
   userProfile: AppUser | null;
-  isUserLoading: boolean; 
+  isUserLoading: boolean; // Tracks Firebase Auth state loading
+  isUserProfileLoading: boolean; // Tracks Firestore profile loading
 }
 
 export const FirebaseContext = createContext<FirebaseContextState | undefined>(undefined);
@@ -32,11 +33,14 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 }) => {
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<AppUser | null>(null);
-  const [isUserLoading, setIsUserLoading] = useState(true);
+  const [isUserLoading, setIsUserLoading] = useState(true); // Auth loading
+  const [isUserProfileLoading, setIsUserProfileLoading] = useState(true); // Profile loading
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setIsUserLoading(true);
+      setIsUserLoading(true); // Start auth loading
+      setIsUserProfileLoading(true); // Start profile loading
+
       if (firebaseUser) {
         setUser(firebaseUser);
         const userRef = doc(firestore, 'users', firebaseUser.uid);
@@ -51,12 +55,15 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
         } catch (error) {
           console.error("Error fetching user profile:", error);
           setUserProfile(null);
+        } finally {
+            setIsUserProfileLoading(false); // Profile loading finished
         }
       } else {
         setUser(null);
         setUserProfile(null);
+        setIsUserProfileLoading(false); // No profile to load
       }
-      setIsUserLoading(false);
+      setIsUserLoading(false); // Auth loading finished
     });
 
     return () => unsubscribe();
@@ -69,7 +76,8 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     user,
     userProfile,
     isUserLoading,
-  }), [firebaseApp, firestore, auth, user, userProfile, isUserLoading]);
+    isUserProfileLoading,
+  }), [firebaseApp, firestore, auth, user, userProfile, isUserLoading, isUserProfileLoading]);
 
   return (
     <FirebaseContext.Provider value={contextValue}>
@@ -102,6 +110,6 @@ export const useFirebaseApp = (): FirebaseApp => {
 };
 
 export const useUser = () => {
-  const { user, userProfile, isUserLoading } = useFirebase();
-  return { user, userProfile, isUserLoading };
+  const { user, userProfile, isUserLoading, isUserProfileLoading } = useFirebase();
+  return { user, userProfile, isUserLoading, isUserProfileLoading };
 };

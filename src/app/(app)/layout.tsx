@@ -79,7 +79,7 @@ function getNavigation(role: UserRole) {
 }
 
 function MainLayout({ children }: { children: React.ReactNode }) {
-  const { user, userProfile } = useUser();
+  const { userProfile } = useUser();
   const router = useRouter();
   const pathname = usePathname();
   const auth = getAuth();
@@ -97,6 +97,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
     }
   };
   
+  // userProfile is guaranteed to exist here by the AppLayout guard
   const navigation = getNavigation(userProfile!.role);
 
   return (
@@ -156,16 +157,20 @@ function MainLayout({ children }: { children: React.ReactNode }) {
 
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { isUserLoading, user } = useUser();
+  const { isUserLoading, user, isUserProfileLoading, userProfile } = useUser();
   const router = useRouter();
   
   useEffect(() => {
+    // If auth is done loading and there's no user, redirect to login.
     if (!isUserLoading && !user) {
       router.push('/login');
     }
   }, [isUserLoading, user, router]);
 
-  if (isUserLoading) {
+  // Combined loading state: wait for both auth and profile fetch.
+  const isLoading = isUserLoading || isUserProfileLoading;
+
+  if (isLoading) {
     return (
        <div className="flex h-screen w-screen items-center justify-center">
         <div className="flex flex-col items-center gap-4">
@@ -176,9 +181,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     )
   }
 
-  if (!user) {
-    // This state is brief, as the useEffect above will redirect.
-    // Returning null prevents rendering children that might depend on a user.
+  // If loading is complete but there is no user, redirecting.
+  // Returning null prevents children from rendering prematurely.
+  if (!user || !userProfile) {
     return null;
   }
 
