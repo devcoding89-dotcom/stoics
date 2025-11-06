@@ -92,7 +92,8 @@ service cloud.firestore {
        // Allow signed-in users to read lessons if they are an admin, the teacher,
        // or if they are a student associated with the lesson.
        allow get: if isSignedIn();
-       allow list: if isSignedIn() && (isAdmin() || request.auth.uid in resource.data.studentIds);
+       // This allows a student to query for their own lessons across all teachers.
+       allow list: if isSignedIn() && (request.query.where.studentIds.includes(request.auth.uid) || isAdmin());
     }
     
     /**
