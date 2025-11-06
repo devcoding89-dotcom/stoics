@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Logo } from '@/components/logo';
 import { UserNav } from '@/components/user-nav';
-import { LayoutDashboard } from 'lucide-react';
+import { LayoutDashboard, MessageSquare } from 'lucide-react';
 
 function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -44,6 +44,20 @@ function MainLayout({ children }: { children: React.ReactNode }) {
                   <span>
                     <LayoutDashboard />
                     <span>Dashboard</span>
+                  </span>
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <Link href="/communication-flow">
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname.startsWith('/communication-flow')}
+                  tooltip={{ children: 'Communication' }}
+                >
+                  <span>
+                    <MessageSquare />
+                    <span>Communication</span>
                   </span>
                 </SidebarMenuButton>
               </Link>
