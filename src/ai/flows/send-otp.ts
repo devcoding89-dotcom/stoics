@@ -6,14 +6,20 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { initializeApp, getApps } from 'firebase-admin/app';
+import { initializeApp, getApps, App, applicationDefault } from 'firebase-admin/app';
 import { getFirestore as getAdminFirestore } from 'firebase-admin/firestore';
-import { firebaseConfig } from '@/firebase/config';
 
-// Initialize Firebase Admin SDK if not already initialized
-if (!getApps().length) {
-  initializeApp({
-    projectId: firebaseConfig.projectId,
+// Helper function to initialize Firebase Admin SDK if not already done.
+// This ensures that we have a properly authenticated instance.
+function ensureFirebaseAdminInitialized(): App {
+  const apps = getApps();
+  if (apps.length > 0) {
+    return apps[0]!;
+  }
+  // When running in a Google Cloud environment, applicationDefault() will find
+  // the correct credentials to authenticate.
+  return initializeApp({
+    credential: applicationDefault(),
   });
 }
 
@@ -39,7 +45,10 @@ const sendOtpFlow = ai.defineFlow(
     outputSchema: SendOtpOutputSchema,
   },
   async ({ email }) => {
+    // Ensure Firebase is initialized before proceeding
+    ensureFirebaseAdminInitialized();
     const firestore = getAdminFirestore();
+
     const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
 
