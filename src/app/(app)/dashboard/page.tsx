@@ -23,19 +23,19 @@ const StudentDashboard = () => {
   const { user } = useUser();
   const firestore = getFirestore();
 
+  // In a real app, you would have a way to associate students with lessons.
+  // For now, this query is disabled for students as there's no direct link in the top-level.
   const lessonsQuery = useMemoFirebase(() => {
-    if (!user) return null;
-    // This query is hypothetical as students aren't directly linked to lessons in a queryable way in the root collection
-    // This part of the UI may not show data until the data model is adjusted
     return null; 
-  }, [firestore, user]);
+  }, []);
 
   const announcementsQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
     return query(collection(firestore, 'announcements'), limit(2));
   }, [firestore]);
   
   const paymentsQuery = useMemoFirebase(() => {
-    if(!user) return null;
+    if(!user || !firestore) return null;
     return query(collection(firestore, 'users', user.uid, 'payments'), limit(1));
   }, [firestore, user]);
 
@@ -110,7 +110,7 @@ const TeacherDashboard = () => {
   const firestore = getFirestore();
 
   const lessonsQuery = useMemoFirebase(() => {
-    if (!user) return null;
+    if (!user || !firestore) return null;
     return query(collection(firestore, 'users', user.uid, 'lessons'));
   }, [firestore, user]);
 
@@ -197,7 +197,10 @@ const ParentDashboard = () => (
 
 const AdminDashboard = () => {
     const firestore = getFirestore();
-    const usersQuery = useMemoFirebase(() => collection(firestore, 'users'), [firestore]);
+    const usersQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return collection(firestore, 'users');
+    }, [firestore]);
     // Admin cannot query all nested lessons directly without knowing teacher IDs.
     // This would require a more complex aggregation or a separate top-level collection for all lessons if admins need this view.
     // const lessonsQuery = useMemoFirebase(() => collection(firestore, 'lessons'), [firestore]);
