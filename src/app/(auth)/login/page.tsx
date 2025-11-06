@@ -40,7 +40,16 @@ async function getCustomTokenForUser(uid: string): Promise<string> {
     // The client would call this function, and the function would return
     // the token.
     console.warn("INSECURE: Generating custom token on the client. This is for prototyping only.");
-    return uid; // Simulating the token is the UID
+    // In a real app, you would not return the UID as the token.
+    // This is a placeholder for the custom token.
+    // For the purpose of this prototype, we return the UID to make signInWithCustomToken work,
+    // as it expects a valid JWT format, but for this prototype, we're bypassing real token generation.
+    // A real implementation requires a backend.
+    
+    // This is a simplified "fake" token for client-side prototyping.
+    const header = btoa(JSON.stringify({ alg: 'none', typ: 'JWT' }));
+    const payload = btoa(JSON.stringify({ uid: uid, iat: Math.floor(Date.now() / 1000) }));
+    return `${header}.${payload}.`;
 }
 
 export default function LoginPage() {
@@ -126,11 +135,6 @@ export default function LoginPage() {
     }
     setIsSigningIn(true);
     try {
-        // In a real app, this logic would be on a secure backend.
-        // The backend would verify the OTP and its expiry against the database,
-        // then use the Admin SDK to create a custom token.
-        // For this prototype, we do the check on the client.
-
         const usersRef = collection(firestore, 'users');
         const q = query(usersRef, where('email', '==', email));
         const querySnapshot = await getDocs(q);
@@ -147,17 +151,14 @@ export default function LoginPage() {
             throw new Error('Invalid OTP. Please try again.');
         }
 
-        if (userData.otpExpiry && new Date(userData.otpExpiry) < now) {
+        if (userData.otpExpiry && new Date(userData.otpExpiry.seconds * 1000) < now) {
             throw new Error('OTP has expired. Please request a new one.');
         }
         
-        // OTP is valid. Now, get a custom token (simulated).
         const customToken = await getCustomTokenForUser(userDoc.id);
         
-        // Sign in with the custom token.
         await signInWithCustomToken(auth, customToken);
 
-        // Clear the OTP from the database after successful login
         await updateDoc(userDoc.ref, {
             otp: null,
             otpExpiry: null
@@ -204,30 +205,6 @@ export default function LoginPage() {
         <CardContent>
           {loginStep === 'start' ? (
             <div className="flex flex-col gap-4">
-              <Button
-                variant="outline"
-                onClick={handleGoogleSignIn}
-                disabled={isSigningIn}
-                className="w-full"
-              >
-                {isSigningIn ? (
-                  'Signing in...'
-                ) : (
-                  <>
-                    <FcGoogle className="mr-2 h-5 w-5" /> Continue with Google
-                  </>
-                )}
-              </Button>
-
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">Or</span>
-                </div>
-              </div>
-
               <div className="space-y-2">
                 <Label htmlFor="email">Email Address</Label>
                 <Input
@@ -242,11 +219,29 @@ export default function LoginPage() {
               <Button onClick={handleEmailContinue} disabled={isSigningIn || !email}>
                 {isSigningIn ? 'Sending...' : 'Continue with Email'}
               </Button>
+              
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">Or</span>
+                </div>
+              </div>
 
-              <Separator />
-
-              <Button onClick={() => router.push('/register')} variant="secondary">
-                Create an Account
+               <Button
+                variant="outline"
+                onClick={handleGoogleSignIn}
+                disabled={isSigningIn}
+                className="w-full"
+              >
+                {isSigningIn ? (
+                  'Signing in...'
+                ) : (
+                  <>
+                    <FcGoogle className="mr-2 h-5 w-5" /> Continue with Google
+                  </>
+                )}
               </Button>
             </div>
           ) : (
@@ -273,6 +268,14 @@ export default function LoginPage() {
           )}
         </CardContent>
       </Card>
+      {loginStep === 'start' && (
+        <p className="mt-4 text-center text-sm text-muted-foreground">
+            Don&apos;t have an account?{' '}
+            <Button variant="link" className="p-0 h-auto" asChild>
+                <a href="/register">Create one</a>
+            </Button>
+        </p>
+      )}
     </div>
   );
 }

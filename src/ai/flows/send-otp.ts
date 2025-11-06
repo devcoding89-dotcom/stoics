@@ -8,6 +8,7 @@ import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { initializeApp, getApps, App, applicationDefault } from 'firebase-admin/app';
 import { getFirestore as getAdminFirestore } from 'firebase-admin/firestore';
+import { firebaseConfig } from '@/firebase/config';
 
 // Helper function to initialize Firebase Admin SDK if not already done.
 // This ensures that we have a properly authenticated instance.
@@ -17,9 +18,12 @@ function ensureFirebaseAdminInitialized(): App {
     return apps[0]!;
   }
   // When running in a Google Cloud environment, applicationDefault() will find
-  // the correct credentials to authenticate.
+  // the correct credentials to authenticate. For local development, it might
+  // require additional setup (e.g., GOOGLE_APPLICATION_CREDENTIALS env var).
+  // We include the projectId for more robust initialization.
   return initializeApp({
     credential: applicationDefault(),
+    projectId: firebaseConfig.projectId,
   });
 }
 
