@@ -8,8 +8,8 @@ export function Logo({ className }: { className?: string }) {
       src={logoUrl}
       alt="Stoics Educational Institute & Services Logo"
       className={cn('h-10 w-auto', className)}
-      width={160}
-      height={40}
+      width={1080}
+      height={1080}
       aria-hidden="true"
       unoptimized
     />
