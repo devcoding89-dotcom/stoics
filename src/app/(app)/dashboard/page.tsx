@@ -3,6 +3,7 @@
 import { useUser } from '@/firebase';
 import { StudentDashboard } from '@/components/dashboards/student-dashboard';
 import { TeacherDashboard } from '@/components/dashboards/teacher-dashboard';
+import { AdminDashboard } from '@/components/dashboards/admin-dashboard';
 import { PageHeader } from '@/components/page-header';
 
 export default function DashboardPage() {
@@ -22,7 +23,11 @@ export default function DashboardPage() {
     return <TeacherDashboard user={user} userProfile={userProfile} />;
   }
 
-  // Fallback for other roles (parent, admin)
+  if (userProfile.role === 'admin') {
+    return <AdminDashboard user={user} userProfile={userProfile} />;
+  }
+
+  // Fallback for other roles (e.g., parent)
   const welcomeName = userProfile.firstName || user.displayName || 'User';
 
   return (

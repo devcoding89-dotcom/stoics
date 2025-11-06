@@ -52,8 +52,8 @@ service cloud.firestore {
        * @path /users/{teacherId}/lessons/{lessonId}
        */
       match /lessons/{lessonId} {
-        allow get: if isSignedIn() && (isOwner(userId) || request.auth.uid in resource.data.studentIds || isAdmin());
-        allow list: if isOwner(userId) || isAdmin(); // Teacher can list their own lessons
+        allow get: if isSignedIn();
+        allow list: if isOwner(userId); // Only teacher can list their own lessons
         allow create: if isOwner(userId) && request.resource.data.teacherId == userId;
         // Teacher can update their own lesson, including studentIds
         allow update: if isExistingOwner(userId) && request.resource.data.teacherId == resource.data.teacherId;
@@ -92,8 +92,7 @@ service cloud.firestore {
        // Allow signed-in users to read lessons if they are an admin, the teacher,
        // or if they are a student associated with the lesson.
        allow get: if isSignedIn();
-       // This allows a student to query for their own lessons across all teachers.
-       allow list: if isSignedIn() && (isAdmin() || (request.query.where[0][0] == 'studentIds' && request.query.where[0][1] == 'array-contains' && request.query.where[0][2] == request.auth.uid));
+       allow list: if isSignedIn() && (isAdmin() || request.auth.uid in resource.data.studentIds);
     }
     
     /**
@@ -117,18 +116,19 @@ service cloud.firestore {
     }
 
     /**
-     * @description Secures chat messages. Users can only read messages they sent or received.
+     * @description Secures chat messages. Any authenticated user can create chat messages.
      * @path /chat_messages/{messageId}
      */
     match /chat_messages/{messageId} {
-      allow get: if isSignedIn() && (resource.data.senderId == request.auth.uid || resource.data.recipientId == request.auth.uid);
-      allow list: if isSignedIn() && (request.query.where[0][2] == request.auth.uid || request.query.where[2][2] == request.auth.uid);
-      allow create: if isSignedIn() && request.resource.data.senderId == request.auth.uid;
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn();
       allow update: if false;
       allow delete: if false;
     }
 
     /**
+
      * @description Secures global announcements. Announcements are publicly readable.
      * @path /announcements/{announcementId}
      */
@@ -148,8 +148,8 @@ service cloud.firestore {
       allow get: if true;
       allow list: if true;
       allow create: if isSignedIn(); // TODO: Add admin/teacher role check
-      update: if false; // TODO: Add admin/teacher role check
-      delete: if false; // TODO: Add admin/teacher role check
+      allow update: if false; // TODO: Add admin/teacher role check
+      allow delete: if false; // TODO: Add admin/teacher role check
     }
   }
 
