@@ -18,7 +18,7 @@
  * - AI Tutoring Contexts are stored in a top-level collection: `/ai_tutoring_contexts/{contextId}`.
  *
  * Key Security Decisions:
- * - User listing is disallowed for non-admins. Admins can list all users.
+ * - User listing is now allowed for any signed-in user to populate contact lists.
  * - Announcements are publicly readable but writable only by authorized users (teachers/admins - not yet implemented)
  * - Data consistency is enforced between document IDs and path parameters.
  * - All write operations require a verified user identity (`request.auth != null`), except for OTP updates.
@@ -35,12 +35,12 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Secures user profiles. Users can read/write their own profile. Admins can read all profiles.
+     * @description Secures user profiles. Users can read/write their own profile. All signed in users can list others for chat.
      * @path /users/{userId}
      */
     match /users/{userId} {
-      allow get: if isOwner(userId) || isAdmin();
-      allow list: if isAdmin();
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
       allow create: if isOwner(userId) && request.auth.uid == userId;
       // Allow updating own profile.
       // Allow unauthenticated update only for otp and otpExpiry fields.
@@ -93,7 +93,7 @@ service cloud.firestore {
        // or if they are a student associated with the lesson.
        allow get: if isSignedIn();
        // This allows a student to query for their own lessons across all teachers.
-       allow list: if isSignedIn() && (isAdmin() || (request.query.filters.size() > 0 && request.query.filters[0].field == 'studentIds' && request.query.filters[0].op == 'array-contains' && request.query.filters[0].value == request.auth.uid));
+       allow list: if isSignedIn() && (isAdmin() || (request.query.where[0][0] == 'studentIds' && request.query.where[0][1] == 'array-contains' && request.query.where[0][2] == request.auth.uid));
     }
     
     /**
@@ -117,13 +117,13 @@ service cloud.firestore {
     }
 
     /**
-     * @description Secures chat messages. Any authenticated user can create chat messages.
+     * @description Secures chat messages. Users can only read messages they sent or received.
      * @path /chat_messages/{messageId}
      */
     match /chat_messages/{messageId} {
-      allow get: if true;
-      allow list: if true;
-      allow create: if isSignedIn();
+      allow get: if isSignedIn() && (resource.data.senderId == request.auth.uid || resource.data.recipientId == request.auth.uid);
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.senderId == request.auth.uid;
       allow update: if false;
       allow delete: if false;
     }
