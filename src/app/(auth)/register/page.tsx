@@ -46,7 +46,7 @@ const formSchema = z.object({
   lastName: z.string().min(2, 'Last name must be at least 2 characters.'),
   email: z.string().email('Please enter a valid email address.'),
   password: z.string().min(6, 'Password must be at least 6 characters.'),
-  role: z.enum(['student', 'teacher'], {
+  role: z.enum(['student', 'teacher', 'parent'], {
     required_error: 'You need to select a role.',
   }),
 });
@@ -98,15 +98,14 @@ export default function RegisterPage() {
       toast({
         title: 'Registration Successful',
         description: `Welcome, ${values.firstName}! Please log in.`,
-        className: 'bg-green-500 text-white',
+        className: 'bg-accent text-accent-foreground'
       });
 
       router.push('/login');
     } catch (error: any) {
-      console.error('Registration Error:', error);
       let errorMessage = 'Failed to create account. Please try again.';
       if (error.code === 'auth/email-already-in-use') {
-        errorMessage = 'This email is already in use.';
+        errorMessage = 'This email is already in use by another account.';
       }
       toast({
         title: 'Registration Failed',
@@ -205,6 +204,7 @@ export default function RegisterPage() {
                       <SelectContent>
                         <SelectItem value="student">Student</SelectItem>
                         <SelectItem value="teacher">Teacher</SelectItem>
+                        <SelectItem value="parent">Parent</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

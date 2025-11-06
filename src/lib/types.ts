@@ -21,6 +21,8 @@ export type Lesson = {
   studentIds?: string[];
   // Adding teacher field for student queries
   teacher?: string;
+  materials?: string;
+  resources?: string;
 };
 
 export type AttendanceStatus = "present" | "absent" | "late";
