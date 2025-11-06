@@ -53,7 +53,8 @@ export default function Home() {
 
             <main className="flex-1">
                 <section className="container mx-auto flex flex-col items-center justify-center px-4 py-20 text-center md:px-6 md:py-32">
-                    <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl font-headline">
+                    <Logo className="h-24 w-24 mb-6" />
+                    <h1 className="text-4xl font-extrabold tracking-tighter sm:text-5xl md:text-6xl font-headline">
                         Stoics Educational Institute & Services
                     </h1>
                     <p className="mx-auto mt-4 max-w-[700px] text-lg text-muted-foreground">
