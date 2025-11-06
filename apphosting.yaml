@@ -1,0 +1,5 @@
+# The name of the framework used by your application.
+framework: nextjs
+
+# The region of the App Hosting backend.
+region: us-central1
