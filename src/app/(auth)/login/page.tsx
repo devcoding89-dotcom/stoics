@@ -7,8 +7,12 @@ import {
   getAuth,
   signInWithPopup,
   GoogleAuthProvider,
+  signInWithEmailAndPassword,
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, getFirestore } from 'firebase/firestore';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -18,19 +22,42 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { Logo } from '@/components/logo';
 import { useUser } from '@/firebase';
 import type { User as AppUser } from '@/lib/types';
 import { FcGoogle } from 'react-icons/fc';
 import { useToast } from '@/hooks/use-toast';
 
+const formSchema = z.object({
+  email: z.string().email('Please enter a valid email address.'),
+  password: z.string().min(1, 'Password is required.'),
+});
+
 export default function LoginPage() {
   const router = useRouter();
   const { user, isUserLoading } = useUser();
   const [isSigningIn, setIsSigningIn] = useState(false);
+  const [isGoogleSigningIn, setIsGoogleSigningIn] = useState(false);
   const auth = getAuth();
   const firestore = getFirestore();
   const { toast } = useToast();
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
 
   useEffect(() => {
     if (user && !isUserLoading) {
@@ -39,7 +66,7 @@ export default function LoginPage() {
   }, [user, isUserLoading, router]);
 
   const handleGoogleSignIn = async () => {
-    setIsSigningIn(true);
+    setIsGoogleSigningIn(true);
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(auth, provider);
@@ -65,9 +92,8 @@ export default function LoginPage() {
 
       router.push('/dashboard');
     } catch (error: any) {
-      // Don't show an error if the user closes the popup
       if (error.code === 'auth/popup-closed-by-user') {
-        setIsSigningIn(false);
+        setIsGoogleSigningIn(false);
         return;
       }
       
@@ -77,10 +103,36 @@ export default function LoginPage() {
         description: 'Could not sign in with Google. Please try again.',
         variant: 'destructive',
       });
-      setIsSigningIn(false);
+    } finally {
+        setIsGoogleSigningIn(false);
     }
   };
   
+  const onEmailSubmit = async (values: z.infer<typeof formSchema>) => {
+    setIsSigningIn(true);
+    try {
+      await signInWithEmailAndPassword(auth, values.email, values.password);
+      router.push('/dashboard');
+    } catch (error: any) {
+      if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found') {
+        toast({
+            title: 'Sign-in Failed',
+            description: 'Invalid email or password. Please try again.',
+            variant: 'destructive',
+          });
+      } else {
+        console.error('Email Sign-In Error:', error);
+        toast({
+          title: 'Sign-in Failed',
+          description: 'An unexpected error occurred. Please try again.',
+          variant: 'destructive',
+        });
+      }
+    } finally {
+      setIsSigningIn(false);
+    }
+  };
+
   if (isUserLoading || user) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background">
@@ -101,22 +153,69 @@ export default function LoginPage() {
           <CardDescription>Sign in to access your dashboard.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4">
-            <Button
-              variant="outline"
-              onClick={handleGoogleSignIn}
-              disabled={isSigningIn}
-              className="w-full"
-            >
-              {isSigningIn ? (
-                'Redirecting...'
-              ) : (
-                <>
-                  <FcGoogle className="mr-2 h-5 w-5" /> Continue with Google
-                </>
-              )}
-            </Button>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onEmailSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="email"
+                        placeholder="john.doe@example.com"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="••••••••" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit" className="w-full" disabled={isSigningIn}>
+                {isSigningIn ? 'Signing In...' : 'Continue with Email'}
+              </Button>
+            </form>
+          </Form>
+
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                Or continue with
+              </span>
+            </div>
           </div>
+
+          <Button
+            variant="outline"
+            onClick={handleGoogleSignIn}
+            disabled={isGoogleSigningIn}
+            className="w-full"
+          >
+            {isGoogleSigningIn ? (
+              'Redirecting...'
+            ) : (
+              <>
+                <FcGoogle className="mr-2 h-5 w-5" /> Google
+              </>
+            )}
+          </Button>
         </CardContent>
       </Card>
       <p className="mt-4 text-center text-sm text-muted-foreground">
