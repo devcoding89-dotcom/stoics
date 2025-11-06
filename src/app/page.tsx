@@ -40,7 +40,7 @@ export default function Home() {
             <header className="container mx-auto flex h-20 items-center justify-between px-4 md:px-6">
                 <div className="flex items-center gap-2">
                     <Logo className="h-8 w-8" />
-                    <span className="text-xl font-bold font-headline">Stoics Educational Services</span>
+                    <span className="text-xl font-bold font-headline">Stoics Educational Institute & Services</span>
                 </div>
                 <nav className="flex items-center gap-4">
                     <Button variant="ghost" asChild>
@@ -126,7 +126,7 @@ export default function Home() {
             </main>
 
             <footer className="container mx-auto flex items-center justify-center py-6">
-                <p className="text-sm text-muted-foreground">© Stoics Educational Services. All rights reserved.</p>
+                <p className="text-sm text-muted-foreground">© Stoics Educational Institute & Services. All rights reserved.</p>
             </footer>
         </div>
     );

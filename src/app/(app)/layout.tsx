@@ -29,7 +29,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
         <SidebarHeader>
           <div className="flex items-center gap-2 p-2">
             <Logo />
-            <span className="font-bold text-lg font-headline">Stoics Educational Services</span>
+            <span className="font-bold text-lg font-headline">Stoics Educational Institute & Services</span>
           </div>
         </SidebarHeader>
         <SidebarContent>

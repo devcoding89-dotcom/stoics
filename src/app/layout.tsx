@@ -6,7 +6,7 @@ import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 
 export const metadata: Metadata = {
-  title: 'Stoics Educational Services',
+  title: 'Stoics Educational Institute & Services',
   description: 'A digital learning companion for students, teachers, and parents.',
 };
 
