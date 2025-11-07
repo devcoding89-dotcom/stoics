@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Logo } from '@/components/logo';
 import { UserNav } from '@/components/user-nav';
-import { BookCopy, LayoutDashboard, MessageSquare, PlusCircle, Shield } from 'lucide-react';
+import { BookCopy, CreditCard, LayoutDashboard, MessageSquare, PlusCircle, Shield } from 'lucide-react';
 
 function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -99,6 +99,22 @@ function MainLayout({ children }: { children: React.ReactNode }) {
                     </SidebarMenuButton>
                 </Link>
                 </SidebarMenuItem>
+            )}
+             {(userProfile?.role === 'admin' || userProfile?.role === 'student') && (
+              <SidebarMenuItem onClick={() => setOpenMobile(false)}>
+                <Link href="/payments">
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname.startsWith('/payments')}
+                    tooltip={{ children: 'Payments' }}
+                  >
+                    <span>
+                      <CreditCard />
+                      <span>Payments</span>
+                    </span>
+                  </SidebarMenuButton>
+                </Link>
+              </SidebarMenuItem>
             )}
             <SidebarMenuItem onClick={() => setOpenMobile(false)}>
                 <Link href="/messages">
