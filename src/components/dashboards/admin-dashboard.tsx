@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -44,9 +45,10 @@ export function AdminDashboard({ user, userProfile }: AdminDashboardProps) {
   const [selectedRole, setSelectedRole] = useState<UserRole>('student');
 
   const usersQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
+    // Only run the query if the user is an admin
+    if (!firestore || userProfile?.role !== 'admin') return null;
     return query(collection(firestore, 'users'), orderBy('lastName', 'asc'));
-  }, [firestore]);
+  }, [firestore, userProfile]);
   const { data: users, isLoading: usersLoading } = useCollection<AppUser>(usersQuery);
 
   const handleEditClick = (userToEdit: AppUser) => {
