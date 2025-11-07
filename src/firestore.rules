@@ -19,6 +19,7 @@
  *
  * Key Security Decisions:
  * - User listing is disallowed for non-admins. Admins can list all users.
+ * - Teachers can list users with the 'student' role.
  * - Announcements are publicly readable but writable only by authorized users (teachers/admins)
  * - Data consistency is enforced between document IDs and path parameters.
  * - All write operations require a verified user identity (`request.auth != null`), except for OTP updates.
@@ -46,8 +47,9 @@ service cloud.firestore {
      * @path /users/{userId}
      */
     match /users/{userId} {
-      allow get: if isOwner(userId) || isAdmin();
-      allow list: if isAdmin();
+      allow get: if isOwner(userId) || isAdmin() || isTeacher();
+      // Admins can list all users. Teachers can list students.
+      allow list: if isAdmin() || (isTeacher() && request.query.role == 'student');
       allow create: if isOwner(userId) && request.auth.uid == userId;
       // Allow updating own profile.
       // Allow unauthenticated update only for otp and otpExpiry fields.
