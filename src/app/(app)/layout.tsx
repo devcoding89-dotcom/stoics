@@ -3,7 +3,7 @@
 import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useUser } from '@/firebase';
+import { useSidebar, useUser } from '@/firebase';
 
 import {
   Sidebar,
@@ -23,6 +23,7 @@ import { BookCopy, LayoutDashboard, MessageSquare, PlusCircle, Shield } from 'lu
 function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { userProfile } = useUser();
+  const { setOpenMobile } = useSidebar();
 
 
   return (
@@ -36,7 +37,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
-            <SidebarMenuItem>
+            <SidebarMenuItem onClick={() => setOpenMobile(false)}>
               <Link href="/dashboard">
                 <SidebarMenuButton
                   asChild
@@ -51,7 +52,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
               </Link>
             </SidebarMenuItem>
             {userProfile?.role === 'student' && (
-                <SidebarMenuItem>
+                <SidebarMenuItem onClick={() => setOpenMobile(false)}>
                 <Link href="/homework">
                     <SidebarMenuButton
                     asChild
@@ -67,7 +68,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
                 </SidebarMenuItem>
             )}
             {userProfile?.role === 'teacher' && (
-                <SidebarMenuItem>
+                <SidebarMenuItem onClick={() => setOpenMobile(false)}>
                 <Link href="/lessons/create">
                     <SidebarMenuButton
                     asChild
@@ -83,7 +84,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
                 </SidebarMenuItem>
             )}
              {userProfile?.role === 'admin' && (
-                <SidebarMenuItem>
+                <SidebarMenuItem onClick={() => setOpenMobile(false)}>
                 <Link href="/admin">
                     <SidebarMenuButton
                     asChild
@@ -98,7 +99,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
                 </Link>
                 </SidebarMenuItem>
             )}
-            <SidebarMenuItem>
+            <SidebarMenuItem onClick={() => setOpenMobile(false)}>
                 <Link href="/messages">
                     <SidebarMenuButton
                     asChild

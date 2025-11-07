@@ -53,6 +53,10 @@ export * from './non-blocking-login';
 export * from './errors';
 export * from './error-emitter';
 
+// This import was causing a circular dependency. 
+// The useSidebar hook is now imported directly in the layout file where it's used.
+// export * from '@/components/ui/sidebar';
+
 type MemoFirebase <T> = T & {__memo?: boolean};
 
 export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T | (MemoFirebase<T>) {
