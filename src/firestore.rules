@@ -51,7 +51,7 @@ service cloud.firestore {
       allow create: if isOwner(userId) && request.auth.uid == userId;
       // Allow updating own profile.
       // Allow unauthenticated update only for otp and otpExpiry fields.
-      allow update: if (isExistingOwner(userId) && request.auth.uid == userId && request.resource.data.id == resource.data.id) || isUpdatingOtp();
+      allow update: if (isExistingOwner(userId) && request.auth.uid == userId && request.resource.data.id == resource.data.id) || isUpdatingOtp() || (isAdmin() && request.auth.uid != userId);
       allow delete: if isExistingOwner(userId) && request.auth.uid == userId;
 
       /**
@@ -101,8 +101,8 @@ service cloud.firestore {
     match /{path=**}/lessons/{lessonId} {
        // Allow signed-in users to read lessons if they are an admin, the teacher,
        // or if they are a student associated with the lesson AND have no overdue payments.
-       allow get: if isSignedIn() && !hasOverduePayments(request.auth.uid);
-       allow list: if isSignedIn() && (isAdmin() || (request.auth.uid in resource.data.studentIds && !hasOverduePayments(request.auth.uid)));
+       allow get: if isSignedIn() && (isAdmin() || isTeacher() || (request.auth.uid in resource.data.studentIds && !hasOverduePayments(request.auth.uid)));
+       allow list: if isSignedIn() && (isAdmin() || isTeacher() || (request.auth.uid in resource.data.studentIds && !hasOverduePayments(request.auth.uid)));
     }
     
     /**
@@ -204,7 +204,7 @@ service cloud.firestore {
       return false;
     }
     // Check if there are any documents in the user's payments subcollection
-    // with the status 'overdue'. The size() of this query must be 0.
-    return exists(/databases/$(database)/documents/users/$(userId)/payments?status=overdue);
+    // with the status 'overdue'. The size() of this query must be 0 for access to be granted.
+    return firestore.get(/databases/$(database)/documents/users/$(userId)/payments?status=overdue).size() > 0;
   }
 }
