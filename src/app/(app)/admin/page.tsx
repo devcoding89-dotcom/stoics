@@ -1,3 +1,4 @@
+
 'use client';
 import { useUser } from '@/firebase';
 import { AdminDashboard } from '@/components/dashboards/admin-dashboard';
@@ -27,5 +28,5 @@ export default function AdminPage() {
     );
   }
 
-  return <AdminDashboard user={user} userProfile={userProfile} />;
+  return <AdminDashboard user={user} userProfile={userProfile} isStandalonePage={true} />;
 }

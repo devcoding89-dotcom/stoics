@@ -11,7 +11,7 @@ import type { User as AppUser, UserRole } from '@/lib/types';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, doc, updateDoc } from 'firebase/firestore';
 import { capitalize } from '@/lib/utils';
-import { UserCheck, Edit } from 'lucide-react';
+import { UserCheck, Edit, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -33,9 +33,10 @@ import { useToast } from '@/hooks/use-toast';
 interface AdminDashboardProps {
   user: FirebaseUser;
   userProfile: AppUser;
+  isStandalonePage: boolean;
 }
 
-export function AdminDashboard({ user, userProfile }: AdminDashboardProps) {
+export function AdminDashboard({ user, userProfile, isStandalonePage }: AdminDashboardProps) {
   const welcomeName = userProfile.firstName || user.displayName || 'Admin';
   const firestore = useFirestore();
   const { toast } = useToast();
@@ -45,10 +46,11 @@ export function AdminDashboard({ user, userProfile }: AdminDashboardProps) {
   const [selectedRole, setSelectedRole] = useState<UserRole>('student');
 
   const usersQuery = useMemoFirebase(() => {
-    // Only run the query if the user is an admin
-    if (!firestore || userProfile?.role !== 'admin') return null;
+    // Only run the query if we are on the standalone admin page and the user is an admin.
+    if (!firestore || userProfile?.role !== 'admin' || !isStandalonePage) return null;
     return query(collection(firestore, 'users'), orderBy('lastName', 'asc'));
-  }, [firestore, userProfile]);
+  }, [firestore, userProfile, isStandalonePage]);
+  
   const { data: users, isLoading: usersLoading } = useCollection<AppUser>(usersQuery);
 
   const handleEditClick = (userToEdit: AppUser) => {
@@ -84,17 +86,48 @@ export function AdminDashboard({ user, userProfile }: AdminDashboardProps) {
     }
   };
 
+  const pageTitle = isStandalonePage ? "Admin Control Panel" : "Admin Dashboard";
+  const pageDescription = `Welcome, ${welcomeName}. ${isStandalonePage ? 'Manage all users and platform settings.' : 'Here is your quick overview.'}`;
+
+
+  // If this is not the standalone page, render a simple summary view.
+  if (!isStandalonePage) {
+     return (
+        <>
+            <PageHeader title={pageTitle} description={pageDescription} />
+            <div className="grid gap-6 md:grid-cols-2">
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Quick Stats</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p>Welcome to your dashboard. Use the sidebar to navigate to specific management pages.</p>
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>User Management</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                       <p>To view and manage all users, please go to the dedicated Admin page.</p>
+                    </CardContent>
+                </Card>
+            </div>
+        </>
+     )
+  }
+
   return (
     <>
       <PageHeader
-        title="Admin Dashboard"
-        description={`Welcome, ${welcomeName}. Manage the platform here.`}
+        title={pageTitle}
+        description={pageDescription}
       />
       <div className="grid gap-6 md:grid-cols-1">
         <Card>
           <CardHeader>
              <div className="flex items-center gap-2">
-                <UserCheck className="h-6 w-6 text-primary" />
+                <Users className="h-6 w-6 text-primary" />
                 <CardTitle>User Management</CardTitle>
             </div>
           </CardHeader>

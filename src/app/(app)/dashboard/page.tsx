@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useUser } from '@/firebase';
@@ -24,7 +25,7 @@ export default function DashboardPage() {
   }
 
   if (userProfile.role === 'admin') {
-    return <AdminDashboard user={user} userProfile={userProfile} />;
+    return <AdminDashboard user={user} userProfile={userProfile} isStandalonePage={false} />;
   }
 
   // Fallback for other roles (e.g., parent)
