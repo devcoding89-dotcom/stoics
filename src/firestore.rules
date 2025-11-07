@@ -19,9 +19,10 @@
  *
  * Key Security Decisions:
  * - User listing is disallowed for non-admins. Admins can list all users.
- * - Announcements are publicly readable but writable only by authorized users (teachers/admins - not yet implemented)
+ * - Announcements are publicly readable but writable only by authorized users (teachers/admins)
  * - Data consistency is enforced between document IDs and path parameters.
  * - All write operations require a verified user identity (`request.auth != null`), except for OTP updates.
+ * - **Payment Before Class**: Students with overdue payments are blocked from reading lesson data.
  *
  * Denormalization for Authorization:
  * - Attendance records nested under lessons include a denormalized `teacherId` to avoid `get()` calls
@@ -58,10 +59,11 @@ service cloud.firestore {
        * @path /users/{teacherId}/lessons/{lessonId}
        */
       match /lessons/{lessonId} {
-        allow get: if isSignedIn(); // Students/parents need to be able to get single lessons
-        allow list: if isOwner(userId); // Only teacher can list their own lessons
+        // Teacher can do anything with their own lessons.
+        // A student can read a lesson ONLY IF they don't have overdue payments.
+        allow get: if isOwner(userId) || (isSignedIn() && !hasOverduePayments(request.auth.uid));
+        allow list: if isOwner(userId) || (isSignedIn() && !hasOverduePayments(request.auth.uid));
         allow create: if isOwner(userId) && request.resource.data.teacherId == userId;
-        // Teacher can update their own lesson, including studentIds
         allow update: if isExistingOwner(userId) && request.resource.data.teacherId == resource.data.teacherId;
         allow delete: if isExistingOwner(userId);
       }
@@ -83,11 +85,13 @@ service cloud.firestore {
        * @path /users/{studentId}/payments/{paymentId}
        */
       match /payments/{paymentId} {
-        allow get: if isOwner(userId);
-        allow list: if isOwner(userId);
-        allow create: if isOwner(userId) && request.resource.data.studentId == userId;
-        allow update: if isExistingOwner(userId) && request.resource.data.studentId == resource.data.studentId;
-        allow delete: if isExistingOwner(userId);
+        // Student can get/list their own payments.
+        allow get, list: if isOwner(userId);
+        // A teacher can create a payment request in a student's collection.
+        allow create: if isTeacher() && request.resource.data.teacherId == request.auth.uid && request.resource.data.studentId == userId;
+        // Student can update (to pay), teacher can update (e.g., correct amount).
+        allow update: if isOwner(userId) || (isTeacher() && resource.data.teacherId == request.auth.uid);
+        allow delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
       }
     }
 
@@ -96,9 +100,9 @@ service cloud.firestore {
      */
     match /{path=**}/lessons/{lessonId} {
        // Allow signed-in users to read lessons if they are an admin, the teacher,
-       // or if they are a student associated with the lesson.
-       allow get: if isSignedIn();
-       allow list: if isSignedIn() && (isAdmin() || request.auth.uid in resource.data.studentIds);
+       // or if they are a student associated with the lesson AND have no overdue payments.
+       allow get: if isSignedIn() && !hasOverduePayments(request.auth.uid);
+       allow list: if isSignedIn() && (isAdmin() || (request.auth.uid in resource.data.studentIds && !hasOverduePayments(request.auth.uid)));
     }
     
     /**
@@ -178,13 +182,29 @@ service cloud.firestore {
   function isAdmin() {
     return isSignedIn() && getUserData(request.auth.uid).role == 'admin';
   }
+
+  function isTeacher() {
+    return isSignedIn() && getUserData(request.auth.uid).role == 'teacher';
+  }
   
   function isTeacherOrAdmin() {
-    return isSignedIn() && (getUserData(request.auth.uid).role == 'admin' || getUserData(request.auth.uid).role == 'teacher');
+    let userRole = getUserData(request.auth.uid).role;
+    return isSignedIn() && (userRole == 'admin' || userRole == 'teacher');
   }
   
   function isUpdatingOtp() {
     let changedKeys = request.resource.data.diff(resource.data).affectedKeys();
     return !isSignedIn() && changedKeys.hasAll(['otp', 'otpExpiry']) && changedKeys.size() == 2;
+  }
+
+  function hasOverduePayments(userId) {
+    // If the user is a teacher or admin, this check does not apply.
+    let userRole = getUserData(userId).role;
+    if (userRole == 'teacher' || userRole == 'admin') {
+      return false;
+    }
+    // Check if there are any documents in the user's payments subcollection
+    // with the status 'overdue'. The size() of this query must be 0.
+    return exists(/databases/$(database)/documents/users/$(userId)/payments?status=overdue);
   }
 }

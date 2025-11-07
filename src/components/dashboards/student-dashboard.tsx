@@ -6,9 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import type { User as FirebaseUser } from 'firebase/auth';
-import type { User as AppUser, Lesson, Announcement, Homework } from '@/lib/types';
+import type { User as AppUser, Lesson, Announcement, Homework, Payment } from '@/lib/types';
 import Link from 'next/link';
-import { ArrowRight, BookCopy, Calendar, Megaphone } from 'lucide-react';
+import { ArrowRight, BookCopy, Calendar, Megaphone, AlertTriangle } from 'lucide-react';
 import { capitalize } from '@/lib/utils';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, where, orderBy, limit, collectionGroup } from 'firebase/firestore';
@@ -45,7 +45,15 @@ export function StudentDashboard({ user, userProfile }: StudentDashboardProps) {
     );
   }, [firestore, user]);
   const { data: upcomingLessons, isLoading: lessonsLoading } = useCollection<Lesson>(lessonsQuery);
+  
+  // Fetch payments to check for overdue status
+  const paymentsQuery = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return query(collection(firestore, 'users', user.uid, 'payments'), where('status', 'in', ['pending', 'overdue']));
+  }, [firestore, user]);
+  const { data: pendingPayments } = useCollection<Payment>(paymentsQuery);
 
+  const hasOverduePayments = pendingPayments?.some(p => p.status === 'overdue');
 
   // Homework data - will be empty for now
   const homeworkData: Homework[] = [];
@@ -56,6 +64,22 @@ export function StudentDashboard({ user, userProfile }: StudentDashboardProps) {
         title="Student Dashboard"
         description={`Welcome back, ${welcomeName}! Here's your overview.`}
       />
+       {hasOverduePayments && (
+        <Card className="mb-6 bg-destructive/10 border-destructive">
+          <CardHeader className="flex flex-row items-center gap-4 space-y-0">
+            <AlertTriangle className="h-6 w-6 text-destructive" />
+            <div >
+                <CardTitle className="text-destructive">Action Required: Overdue Payments</CardTitle>
+                <p className="text-sm text-destructive/80">You have overdue payments that require your attention. Access to new lessons may be restricted until they are paid.</p>
+            </div>
+          </CardHeader>
+           <CardContent>
+             <Button asChild>
+                <Link href="/payments">View and Pay Now</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
         {/* Upcoming Lessons */}
         <Card className="md:col-span-2 lg:col-span-1 xl:col-span-2">
