@@ -3,7 +3,8 @@
 import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useSidebar, useUser } from '@/firebase';
+import { useUser } from '@/firebase';
+import { useSidebar } from '@/components/ui/sidebar';
 
 import {
   Sidebar,
