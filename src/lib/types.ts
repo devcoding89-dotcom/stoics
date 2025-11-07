@@ -39,12 +39,17 @@ export type Attendance = {
 };
 
 export type Payment = {
-  id:string; // The doc ID is the paymentId
+  id:string;
   studentId: string;
+  teacherId: string;
   amount: number;
-  paymentDate: string;
-  paymentMethod: string;
-  transactionId: string;
+  description: string;
+  dueDate: string;
+  status: 'pending' | 'paid' | 'overdue';
+  lessonId?: string;
+  paymentDate?: string;
+  paymentMethod?: string;
+  transactionId?: string;
 };
 
 export type Announcement = {

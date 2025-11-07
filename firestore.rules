@@ -77,11 +77,13 @@ service cloud.firestore {
        * @path /users/{studentId}/payments/{paymentId}
        */
       match /payments/{paymentId} {
-        allow get: if isOwner(userId);
-        allow list: if isOwner(userId);
-        allow create: if isOwner(userId) && request.resource.data.studentId == userId;
-        allow update: if isExistingOwner(userId) && request.resource.data.studentId == resource.data.studentId;
-        allow delete: if isExistingOwner(userId);
+        // Student can get/list their own payments.
+        allow get, list: if isOwner(userId);
+        // Teacher who created the payment can create it in the student's subcollection.
+        allow create: if isTeacher() && request.resource.data.teacherId == request.auth.uid && request.resource.data.studentId == userId;
+        // Student can update (to pay), teacher can update (e.g., correct amount).
+        allow update: if isOwner(userId) || (isTeacher() && request.resource.data.teacherId == resource.data.teacherId);
+        allow delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
       }
     }
 
@@ -171,6 +173,10 @@ service cloud.firestore {
   
   function isAdmin() {
     return isSignedIn() && getUserData(request.auth.uid).role == 'admin';
+  }
+
+  function isTeacher() {
+    return isSignedIn() && getUserData(request.auth.uid).role == 'teacher';
   }
   
   function isUpdatingOtp() {

@@ -4,11 +4,13 @@ import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
-import type { Payment, User as AppUser } from '@/lib/types';
+import type { Payment } from '@/lib/types';
 import { collection, query, orderBy, collectionGroup } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { capitalize } from '@/lib/utils';
 
 export default function PaymentsPage() {
   const { user, userProfile } = useUser();
@@ -22,12 +24,12 @@ export default function PaymentsPage() {
     if (!firestore || !user) return null;
 
     if (isStudent) {
-      // Students see only their own payments
-      return query(collection(firestore, 'users', user.uid, 'payments'), orderBy('paymentDate', 'desc'));
+      // Students see only their own payments, ordered by due date
+      return query(collection(firestore, 'users', user.uid, 'payments'), orderBy('dueDate', 'desc'));
     }
     if (isAdmin) {
-      // Admins see all payments across all users
-      return query(collectionGroup(firestore, 'payments'), orderBy('paymentDate', 'desc'));
+      // Admins see all payments across all users, ordered by due date
+      return query(collectionGroup(firestore, 'payments'), orderBy('dueDate', 'desc'));
     }
     return null; // No query for other roles
   }, [firestore, user, isStudent, isAdmin]);
@@ -38,8 +40,8 @@ export default function PaymentsPage() {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
   };
   
-  const pageTitle = isStudent ? 'Your Payment History' : 'All Platform Payments';
-  const pageDescription = isStudent ? 'Here is a record of all your payments.' : 'Here is a record of all payments made on the platform.';
+  const pageTitle = isStudent ? 'Your Payments' : 'All Platform Payments';
+  const pageDescription = isStudent ? 'A record of your scheduled and completed payments.' : 'A record of all payments made on the platform.';
 
   if (!isStudent && !isAdmin) {
     return (
@@ -49,12 +51,24 @@ export default function PaymentsPage() {
     )
   }
 
+  const getStatusVariant = (status: 'pending' | 'paid' | 'overdue') => {
+    switch (status) {
+      case 'paid':
+        return 'default';
+      case 'pending':
+        return 'secondary';
+      case 'overdue':
+        return 'destructive';
+      default:
+        return 'outline';
+    }
+  }
+
   return (
     <>
       <PageHeader
         title={pageTitle}
         description={pageDescription}
-        action={isStudent && <Button>Make a Payment</Button>}
       />
       <Card>
         <CardHeader>
@@ -67,17 +81,18 @@ export default function PaymentsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Date</TableHead>
+                <TableHead>Description</TableHead>
                 <TableHead>Amount</TableHead>
-                <TableHead className="hidden sm:table-cell">Payment Method</TableHead>
-                <TableHead className="hidden md:table-cell">Transaction ID</TableHead>
+                <TableHead>Due Date</TableHead>
+                <TableHead>Status</TableHead>
                 {isAdmin && <TableHead>Student ID</TableHead>}
+                {isStudent && <TableHead className="text-right">Action</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
               {paymentsLoading && (
                 <TableRow>
-                  <TableCell colSpan={isAdmin ? 5 : 4} className="text-center">
+                  <TableCell colSpan={isStudent ? 5 : 4} className="text-center">
                     Loading payments...
                   </TableCell>
                 </TableRow>
@@ -85,17 +100,30 @@ export default function PaymentsPage() {
               {!paymentsLoading && payments && payments.length > 0 ? (
                 payments.map((payment) => (
                   <TableRow key={payment.id}>
-                    <TableCell>{format(new Date(payment.paymentDate), 'PPP')}</TableCell>
-                    <TableCell className="font-medium">{formatCurrency(payment.amount)}</TableCell>
-                    <TableCell className="hidden sm:table-cell">{payment.paymentMethod}</TableCell>
-                    <TableCell className="hidden md:table-cell truncate max-w-xs">{payment.transactionId}</TableCell>
+                    <TableCell className="font-medium">{payment.description}</TableCell>
+                    <TableCell>{formatCurrency(payment.amount)}</TableCell>
+                    <TableCell>{format(new Date(payment.dueDate), 'PPP')}</TableCell>
+                    <TableCell>
+                      <Badge variant={getStatusVariant(payment.status)}>
+                        {capitalize(payment.status)}
+                      </Badge>
+                    </TableCell>
                     {isAdmin && <TableCell>{payment.studentId}</TableCell>}
+                    {isStudent && (
+                      <TableCell className="text-right">
+                        {payment.status === 'pending' || payment.status === 'overdue' ? (
+                          <Button size="sm">Pay Now</Button>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">Paid on {payment.paymentDate ? format(new Date(payment.paymentDate), 'PPP') : '-'}</span>
+                        )}
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))
               ) : (
                 !paymentsLoading && (
                   <TableRow>
-                    <TableCell colSpan={isAdmin ? 5 : 4} className="text-center">
+                    <TableCell colSpan={isStudent ? 5 : 4} className="text-center">
                       No payments found.
                     </TableCell>
                   </TableRow>

@@ -147,7 +147,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Payment",
       "type": "object",
-      "description": "Represents a payment made by a student.",
+      "description": "Represents a payment scheduled by a teacher and to be paid by a student.",
       "properties": {
         "id": {
           "type": "string",
@@ -157,9 +157,31 @@
           "type": "string",
           "description": "Reference to Student. (Relationship: Student 1:N Payment)"
         },
+        "teacherId": {
+          "type": "string",
+          "description": "Reference to Teacher who scheduled the payment."
+        },
+        "lessonId": {
+          "type": "string",
+          "description": "Optional reference to a lesson this payment is for."
+        },
         "amount": {
           "type": "number",
           "description": "The amount of the payment."
+        },
+        "description": {
+          "type": "string",
+          "description": "A description of what the payment is for."
+        },
+        "dueDate": {
+          "type": "string",
+          "description": "The date the payment is due.",
+          "format": "date-time"
+        },
+        "status": {
+          "type": "string",
+          "description": "The status of the payment.",
+          "enum": ["pending", "paid", "overdue"]
         },
         "paymentDate": {
           "type": "string",
@@ -178,10 +200,11 @@
       "required": [
         "id",
         "studentId",
+        "teacherId",
         "amount",
-        "paymentDate",
-        "paymentMethod",
-        "transactionId"
+        "description",
+        "dueDate",
+        "status"
       ]
     },
     "ChatMessage": {

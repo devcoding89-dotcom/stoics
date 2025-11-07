@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Logo } from '@/components/logo';
 import { UserNav } from '@/components/user-nav';
-import { BookCopy, CreditCard, LayoutDashboard, MessageSquare, PlusCircle, Shield } from 'lucide-react';
+import { BookCopy, CreditCard, LayoutDashboard, MessageSquare, PlusCircle, Shield, HandCoins } from 'lucide-react';
 
 function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -69,20 +69,36 @@ function MainLayout({ children }: { children: React.ReactNode }) {
                 </SidebarMenuItem>
             )}
             {userProfile?.role === 'teacher' && (
+              <>
                 <SidebarMenuItem onClick={() => setOpenMobile(false)}>
-                <Link href="/lessons/create">
-                    <SidebarMenuButton
-                    asChild
-                    isActive={pathname.startsWith('/lessons/create')}
-                    tooltip={{ children: 'New Lesson' }}
-                    >
-                    <span>
-                        <PlusCircle />
-                        <span>New Lesson</span>
-                    </span>
-                    </SidebarMenuButton>
-                </Link>
+                  <Link href="/lessons/create">
+                      <SidebarMenuButton
+                      asChild
+                      isActive={pathname.startsWith('/lessons/create')}
+                      tooltip={{ children: 'New Lesson' }}
+                      >
+                      <span>
+                          <PlusCircle />
+                          <span>New Lesson</span>
+                      </span>
+                      </SidebarMenuButton>
+                  </Link>
                 </SidebarMenuItem>
+                <SidebarMenuItem onClick={() => setOpenMobile(false)}>
+                  <Link href="/payments/schedule">
+                      <SidebarMenuButton
+                      asChild
+                      isActive={pathname.startsWith('/payments/schedule')}
+                      tooltip={{ children: 'Schedule Payment' }}
+                      >
+                      <span>
+                          <HandCoins />
+                          <span>Schedule Payment</span>
+                      </span>
+                      </SidebarMenuButton>
+                  </Link>
+                </SidebarMenuItem>
+              </>
             )}
              {userProfile?.role === 'admin' && (
                 <SidebarMenuItem onClick={() => setOpenMobile(false)}>
@@ -105,7 +121,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
                 <Link href="/payments">
                   <SidebarMenuButton
                     asChild
-                    isActive={pathname.startsWith('/payments')}
+                    isActive={pathname.startsWith('/payments') && !pathname.includes('schedule')}
                     tooltip={{ children: 'Payments' }}
                   >
                     <span>
