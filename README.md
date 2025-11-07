@@ -25,3 +25,4 @@ git push -u origin main
 ### 2. Set up Firebase App Hosting
 Continue to Get started with Firebase App Hosting.
 # stoics-education
+# stoics-education
