@@ -4,7 +4,6 @@ import { useUser } from '@/firebase';
 import { AdminDashboard } from '@/components/dashboards/admin-dashboard';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { PageHeader } from '@/components/page-header';
 
 export default function AdminPage() {
   const { user, userProfile, isUserLoading } = useUser();
@@ -28,5 +27,5 @@ export default function AdminPage() {
     );
   }
 
-  return <AdminDashboard user={user} userProfile={userProfile} isStandalonePage={true} />;
+  return <AdminDashboard user={user} userProfile={userProfile} />;
 }

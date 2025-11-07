@@ -11,7 +11,7 @@ import type { User as AppUser, UserRole } from '@/lib/types';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, doc, updateDoc } from 'firebase/firestore';
 import { capitalize } from '@/lib/utils';
-import { UserCheck, Edit, Users } from 'lucide-react';
+import { Edit, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -33,10 +33,9 @@ import { useToast } from '@/hooks/use-toast';
 interface AdminDashboardProps {
   user: FirebaseUser;
   userProfile: AppUser;
-  isStandalonePage: boolean;
 }
 
-export function AdminDashboard({ user, userProfile, isStandalonePage }: AdminDashboardProps) {
+export function AdminDashboard({ user, userProfile }: AdminDashboardProps) {
   const welcomeName = userProfile.firstName || user.displayName || 'Admin';
   const firestore = useFirestore();
   const { toast } = useToast();
@@ -46,10 +45,9 @@ export function AdminDashboard({ user, userProfile, isStandalonePage }: AdminDas
   const [selectedRole, setSelectedRole] = useState<UserRole>('student');
 
   const usersQuery = useMemoFirebase(() => {
-    // Only run the query if we are on the standalone admin page and the user is an admin.
-    if (!firestore || userProfile?.role !== 'admin' || !isStandalonePage) return null;
+    if (!firestore || userProfile?.role !== 'admin') return null;
     return query(collection(firestore, 'users'), orderBy('lastName', 'asc'));
-  }, [firestore, userProfile, isStandalonePage]);
+  }, [firestore, userProfile]);
   
   const { data: users, isLoading: usersLoading } = useCollection<AppUser>(usersQuery);
 
@@ -86,42 +84,11 @@ export function AdminDashboard({ user, userProfile, isStandalonePage }: AdminDas
     }
   };
 
-  const pageTitle = isStandalonePage ? "Admin Control Panel" : "Admin Dashboard";
-  const pageDescription = `Welcome, ${welcomeName}. ${isStandalonePage ? 'Manage all users and platform settings.' : 'Here is your quick overview.'}`;
-
-
-  // If this is not the standalone page, render a simple summary view.
-  if (!isStandalonePage) {
-     return (
-        <>
-            <PageHeader title={pageTitle} description={pageDescription} />
-            <div className="grid gap-6 md:grid-cols-2">
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>Quick Stats</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p>Welcome to your dashboard. Use the sidebar to navigate to specific management pages.</p>
-                    </CardContent>
-                </Card>
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>User Management</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                       <p>To view and manage all users, please go to the dedicated Admin page.</p>
-                    </CardContent>
-                </Card>
-            </div>
-        </>
-     )
-  }
-
   return (
     <>
       <PageHeader
-        title={pageTitle}
-        description={pageDescription}
+        title="Admin Control Panel"
+        description={`Welcome, ${welcomeName}. Manage all users and platform settings.`}
       />
       <div className="grid gap-6 md:grid-cols-1">
         <Card>
