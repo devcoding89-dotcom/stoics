@@ -47,7 +47,7 @@ service cloud.firestore {
      * @path /users/{userId}
      */
     match /users/{userId} {
-      allow get: if isOwner(userId) || isAdmin() || isTeacher();
+      allow get: if isOwner(userId) || isAdmin() || (isTeacher() && isStudent(userId));
       // Admins can list all users. Teachers can list students.
       allow list: if isAdmin() || (isTeacher() && request.query.where[0][2] == 'student');
       allow create: if isOwner(userId) && request.auth.uid == userId;
@@ -178,6 +178,10 @@ service cloud.firestore {
 
   function isTeacher() {
     return isSignedIn() && getUserData(request.auth.uid).role == 'teacher';
+  }
+
+  function isStudent(userId) {
+    return getUserData(userId).role == 'student';
   }
   
   function isTeacherOrAdmin() {

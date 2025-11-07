@@ -8,8 +8,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import type { User as FirebaseUser } from 'firebase/auth';
 import type { User as AppUser, UserRole } from '@/lib/types';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, doc, updateDoc } from 'firebase/firestore';
+import { useCollection, useFirestore, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
+import { collection, query, orderBy, doc } from 'firebase/firestore';
 import { capitalize } from '@/lib/utils';
 import { Edit, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -44,9 +44,9 @@ export function AdminDashboard({ user, userProfile }: AdminDashboardProps) {
   const [selectedUser, setSelectedUser] = useState<AppUser | null>(null);
   const [selectedRole, setSelectedRole] = useState<UserRole>('student');
 
+  // This query is now safe because the /admin page route guard ensures only admins can access it,
+  // and security rules also enforce this.
   const usersQuery = useMemoFirebase(() => {
-    // This query is now safe because the /admin page route guard ensures only admins can access it,
-    // and security rules also enforce this.
     if (!firestore) return null;
     return query(collection(firestore, 'users'), orderBy('lastName', 'asc'));
   }, [firestore]);
@@ -68,7 +68,7 @@ export function AdminDashboard({ user, userProfile }: AdminDashboardProps) {
 
     const userRef = doc(firestore, 'users', selectedUser.id);
     try {
-      await updateDoc(userRef, { role: selectedRole });
+      await updateDocumentNonBlocking(userRef, { role: selectedRole });
       toast({
         title: 'User Updated',
         description: `${selectedUser.firstName} ${selectedUser.lastName}'s role has been changed to ${selectedRole}.`,
