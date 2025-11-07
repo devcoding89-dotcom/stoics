@@ -94,16 +94,24 @@ export function useCollection<T = any>(
             // This is a hack to get the path from a query. It's not ideal, but it's the only way.
             : (memoizedTargetRefOrQuery as any)._query?.path?.canonicalString() || '';
 
-        const contextualError = new FirestorePermissionError({
-          operation: 'list',
-          path,
-        })
+        // Only create and emit an error if there's a valid path.
+        // This prevents errors for queries that are temporarily null.
+        if (path) {
+            const contextualError = new FirestorePermissionError({
+                operation: 'list',
+                path,
+            });
 
-        setError(contextualError)
-        setData(null)
-        setIsLoading(false)
-
-        errorEmitter.emit('permission-error', contextualError);
+            setError(contextualError);
+            errorEmitter.emit('permission-error', contextualError);
+        } else {
+            // If the path is empty, it's likely a setup issue, not a permissions one.
+            // We can log a different kind of error or just set a generic one.
+            setError(error);
+        }
+        
+        setData(null);
+        setIsLoading(false);
       }
     );
 
