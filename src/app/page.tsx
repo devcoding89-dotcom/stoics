@@ -1,30 +1,24 @@
-
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { FaWhatsapp } from 'react-icons/fa';
 import { Mic, Presentation, ShieldCheck } from 'lucide-react';
-
 
 export default function Home() {
     const { user, isUserLoading } = useUser();
     const router = useRouter();
-
 
     useEffect(() => {
         if (!isUserLoading && user) {
             router.push('/dashboard');
         }
     }, [user, isUserLoading, router]);
-    
 
     if (isUserLoading || user) {
         return (
@@ -36,7 +30,7 @@ export default function Home() {
             </div>
         );
     }
-    
+
     return (
         <div className="flex min-h-screen flex-col">
             <header className="container mx-auto flex h-20 items-center justify-between px-4 md:px-6">
@@ -63,7 +57,7 @@ export default function Home() {
                         We are committed to building a community of articulate, confident, and intelligent learners. This opportunity is open to serious students from SS1 to SS3, as well as students in tertiary institutions.
                     </p>
                     <div className="mt-8 flex flex-col sm:flex-row gap-4">
-                        <Button asChild size="lg">
+                        <Button asChild size="lg" className="bg-green-600 hover:bg-green-700">
                             <Link href="https://chat.whatsapp.com/LVtJEqZXpgBKNHIU2MPj00?mode=ems_copy_t" target="_blank">
                                 <FaWhatsapp className="mr-2 h-5 w-5" />
                                 Join WhatsApp Forum
