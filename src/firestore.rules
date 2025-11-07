@@ -36,25 +36,24 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
   
-    // Explicitly block any root-level queries.
+    // Explicitly block any root-level queries that are not covered by more specific rules.
     // This is a security best practice to prevent accidental exposure of all data.
     match /{document=**} {
       allow read, write: if false;
     }
 
     /**
-     * @description Secures user profiles. Users can read/write their own profile. Admins can read all profiles.
+     * @description Secures user profiles. Users can read/write their own profile. Admins can read all profiles. Teachers can read students.
      * @path /users/{userId}
      */
     match /users/{userId} {
       allow get: if isOwner(userId) || isAdmin() || isTeacher();
       // Admins can list all users. Teachers can list students.
-      allow list: if isAdmin() || (isTeacher() && request.query.role == 'student');
+      allow list: if isAdmin() || (isTeacher() && request.query.where[0][2] == 'student');
       allow create: if isOwner(userId) && request.auth.uid == userId;
-      // Allow updating own profile.
-      // Allow unauthenticated update only for otp and otpExpiry fields.
-      allow update: if (isExistingOwner(userId) && request.auth.uid == userId && request.resource.data.id == resource.data.id) || isUpdatingOtp() || (isAdmin() && request.auth.uid != userId);
-      allow delete: if isExistingOwner(userId) && request.auth.uid == userId;
+      // Allow updating own profile, admin updating any profile, or unauthenticated OTP update.
+      allow update: if (isExistingOwner(userId) && request.auth.uid == userId && request.resource.data.id == resource.data.id) || isUpdatingOtp() || isAdmin();
+      allow delete: if (isExistingOwner(userId) && request.auth.uid == userId) || isAdmin();
 
       /**
        * @description Secures lessons nested under a teacher.
@@ -132,11 +131,7 @@ service cloud.firestore {
      * @path /chat_messages/{messageId}
      */
     match /chat_messages/{messageId} {
-      allow get: if true;
-      allow list: if true;
-      allow create: if isSignedIn();
-      allow update: if false;
-      allow delete: if false;
+      allow read, write: if isSignedIn();
     }
 
     /**
@@ -146,9 +141,7 @@ service cloud.firestore {
     match /announcements/{announcementId} {
       allow get: if true;
       allow list: if true;
-      allow create: if isTeacherOrAdmin();
-      allow update: if isTeacherOrAdmin();
-      allow delete: if isTeacherOrAdmin();
+      allow create, update, delete: if isTeacherOrAdmin();
     }
 
     /**
@@ -158,9 +151,7 @@ service cloud.firestore {
     match /ai_tutoring_contexts/{contextId} {
       allow get: if true;
       allow list: if true;
-      allow create: if isTeacherOrAdmin();
-      allow update: if isTeacherOrAdmin();
-      allow delete: if isTeacherOrAdmin();
+      allow create, update, delete: if isTeacherOrAdmin();
     }
   }
 

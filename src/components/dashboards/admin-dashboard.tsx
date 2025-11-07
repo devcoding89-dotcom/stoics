@@ -45,7 +45,8 @@ export function AdminDashboard({ user, userProfile }: AdminDashboardProps) {
   const [selectedRole, setSelectedRole] = useState<UserRole>('student');
 
   const usersQuery = useMemoFirebase(() => {
-    // This query is now safe because the /admin page route guard ensures only admins can access it.
+    // This query is now safe because the /admin page route guard ensures only admins can access it,
+    // and security rules also enforce this.
     if (!firestore) return null;
     return query(collection(firestore, 'users'), orderBy('lastName', 'asc'));
   }, [firestore]);
