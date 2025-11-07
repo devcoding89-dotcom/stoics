@@ -3,18 +3,22 @@
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase, useUser, updateDocumentNonBlocking } from '@/firebase';
 import type { Payment } from '@/lib/types';
-import { collection, query, orderBy, collectionGroup } from 'firebase/firestore';
+import { collection, query, orderBy, collectionGroup, doc } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { capitalize } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
+import { useState } from 'react';
 
 export default function PaymentsPage() {
   const { user, userProfile } = useUser();
   const firestore = useFirestore();
+  const { toast } = useToast();
+  const [payingId, setPayingId] = useState<string | null>(null);
 
   const isStudent = userProfile?.role === 'student';
   const isAdmin = userProfile?.role === 'admin';
@@ -40,6 +44,34 @@ export default function PaymentsPage() {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
   };
   
+  const handlePayNow = async (payment: Payment) => {
+    if (!user || !firestore) return;
+    setPayingId(payment.id);
+    
+    const paymentRef = doc(firestore, 'users', user.uid, 'payments', payment.id);
+    const updatedData = {
+      status: 'paid' as const,
+      paymentDate: new Date().toISOString(),
+    };
+
+    try {
+      await updateDocumentNonBlocking(paymentRef, updatedData);
+      toast({
+        title: 'Payment Successful',
+        description: 'Your payment has been recorded.',
+      });
+    } catch (error) {
+       console.error("Payment Error: ", error);
+       toast({
+        title: 'Payment Failed',
+        description: 'Could not process your payment. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setPayingId(null);
+    }
+  };
+
   const pageTitle = isStudent ? 'Your Payments' : 'All Platform Payments';
   const pageDescription = isStudent ? 'A record of your scheduled and completed payments.' : 'A record of all payments made on the platform.';
 
@@ -112,7 +144,13 @@ export default function PaymentsPage() {
                     {isStudent && (
                       <TableCell className="text-right">
                         {payment.status === 'pending' || payment.status === 'overdue' ? (
-                          <Button size="sm">Pay Now</Button>
+                          <Button 
+                            size="sm" 
+                            onClick={() => handlePayNow(payment)}
+                            disabled={payingId === payment.id}
+                          >
+                            {payingId === payment.id ? 'Processing...' : 'Pay Now'}
+                          </Button>
                         ) : (
                           <span className="text-sm text-muted-foreground">Paid on {payment.paymentDate ? format(new Date(payment.paymentDate), 'PPP') : '-'}</span>
                         )}
@@ -123,7 +161,7 @@ export default function PaymentsPage() {
               ) : (
                 !paymentsLoading && (
                   <TableRow>
-                    <TableCell colSpan={isStudent ? 5 : 4} className="text-center">
+                    <TableCell colSpan={isAdmin ? 5 : 4} className="text-center">
                       No payments found.
                     </TableCell>
                   </TableRow>
