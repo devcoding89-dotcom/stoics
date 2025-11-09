@@ -1,7 +1,7 @@
 import { type User as FirebaseUser } from 'firebase/auth';
 import { type Timestamp } from 'firebase/firestore';
 
-export type UserRole = "student" | "teacher" | "admin";
+export type UserRole = "student" | "teacher" | "admin" | "parent";
 
 export interface User {
   id: string;
@@ -75,7 +75,7 @@ export type ChatMessage = {
   senderId: string;
   recipientId: string;
   message: string;
-  timestamp: Timestamp;
+  timestamp: Date;
 };
 
 export type Homework = {
