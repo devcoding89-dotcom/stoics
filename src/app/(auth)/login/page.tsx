@@ -7,9 +7,8 @@ import {
   getAuth,
   signInWithPopup,
   GoogleAuthProvider,
-  signInWithEmailAndPassword,
 } from 'firebase/auth';
-import { doc, getDoc, setDoc, getFirestore } from 'firebase/firestore';
+import { doc, getDoc, setDoc, getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -36,10 +35,10 @@ import { useUser } from '@/firebase';
 import type { User as AppUser } from '@/lib/types';
 import { FcGoogle } from 'react-icons/fc';
 import { useToast } from '@/hooks/use-toast';
+import { sendOtp } from '@/ai/flows/send-otp-flow';
 
 const formSchema = z.object({
   email: z.string().email('Please enter a valid email address.'),
-  password: z.string().min(1, 'Password is required.'),
 });
 
 export default function LoginPage() {
@@ -55,7 +54,6 @@ export default function LoginPage() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: '',
-      password: '',
     },
   });
 
@@ -111,23 +109,37 @@ export default function LoginPage() {
   const onEmailSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSigningIn(true);
     try {
-      await signInWithEmailAndPassword(auth, values.email, values.password);
-      router.push('/dashboard');
+        const usersRef = collection(firestore, 'users');
+        const q = query(usersRef, where('email', '==', values.email));
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+            toast({
+                title: 'No Account Found',
+                description: 'This email is not registered. Please create an account.',
+                variant: 'destructive',
+            });
+            return;
+        }
+      
+      // In a real app, this would send an email. For now, it logs to console.
+      await sendOtp({ email: values.email });
+      
+      toast({
+        title: 'Check your console for the OTP',
+        description: `We've sent a One-Time Password to the server logs.`,
+      });
+
+      // Redirect to the OTP entry page, passing the email as a query parameter
+      router.push(`/login/otp?email=${encodeURIComponent(values.email)}`);
+
     } catch (error: any) {
-      if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found') {
-        toast({
-            title: 'Sign-in Failed',
-            description: 'Invalid email or password. Please try again.',
-            variant: 'destructive',
-          });
-      } else {
-        console.error('Email Sign-In Error:', error);
-        toast({
-          title: 'Sign-in Failed',
-          description: 'An unexpected error occurred. Please try again.',
-          variant: 'destructive',
-        });
-      }
+      console.error('OTP Send Error:', error);
+      toast({
+        title: 'Failed to Send OTP',
+        description: error.message || 'An unexpected error occurred. Please try again.',
+        variant: 'destructive',
+      });
     } finally {
       setIsSigningIn(false);
     }
@@ -150,7 +162,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Welcome Back</CardTitle>
-          <CardDescription>Sign in to access your dashboard.</CardDescription>
+          <CardDescription>Sign in with Google or your email.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -172,21 +184,8 @@ export default function LoginPage() {
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input type="password" placeholder="••••••••" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
               <Button type="submit" className="w-full" disabled={isSigningIn}>
-                {isSigningIn ? 'Signing In...' : 'Continue with Email'}
+                {isSigningIn ? 'Sending OTP...' : 'Continue with Email'}
               </Button>
             </form>
           </Form>
