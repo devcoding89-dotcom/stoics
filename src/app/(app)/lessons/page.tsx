@@ -10,6 +10,7 @@ import { format } from 'date-fns';
 import { BookOpen, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { Separator } from '@/components/ui/separator';
 
 export default function LessonsPage() {
   const { user, userProfile } = useUser();
@@ -68,6 +69,77 @@ export default function LessonsPage() {
     );
   }
 
+  const renderContent = () => {
+    if (lessonsLoading) {
+      return (
+        <div className="text-center p-6 text-muted-foreground">
+          Loading your lessons...
+        </div>
+      );
+    }
+    if (lessons && lessons.length > 0) {
+      return (
+        <>
+          {/* Table view for medium screens and up */}
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Lesson</TableHead>
+                  <TableHead>Subject</TableHead>
+                  <TableHead>Teacher</TableHead>
+                  <TableHead>Date</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {lessons.map((lesson) => (
+                  <TableRow key={lesson.id}>
+                    <TableCell className="font-medium">{lesson.title}</TableCell>
+                    <TableCell>{lesson.subject}</TableCell>
+                    <TableCell>{lesson.teacherName}</TableCell>
+                    <TableCell>{format(new Date(lesson.scheduledDateTime), 'PPP')}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          {/* Card view for small screens */}
+          <div className="md:hidden space-y-4">
+            {lessons.map((lesson) => (
+              <Card key={lesson.id}>
+                <CardHeader>
+                  <CardTitle>{lesson.title}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="font-medium text-muted-foreground">Subject</span>
+                    <span>{lesson.subject}</span>
+                  </div>
+                  <Separator />
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="font-medium text-muted-foreground">Teacher</span>
+                    <span>{lesson.teacherName}</span>
+                  </div>
+                   <Separator />
+                   <div className="flex justify-between items-center text-sm">
+                    <span className="font-medium text-muted-foreground">Date</span>
+                    <span>{format(new Date(lesson.scheduledDateTime), 'PPP')}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </>
+      );
+    }
+    return (
+      <div className="text-center p-6 text-muted-foreground">
+        You are not enrolled in any lessons.
+      </div>
+    );
+  };
+
+
   return (
     <>
       <PageHeader
@@ -82,43 +154,7 @@ export default function LessonsPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Lesson</TableHead>
-                <TableHead>Subject</TableHead>
-                <TableHead className="hidden sm:table-cell">Teacher</TableHead>
-                <TableHead>Date</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {lessonsLoading && (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center">
-                    Loading your lessons...
-                  </TableCell>
-                </TableRow>
-              )}
-              {!lessonsLoading && lessons && lessons.length > 0 ? (
-                lessons.map((lesson) => (
-                  <TableRow key={lesson.id}>
-                    <TableCell className="font-medium">{lesson.title}</TableCell>
-                    <TableCell>{lesson.subject}</TableCell>
-                    <TableCell className="hidden sm:table-cell">{lesson.teacherName}</TableCell>
-                    <TableCell>{format(new Date(lesson.scheduledDateTime), 'PPP')}</TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                !lessonsLoading && (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center">
-                      You are not enrolled in any lessons.
-                    </TableCell>
-                  </TableRow>
-                )
-              )}
-            </TableBody>
-          </Table>
+          {renderContent()}
         </CardContent>
       </Card>
     </>
