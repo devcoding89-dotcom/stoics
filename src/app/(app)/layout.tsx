@@ -178,16 +178,27 @@ function MainLayout({ children }: { children: React.ReactNode }) {
 }
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { isUserLoading, user } = useUser();
+  const { isUserLoading, user, userProfile } = useUser();
   const router = useRouter();
   
   useEffect(() => {
+    // If not loading and no user, redirect to login
     if (!isUserLoading && !user) {
       router.push('/login');
+      return;
     }
-  }, [isUserLoading, user, router]);
+    // If user is loaded but profile is still loading, do nothing yet.
+    if (isUserLoading) {
+        return;
+    }
+    // If user is loaded but profile is missing a role, redirect to role selection
+    if (user && !userProfile?.role) {
+      router.push('/register/role');
+    }
+  }, [isUserLoading, user, userProfile, router]);
 
-  if (isUserLoading || !user) {
+  // Show a global loading screen while user/profile is being checked
+  if (isUserLoading || !user || !userProfile?.role) {
     return (
        <div className="flex h-screen w-screen items-center justify-center">
         <div className="flex flex-col items-center gap-4">

@@ -32,7 +32,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Logo } from '@/components/logo';
 import { useUser } from '@/firebase';
-import type { User as AppUser } from '@/lib/types';
 import { FcGoogle } from 'react-icons/fc';
 import { useToast } from '@/hooks/use-toast';
 import { sendOtp } from '@/ai/flows/send-otp-flow';
@@ -73,22 +72,17 @@ export default function LoginPage() {
       const userRef = doc(firestore, 'users', firebaseUser.uid);
       const userSnap = await getDoc(userRef);
 
+      // If user document doesn't exist, it's a new user. Redirect to role selection.
       if (!userSnap.exists()) {
-        const [firstName, ...lastName] = (firebaseUser.displayName || '').split(' ');
-        const newUserProfile: AppUser = {
-          id: firebaseUser.uid,
-          firstName: firstName || '',
-          lastName: lastName.join(' ') || '',
-          email: firebaseUser.email || '',
-          role: 'student', 
-          avatar: firebaseUser.photoURL || '',
-          verified: true,
-          language: 'en',
-        };
-        await setDoc(userRef, newUserProfile);
+        // The AppLayout will handle redirecting to /register/role
+        // because the user will be authenticated but have no profile/role yet.
+        // We just need to ensure the user is logged in and then redirect to dashboard path.
+         router.push('/dashboard');
+      } else {
+        // Existing user, go to dashboard.
+        router.push('/dashboard');
       }
 
-      router.push('/dashboard');
     } catch (error: any) {
       if (error.code === 'auth/popup-closed-by-user') {
         setIsGoogleSigningIn(false);
