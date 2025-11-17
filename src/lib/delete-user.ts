@@ -35,6 +35,7 @@ export async function deleteCurrentUser() {
         // We assume Google is the primary provider for re-authentication.
         // This could be expanded to handle email/password as well.
         const provider = new GoogleAuthProvider();
+        // The reauthenticateWithPopup will throw an error if it fails or is cancelled by the user
         await reauthenticateWithPopup(user, provider);
 
         // Re-authentication successful, now retry the deletion.
@@ -42,9 +43,10 @@ export async function deleteCurrentUser() {
         const userDocRef = doc(firestore, 'users', user.uid);
         await deleteDoc(userDocRef);
         await deleteUser(user);
-
+        
       } catch (reauthError: any) {
         console.error("Re-authentication failed:", reauthError);
+        // We throw a more user-friendly error here.
         throw new Error("Re-authentication failed. Please try signing out and signing back in before deleting your account.");
       }
     } else {

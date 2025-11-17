@@ -113,6 +113,7 @@ export default function SettingsPage() {
           description: 'Please sign in again to confirm account deletion. This is a security measure.',
           variant: 'destructive',
         });
+        // The deleteCurrentUser function handles the re-auth popup, so we just inform the user.
       } else {
         toast({
           title: 'Account Deletion Failed',
