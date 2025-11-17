@@ -29,6 +29,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { deleteCurrentUser } from '@/lib/delete-user';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 const formSchema = z.object({
   firstName: z.string().min(2, 'First name must be at least 2 characters.'),
@@ -207,6 +208,24 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
         
+         <Card>
+            <CardHeader>
+                <CardTitle>Appearance</CardTitle>
+                <CardDescription>
+                Customize the look and feel of the application.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="flex items-center justify-between">
+                     <div>
+                        <p className="font-medium">Theme</p>
+                        <p className="text-sm text-muted-foreground">Select a theme for the dashboard.</p>
+                    </div>
+                    <ThemeToggle />
+                </div>
+            </CardContent>
+        </Card>
+
         <Card className="border-destructive">
             <CardHeader>
                 <CardTitle className="text-destructive">Account Management</CardTitle>
