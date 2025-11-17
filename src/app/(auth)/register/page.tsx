@@ -41,6 +41,7 @@ import { Logo } from '@/components/logo';
 import { useToast } from '@/hooks/use-toast';
 import type { User as AppUser } from '@/lib/types';
 import { supportedLanguages, supportedLanguageCodes } from '@/lib/languages';
+import { generateRegistrationNumber } from '@/lib/registration';
 
 const formSchema = z.object({
   firstName: z.string().min(2, 'First name must be at least 2 characters.'),
@@ -86,6 +87,9 @@ export default function RegisterPage() {
         displayName: `${values.firstName} ${values.lastName}`,
       });
 
+      // Generate registration number
+      const registrationNumber = await generateRegistrationNumber(firestore);
+
       const userRef = doc(firestore, 'users', firebaseUser.uid);
       const newUserProfile: AppUser = {
         id: firebaseUser.uid,
@@ -96,6 +100,7 @@ export default function RegisterPage() {
         language: values.language,
         avatar: '',
         verified: false,
+        registrationNumber,
       };
       await setDoc(userRef, newUserProfile);
 

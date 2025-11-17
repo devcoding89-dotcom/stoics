@@ -105,6 +105,7 @@ export function AdminDashboard({ user, userProfile }: AdminDashboardProps) {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
+                  <TableHead>Reg. Number</TableHead>
                   <TableHead className="hidden sm:table-cell">Email</TableHead>
                   <TableHead>Role</TableHead>
                   <TableHead className="hidden sm:table-cell">Status</TableHead>
@@ -114,13 +115,14 @@ export function AdminDashboard({ user, userProfile }: AdminDashboardProps) {
               <TableBody>
                 {usersLoading && (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center">Loading users...</TableCell>
+                    <TableCell colSpan={6} className="text-center">Loading users...</TableCell>
                   </TableRow>
                 )}
                 {!usersLoading && users && users.length > 0 ? (
                   users.map(u => (
                     <TableRow key={u.id}>
                       <TableCell className="font-medium">{`${u.firstName} ${u.lastName}`}</TableCell>
+                      <TableCell>{u.registrationNumber || 'N/A'}</TableCell>
                       <TableCell className="hidden sm:table-cell">{u.email}</TableCell>
                       <TableCell>{capitalize(u.role)}</TableCell>
                       <TableCell className="hidden sm:table-cell">
@@ -139,7 +141,7 @@ export function AdminDashboard({ user, userProfile }: AdminDashboardProps) {
                 ) : (
                   !usersLoading && (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center">
+                      <TableCell colSpan={6} className="text-center">
                         No users found.
                       </TableCell>
                     </TableRow>

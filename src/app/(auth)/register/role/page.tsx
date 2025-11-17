@@ -34,6 +34,7 @@ import { Logo } from '@/components/logo';
 import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/firebase';
 import type { User as AppUser, UserRole } from '@/lib/types';
+import { generateRegistrationNumber } from '@/lib/registration';
 
 const formSchema = z.object({
   role: z.enum(['student', 'teacher'], {
@@ -67,6 +68,7 @@ export default function SelectRolePage() {
     
     try {
       const userRef = doc(firestore, 'users', user.uid);
+      const registrationNumber = await generateRegistrationNumber(firestore);
       
       const [firstName, ...lastName] = (user.displayName || 'New User').split(' ');
       const newUserProfile: AppUser = {
@@ -78,6 +80,7 @@ export default function SelectRolePage() {
         avatar: user.photoURL || '',
         verified: true, // Google accounts are considered verified
         language: 'en',
+        registrationNumber,
       };
       await setDoc(userRef, newUserProfile);
 

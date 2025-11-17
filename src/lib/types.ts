@@ -14,6 +14,7 @@ export interface User {
   language: string;
   otp?: string;
   otpExpiry?: Date;
+  registrationNumber?: string;
 }
 
 export type Lesson = {
