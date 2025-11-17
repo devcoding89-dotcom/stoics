@@ -28,6 +28,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { deleteCurrentUser } from '@/lib/delete-user';
 
 const formSchema = z.object({
   firstName: z.string().min(2, 'First name must be at least 2 characters.'),
@@ -43,6 +44,7 @@ export default function SettingsPage() {
   const { toast } = useToast();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -82,8 +84,6 @@ export default function SettingsPage() {
         title: 'Profile Updated',
         description: 'Your settings have been successfully saved.',
       });
-      // Optionally, you can force a refresh of the user profile data if needed
-      // or simply rely on the real-time listener to update the UI.
     } catch (error: any) {
       console.error('Error updating profile:', error);
       toast({
@@ -96,13 +96,33 @@ export default function SettingsPage() {
     }
   };
   
-  const handleDeleteAccount = () => {
-    // This is where the logic to delete the user account and data would go.
-    // For now, we will just show a confirmation.
-     toast({
-        title: 'Account Deletion (Not Implemented)',
-        description: 'This is a placeholder. The account has not been deleted.',
+  const handleDeleteAccount = async () => {
+    setIsDeleting(true);
+    try {
+      await deleteCurrentUser();
+      toast({
+        title: 'Account Deleted',
+        description: 'Your account has been successfully deleted.',
       });
+      router.push('/'); // Redirect to home page after deletion
+    } catch (error: any) {
+      // Handle specific errors, like re-authentication needed
+      if (error.code === 'auth/requires-recent-login') {
+        toast({
+          title: 'Re-authentication Required',
+          description: 'Please sign in again to confirm account deletion. This is a security measure.',
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Account Deletion Failed',
+          description: error.message || 'An error occurred while deleting your account.',
+          variant: 'destructive',
+        });
+      }
+    } finally {
+      setIsDeleting(false);
+    }
   }
 
   if (!userProfile) {
@@ -201,7 +221,9 @@ export default function SettingsPage() {
                     </div>
                      <AlertDialog>
                         <AlertDialogTrigger asChild>
-                            <Button variant="destructive">Delete Account</Button>
+                            <Button variant="destructive" disabled={isDeleting}>
+                                {isDeleting ? 'Deleting...' : 'Delete Account'}
+                            </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                             <AlertDialogHeader>
@@ -213,7 +235,7 @@ export default function SettingsPage() {
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleDeleteAccount}>
+                            <AlertDialogAction onClick={handleDeleteAccount} disabled={isDeleting}>
                                 Continue
                             </AlertDialogAction>
                             </AlertDialogFooter>
