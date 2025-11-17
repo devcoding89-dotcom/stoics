@@ -89,7 +89,7 @@ export function StudentDashboard({ user, userProfile }: StudentDashboardProps) {
                 <CardTitle>Upcoming Lessons</CardTitle>
             </div>
             <Button variant="ghost" size="sm" asChild>
-                <Link href="#">View All <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                <Link href="/lessons">View All <ArrowRight className="ml-2 h-4 w-4" /></Link>
             </Button>
           </CardHeader>
           <CardContent>
