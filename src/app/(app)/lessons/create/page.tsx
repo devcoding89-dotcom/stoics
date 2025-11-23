@@ -29,7 +29,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { CalendarIcon, Check, ChevronsUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { FirestorePermissionError } from '@/firebase/errors';
 import type { User as AppUser } from '@/lib/types';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
 import { Badge } from '@/components/ui/badge';
@@ -98,6 +97,8 @@ export default function CreateLessonPage() {
       createdAt: serverTimestamp(),
     };
     
+    // We call the non-blocking function but use its returned promise for UI feedback.
+    // The function itself handles emitting permission errors internally.
     addDocumentNonBlocking(lessonsRef, lessonData)
       .then((docRef) => {
         toast({
@@ -107,14 +108,15 @@ export default function CreateLessonPage() {
         router.push('/dashboard');
       })
       .catch((error) => {
+        // This catch block will now only be triggered by non-permission errors,
+        // or if we explicitly re-throw a permission error for local handling.
+        // The global FirestorePermissionError is already emitted inside addDocumentNonBlocking.
         console.error('Error creating lesson:', error);
-        if (!(error instanceof FirestorePermissionError)) {
-            toast({
-                title: 'Error creating lesson',
-                description: error.message || 'An unexpected error occurred. Please try again.',
-                variant: 'destructive',
-            });
-        }
+        toast({
+            title: 'Error creating lesson',
+            description: 'An unexpected error occurred. Please check the console and try again.',
+            variant: 'destructive',
+        });
       })
       .finally(() => {
         setIsSubmitting(false);

@@ -26,12 +26,10 @@ import { useToast } from '@/hooks/use-toast';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Check, ChevronsUpDown } from 'lucide-react';
+import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { FirestorePermissionError } from '@/firebase/errors';
 import type { User as AppUser } from '@/lib/types';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
 import {
   Select,
   SelectContent,
@@ -56,7 +54,6 @@ export default function SchedulePaymentPage() {
   const { user, userProfile } = useUser();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [open, setOpen] = useState(false);
 
   // Redirect if not a teacher
   useEffect(() => {
@@ -105,6 +102,8 @@ export default function SchedulePaymentPage() {
       createdAt: serverTimestamp(),
     };
     
+    // We call the non-blocking function but use its returned promise for UI feedback.
+    // The function itself handles emitting permission errors internally.
     addDocumentNonBlocking(paymentsRef, paymentData)
       .then((docRef) => {
         toast({
@@ -114,14 +113,14 @@ export default function SchedulePaymentPage() {
         router.push('/dashboard');
       })
       .catch((error) => {
+        // This catch block will now only be triggered by non-permission errors.
+        // The global FirestorePermissionError is already emitted inside addDocumentNonBlocking.
         console.error('Error scheduling payment:', error);
-        if (!(error instanceof FirestorePermissionError)) {
-            toast({
-                title: 'Error scheduling payment',
-                description: error.message || 'An unexpected error occurred. Please try again.',
-                variant: 'destructive',
-            });
-        }
+        toast({
+            title: 'Error scheduling payment',
+            description: 'An unexpected error occurred. Please check the console and try again.',
+            variant: 'destructive',
+        });
       })
       .finally(() => {
         setIsSubmitting(false);

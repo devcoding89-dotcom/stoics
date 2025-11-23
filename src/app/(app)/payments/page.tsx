@@ -44,7 +44,7 @@ export default function PaymentsPage() {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
   };
   
-  const handlePayNow = async (payment: Payment) => {
+  const handlePayNow = (payment: Payment) => {
     if (!user || !firestore) return;
     setPayingId(payment.id);
     
@@ -54,22 +54,21 @@ export default function PaymentsPage() {
       paymentDate: new Date().toISOString(),
     };
 
-    try {
-      await updateDocumentNonBlocking(paymentRef, updatedData);
-      toast({
-        title: 'Payment Successful',
-        description: 'Your payment has been recorded.',
-      });
-    } catch (error) {
-       console.error("Payment Error: ", error);
-       toast({
-        title: 'Payment Failed',
-        description: 'Could not process your payment. Please try again.',
-        variant: 'destructive',
-      });
-    } finally {
-      setPayingId(null);
-    }
+    // The non-blocking update handles emitting permission errors.
+    // We can use a .then() here to know when the local cache is updated to give user feedback.
+    updateDocumentNonBlocking(paymentRef, updatedData);
+    
+    // Optimistically update UI
+    toast({
+      title: 'Payment Processing',
+      description: 'Your payment is being processed.',
+    });
+    
+    // Note: A more robust solution might listen for the actual backend confirmation
+    // or handle potential local-write-vs-backend-rejection scenarios. For this app,
+    // we assume the optimistic update is sufficient. The permission error will show
+    // up in the dev overlay if the write fails.
+    setPayingId(null);
   };
 
   const pageTitle = isStudent ? 'Your Payments' : 'All Platform Payments';

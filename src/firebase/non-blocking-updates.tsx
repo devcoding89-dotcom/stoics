@@ -17,15 +17,15 @@ import {FirestorePermissionError} from '@/firebase/errors';
  * Does NOT await the write operation internally.
  */
 export function setDocumentNonBlocking(docRef: DocumentReference, data: any, options: SetOptions) {
-  return setDoc(docRef, data, options).catch(error => {
+  // CRITICAL: .catch() is chained to handle the async error without blocking.
+  setDoc(docRef, data, options).catch(error => {
     const permissionError = new FirestorePermissionError({
       path: docRef.path,
       operation: 'write', // or 'create'/'update' based on options
       requestResourceData: data,
     });
+    // The listener component will throw this error, making it visible in the Next.js overlay.
     errorEmitter.emit('permission-error', permissionError);
-    // Re-throw the original error to be caught by the caller's catch block
-    throw permissionError; 
   });
 }
 
@@ -33,20 +33,23 @@ export function setDocumentNonBlocking(docRef: DocumentReference, data: any, opt
 /**
  * Initiates an addDoc operation for a collection reference.
  * Does NOT await the write operation internally.
- * Returns the Promise for the new doc ref, but typically not awaited by caller.
+ * The promise is returned but not typically awaited, allowing the UI to remain responsive.
  */
-export function addDocumentNonBlocking(colRef: CollectionReference, data: any) {
-  return addDoc(colRef, data)
-    .catch(error => {
+export function addDocumentNonBlocking(colRef: CollectionReference, data: any): Promise<DocumentReference> {
+  const promise = addDoc(colRef, data);
+  
+  // CRITICAL: .catch() is chained to handle the async error without blocking.
+  promise.catch(error => {
       const permissionError = new FirestorePermissionError({
         path: colRef.path,
         operation: 'create',
         requestResourceData: data,
       });
+      // The listener component will throw this error, making it visible in the Next.js overlay.
       errorEmitter.emit('permission-error', permissionError);
-      // Re-throw the original error to be caught by the caller's catch block
-      throw permissionError;
-    });
+  });
+  
+  return promise;
 }
 
 
@@ -55,16 +58,16 @@ export function addDocumentNonBlocking(colRef: CollectionReference, data: any) {
  * Does NOT await the write operation internally.
  */
 export function updateDocumentNonBlocking(docRef: DocumentReference, data: any) {
-  return updateDoc(docRef, data)
+  // CRITICAL: .catch() is chained to handle the async error without blocking.
+  updateDoc(docRef, data)
     .catch(error => {
       const permissionError = new FirestorePermissionError({
         path: docRef.path,
         operation: 'update',
         requestResourceData: data,
       });
+      // The listener component will throw this error, making it visible in the Next.js overlay.
       errorEmitter.emit('permission-error', permissionError);
-      // Re-throw the original error to be caught by the caller's catch block
-      throw permissionError;
     });
 }
 
@@ -74,14 +77,14 @@ export function updateDocumentNonBlocking(docRef: DocumentReference, data: any) 
  * Does NOT await the write operation internally.
  */
 export function deleteDocumentNonBlocking(docRef: DocumentReference) {
-  return deleteDoc(docRef)
+  // CRITICAL: .catch() is chained to handle the async error without blocking.
+  deleteDoc(docRef)
     .catch(error => {
       const permissionError = new FirestorePermissionError({
         path: docRef.path,
         operation: 'delete',
       });
+      // The listener component will throw this error, making it visible in the Next.js overlay.
       errorEmitter.emit('permission-error', permissionError);
-      // Re-throw the original error to be caught by the caller's catch block
-      throw permissionError;
     });
 }
