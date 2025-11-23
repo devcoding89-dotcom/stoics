@@ -99,7 +99,7 @@ export default function RegisterPage() {
         role: values.role,
         language: values.language,
         avatar: '',
-        verified: values.role === 'student', // Students are auto-verified, teachers are not.
+        verified: true, // All users are auto-verified now.
         registrationNumber,
       };
       await setDoc(userRef, newUserProfile);

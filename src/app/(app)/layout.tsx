@@ -85,7 +85,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
                 </SidebarMenuItem>
               </>
             )}
-            {userProfile?.role === 'teacher' && userProfile.verified && (
+            {userProfile?.role === 'teacher' && (
               <>
                 <SidebarMenuItem onClick={() => setOpenMobile(false)}>
                   <Link href="/lessons/create">
@@ -217,15 +217,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // If user is a teacher but not verified, redirect to verification page
-    if (userProfile?.role === 'teacher' && !userProfile.verified && pathname !== '/verify') {
-      router.push('/verify');
-    }
-
   }, [isUserLoading, user, userProfile, router, pathname]);
 
   // Show a global loading screen while user/profile is being checked or if redirection is pending
-  if (isUserLoading || !user || !userProfile?.role || (userProfile.role === 'teacher' && !userProfile.verified && pathname !== '/verify')) {
+  if (isUserLoading || !user || !userProfile?.role) {
     return (
        <div className="flex h-screen w-screen items-center justify-center">
         <div className="flex flex-col items-center gap-4">
