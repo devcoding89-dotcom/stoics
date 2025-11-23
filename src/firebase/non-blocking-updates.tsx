@@ -56,11 +56,12 @@ export function addDocumentNonBlocking(colRef: CollectionReference, data: any): 
 /**
  * Initiates an updateDoc operation for a document reference.
  * Does NOT await the write operation internally.
+ * The promise is returned but not typically awaited.
  */
-export function updateDocumentNonBlocking(docRef: DocumentReference, data: any) {
+export function updateDocumentNonBlocking(docRef: DocumentReference, data: any): Promise<void> {
+  const promise = updateDoc(docRef, data);
   // CRITICAL: .catch() is chained to handle the async error without blocking.
-  updateDoc(docRef, data)
-    .catch(error => {
+  promise.catch(error => {
       const permissionError = new FirestorePermissionError({
         path: docRef.path,
         operation: 'update',
@@ -68,7 +69,8 @@ export function updateDocumentNonBlocking(docRef: DocumentReference, data: any) 
       });
       // The listener component will throw this error, making it visible in the Next.js overlay.
       errorEmitter.emit('permission-error', permissionError);
-    });
+  });
+  return promise;
 }
 
 

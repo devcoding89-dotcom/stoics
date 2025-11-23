@@ -75,19 +75,28 @@ export default function VerifyPage() {
     setIsVerifying(true);
 
     const userRef = doc(firestore, 'users', user.uid);
-    updateDocumentNonBlocking(userRef, { verified: true });
-    
-    // The write is non-blocking, so we give optimistic feedback.
-    // The permission error would show in the dev overlay if it fails.
-    toast({
-      title: 'Verification Complete!',
-      description: 'Your account has been verified. Redirecting...',
-    });
-    
-    // Redirect after a short delay to allow the toast to be seen.
-    setTimeout(() => {
-        router.push('/dashboard');
-    }, 2000);
+    // The non-blocking update handles emitting permission errors.
+    // We can use a .then() here to know when the local cache is updated to give user feedback.
+    updateDocumentNonBlocking(userRef, { verified: true })
+      .then(() => {
+        toast({
+          title: 'Verification Complete!',
+          description: 'Your account has been verified. Redirecting...',
+        });
+        
+        // Redirect after a short delay to allow the toast to be seen.
+        setTimeout(() => {
+            router.push('/dashboard');
+        }, 2000);
+      })
+      .catch((error) => {
+        // This catch will now only be triggered by non-permission errors,
+        // as permission errors are handled globally.
+        console.error('An unexpected error occurred during verification:', error);
+      })
+      .finally(() => {
+        setIsVerifying(false);
+      });
   };
   
   if (!userProfile) {
