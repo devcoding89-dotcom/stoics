@@ -9,6 +9,7 @@ import { useSidebar } from '@/components/ui/sidebar';
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarHeader,
   SidebarInset,
   SidebarMenu,
