@@ -9,6 +9,9 @@ import { z } from 'zod';
 import { initializeApp, getApps, App } from 'firebase/app';
 import { getFirestore, collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { firebaseConfig } from '@/firebase/config';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
+
 
 // Helper function to initialize Firebase if not already done.
 // This is separate from the main app's initialization to be self-contained for the flow.
@@ -56,7 +59,17 @@ export const sendOtpFlow = ai.defineFlow(
     const usersRef = collection(firestore, 'users');
     const q = query(usersRef, where('email', '==', email));
     
-    const querySnapshot = await getDocs(q);
+    let querySnapshot;
+    try {
+        querySnapshot = await getDocs(q);
+    } catch (serverError) {
+        const permissionError = new FirestorePermissionError({
+            path: 'users',
+            operation: 'list'
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        throw permissionError;
+    }
     
     if (querySnapshot.empty) {
       // Security: Do not reveal if the user exists or not in the error message.
@@ -66,11 +79,20 @@ export const sendOtpFlow = ai.defineFlow(
     const userDoc = querySnapshot.docs[0];
     const userRef = userDoc.ref;
 
-    // Use updateDoc for an existing document.
-    await updateDoc(userRef, { 
-        otp, 
-        otpExpiry: otpExpiry.toISOString() 
-    });
+    try {
+        await updateDoc(userRef, { 
+            otp, 
+            otpExpiry: otpExpiry.toISOString() 
+        });
+    } catch (serverError) {
+        const permissionError = new FirestorePermissionError({
+            path: userRef.path,
+            operation: 'update',
+            requestResourceData: { otp: '******', otpExpiry: otpExpiry.toISOString() }
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        throw permissionError;
+    }
 
     // !! SIMULATION ONLY !!
     // In a real application, you would use a service like SendGrid, Mailgun, or Firebase Extensions
