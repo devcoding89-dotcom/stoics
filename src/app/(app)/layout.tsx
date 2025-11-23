@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Logo } from '@/components/logo';
 import { UserNav } from '@/components/user-nav';
-import { BookCopy, CreditCard, LayoutDashboard, MessageSquare, PlusCircle, Shield, HandCoins, BookOpen } from 'lucide-react';
+import { BookCopy, CreditCard, LayoutDashboard, MessageSquare, PlusCircle, Shield, HandCoins, BookOpen, Settings } from 'lucide-react';
 
 function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -164,6 +164,24 @@ function MainLayout({ children }: { children: React.ReactNode }) {
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarContent>
+        <SidebarFooter>
+            <SidebarMenu>
+                <SidebarMenuItem onClick={() => setOpenMobile(false)}>
+                    <Link href="/settings">
+                        <SidebarMenuButton
+                            asChild
+                            isActive={pathname.startsWith('/settings')}
+                            tooltip={{ children: 'Settings' }}
+                        >
+                        <span>
+                            <Settings />
+                            <span>Settings</span>
+                        </span>
+                        </SidebarMenuButton>
+                    </Link>
+                </SidebarMenuItem>
+            </SidebarMenu>
+        </SidebarFooter>
       </Sidebar>
       <SidebarInset>
         <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-6">

@@ -138,7 +138,7 @@ export default function SelectRolePage() {
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="student">Student</SelectItem>
-                          <SelectItem value="teacher" disabled>Teacher (Coming Soon)</SelectItem>
+                          <SelectItem value="teacher" disabled>Teacher (Requires Admin Approval)</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
