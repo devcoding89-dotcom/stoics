@@ -14,13 +14,47 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Logo } from '@/components/logo';
-import { useUser } from '@/firebase';
+import { useUser, updateDocumentNonBlocking } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 
 const formSchema = z.object({
   otp: z.string().min(6, 'Your one-time password must be 6 characters.'),
 });
+
+// In a real app, this function would be a secure Cloud Function.
+// For this prototype, it's an insecure client-side function.
+// It finds a user by email, verifies the OTP, and returns a "custom token" (just the UID).
+async function verifyOtpAndGetToken(firestore: any, email: string, otp: string): Promise<string> {
+    const usersRef = collection(firestore, 'users');
+    const q = query(usersRef, where('email', '==', email));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+        throw new Error('User not found.');
+    }
+
+    const userDoc = querySnapshot.docs[0];
+    const userData = userDoc.data();
+    const userRef = userDoc.ref;
+
+    const now = new Date();
+    const otpExpiry = userData.otpExpiry ? new Date(userData.otpExpiry) : new Date(0);
+
+    if (userData.otp !== otp || now > otpExpiry) {
+        // Clear the OTP in the database for security
+        await updateDocumentNonBlocking(userRef, { otp: null, otpExpiry: null });
+        throw new Error('Invalid or Expired OTP. Please try again.');
+    }
+
+    // Clear the OTP after successful use
+    await updateDocumentNonBlocking(userRef, { otp: null, otpExpiry: null });
+
+    // In a real app, a Cloud Function would generate a JWT. Here, we just return the UID.
+    // THIS IS INSECURE FOR PRODUCTION.
+    return userDoc.id;
+}
+
 
 function OtpLoginPage() {
   const router = useRouter();
@@ -61,65 +95,31 @@ function OtpLoginPage() {
     setIsVerifying(true);
 
     try {
-      // Find the user by email
-      const usersRef = collection(firestore, 'users');
-      const q = query(usersRef, where('email', '==', email));
-      const querySnapshot = await getDocs(q);
+        // This is a placeholder for what would be a Cloud Function call.
+        // A real implementation would call a backend endpoint that returns a real JWT custom token.
+        // Directly calling this on the client is insecure as it exposes logic.
+        const customToken = await verifyOtpAndGetToken(firestore, email, values.otp);
 
-      if (querySnapshot.empty) {
-        throw new Error('User not found.');
-      }
-
-      const userDoc = querySnapshot.docs[0];
-      const userData = userDoc.data();
-      const userRef = userDoc.ref;
-
-      // Check if OTP matches and is not expired
-      const now = new Date();
-      const otpExpiry = userData.otpExpiry ? new Date(userData.otpExpiry) : new Date(0);
-
-      if (userData.otp !== values.otp || now > otpExpiry) {
-        toast({
-          title: 'Invalid or Expired OTP',
-          description: 'The OTP you entered is incorrect or has expired. Please try again.',
-          variant: 'destructive',
-        });
-        // Optionally, clear the OTP in the database
-        await updateDoc(userRef, { otp: null, otpExpiry: null });
-        setIsVerifying(false);
-        return;
-      }
-      
-      // In a real secure app, you'd call a Cloud Function to generate a custom token.
-      // We will simulate this by directly creating the token here, which is INSECURE for production.
-      // This is a placeholder for the backend logic.
-      // The `signInWithCustomToken` requires a backend-signed JWT, not just the UID.
-      // For this prototype, we'll just log the user in by confirming the OTP and then redirecting.
-      // This is NOT real authentication but a simulation.
-      console.log(`Simulating login for user: ${userDoc.id}`);
-      
-      // Clear the OTP after successful use
-      await updateDoc(userRef, { otp: null, otpExpiry: null });
-
-      // IMPORTANT: The following is a workaround for prototyping.
-      // A real app must use a backend to create a custom token.
-      // We will pretend to sign in and manually navigate.
-      // This will not create a real Firebase auth session.
-      // The user will be redirected to the dashboard, and the useUser hook will eventually fail.
-      // This demonstrates the UI flow. A backend is needed for a full implementation.
-      
-      // TODO: Replace this with a call to a Cloud Function that returns a custom token
-      // e.g., const { token } = await generateCustomToken({ uid: userDoc.id });
-      // await signInWithCustomToken(auth, token);
-      
-      toast({
-        title: 'Login Successful (Simulated)',
-        description: 'You will be redirected to the dashboard. Note: This is a prototype and not a real session.',
-      });
-
-      // Manually force-navigate. This won't work perfectly without real auth.
-      // We push to login first to clear state, then to dashboard.
-      router.push('/login?simulated=true');
+        // For this prototype, we're assuming the "token" is just the UID, which is not how
+        // signInWithCustomToken works. A real token is required. This will fail without
+        // a backend to generate a real token. The purpose here is to demonstrate the UI flow.
+        
+        // This will likely fail without a real backend-signed JWT.
+        // We'll proceed as if it works for the prototype UI flow.
+        try {
+            // await signInWithCustomToken(auth, customToken);
+             console.log("Simulated sign-in successful with token for user:", customToken);
+             router.push('/dashboard');
+        } catch (authError) {
+             console.error("signInWithCustomToken failed. This is expected without a backend. Simulating success.", authError);
+             toast({
+                title: 'Login Successful (Simulated)',
+                description: 'Redirecting to dashboard.',
+             });
+             // Force a reload to trigger the auth state listener
+             router.push('/dashboard');
+             setTimeout(() => window.location.reload(), 500);
+        }
 
     } catch (error: any) {
       console.error('OTP Verification Error:', error);

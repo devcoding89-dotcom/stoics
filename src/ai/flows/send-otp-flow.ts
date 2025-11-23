@@ -7,7 +7,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { initializeApp, getApps, App } from 'firebase/app';
-import { getFirestore, collection, query, where, getDocs, doc, setDoc } from 'firebase/firestore';
+import { getFirestore, collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { firebaseConfig } from '@/firebase/config';
 
 // Helper function to initialize Firebase if not already done.
@@ -15,8 +15,11 @@ import { firebaseConfig } from '@/firebase/config';
 function ensureFirebaseInitialized(): App {
   const apps = getApps();
   if (apps.length > 0) {
+    // A named app might exist if other flows are running. Re-use it.
     const namedApp = apps.find(app => app.name === 'genkit-otp-flow');
     if (namedApp) return namedApp;
+    // Or return the default app if it's the only one.
+    if(apps.length === 1 && apps[0]) return apps[0];
   }
   // Use a unique name to avoid conflicts with the main app's Firebase instance
   return initializeApp(firebaseConfig, 'genkit-otp-flow');
@@ -44,31 +47,30 @@ export const sendOtpFlow = ai.defineFlow(
     outputSchema: SendOtpOutputSchema,
   },
   async ({ email }) => {
-    // Ensure Firebase is initialized before proceeding
     const app = ensureFirebaseInitialized();
     const firestore = getFirestore(app);
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
 
-    // Check if user exists
     const usersRef = collection(firestore, 'users');
     const q = query(usersRef, where('email', '==', email));
+    
     const querySnapshot = await getDocs(q);
     
-    let userId;
     if (querySnapshot.empty) {
-      // User does not exist, so we should not send an OTP.
-      throw new Error("User with this email does not exist. Please register first.");
-    } else {
-      userId = querySnapshot.docs[0].id;
-    }
+      // Security: Do not reveal if the user exists or not in the error message.
+      throw new Error("If an account exists for this email, an OTP has been sent.");
+    } 
+    
+    const userDoc = querySnapshot.docs[0];
+    const userRef = userDoc.ref;
 
-    const userRef = doc(firestore, `users/${userId}`);
-
-    // In a real app, this `setDoc` would be a `updateDoc`.
-    // We use `setDoc` with `merge` to be safe if the fields don't exist yet.
-    await setDoc(userRef, { otp, otpExpiry: otpExpiry.toISOString() }, { merge: true });
+    // Use updateDoc for an existing document.
+    await updateDoc(userRef, { 
+        otp, 
+        otpExpiry: otpExpiry.toISOString() 
+    });
 
     // !! SIMULATION ONLY !!
     // In a real application, you would use a service like SendGrid, Mailgun, or Firebase Extensions
