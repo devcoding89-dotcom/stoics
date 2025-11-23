@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import Link from 'next/link';
 
 interface AdminDashboardProps {
   user: FirebaseUser;
@@ -95,9 +96,14 @@ export function AdminDashboard({ user, userProfile }: AdminDashboardProps) {
       <div className="grid gap-6 md:grid-cols-1">
         <Card>
           <CardHeader>
-             <div className="flex items-center gap-2">
-                <Users className="h-6 w-6 text-primary" />
-                <CardTitle>User Management</CardTitle>
+             <div className="flex items-center justify-between">
+                <div className='flex items-center gap-2'>
+                    <Users className="h-6 w-6 text-primary" />
+                    <CardTitle>User Management</CardTitle>
+                </div>
+                 <Button asChild variant="outline">
+                    <Link href="/teacher-portal">Teacher Portal</Link>
+                </Button>
             </div>
           </CardHeader>
           <CardContent>
