@@ -35,7 +35,8 @@ export function UserNav() {
 
   const handleLogout = () => {
     signOut(auth).then(() => {
-      router.push('/login');
+      // Forcing a reload to ensure all states are cleared.
+      window.location.href = '/login';
     });
   };
 

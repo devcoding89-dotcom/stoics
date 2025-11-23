@@ -9,7 +9,6 @@ import { useSidebar } from '@/components/ui/sidebar';
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
   SidebarInset,
   SidebarMenu,
@@ -85,7 +84,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
                 </SidebarMenuItem>
               </>
             )}
-            {userProfile?.role === 'teacher' && (
+            {userProfile?.role === 'teacher' && userProfile.verified && (
               <>
                 <SidebarMenuItem onClick={() => setOpenMobile(false)}>
                   <Link href="/lessons/create">
@@ -199,6 +198,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { isUserLoading, user, userProfile } = useUser();
   const router = useRouter();
+  const pathname = usePathname();
   
   useEffect(() => {
     // If not loading and no user, redirect to login
@@ -213,11 +213,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     // If user is loaded but profile is missing a role, redirect to role selection
     if (user && !userProfile?.role) {
       router.push('/register/role');
+      return;
     }
-  }, [isUserLoading, user, userProfile, router]);
 
-  // Show a global loading screen while user/profile is being checked
-  if (isUserLoading || !user || !userProfile?.role) {
+    // If user is a teacher but not verified, redirect to verification page
+    if (userProfile?.role === 'teacher' && !userProfile.verified && pathname !== '/verify') {
+      router.push('/verify');
+    }
+
+  }, [isUserLoading, user, userProfile, router, pathname]);
+
+  // Show a global loading screen while user/profile is being checked or if redirection is pending
+  if (isUserLoading || !user || !userProfile?.role || (userProfile.role === 'teacher' && !userProfile.verified && pathname !== '/verify')) {
     return (
        <div className="flex h-screen w-screen items-center justify-center">
         <div className="flex flex-col items-center gap-4">
