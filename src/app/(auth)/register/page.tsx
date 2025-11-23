@@ -99,7 +99,7 @@ export default function RegisterPage() {
         role: values.role,
         language: values.language,
         avatar: '',
-        verified: true, // All users are auto-verified now.
+        verified: true, 
         registrationNumber,
       };
       await setDoc(userRef, newUserProfile);
@@ -217,7 +217,7 @@ export default function RegisterPage() {
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="student">Student</SelectItem>
-                          <SelectItem value="teacher">Teacher</SelectItem>
+                          <SelectItem value="teacher" disabled>Teacher (Requires Admin Approval)</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
