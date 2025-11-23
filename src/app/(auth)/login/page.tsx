@@ -190,7 +190,7 @@ export default function LoginPage() {
             </div>
             <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-background px-2 text-muted-foreground">
-                Or continue with
+                Or
               </span>
             </div>
           </div>
@@ -205,7 +205,7 @@ export default function LoginPage() {
               'Redirecting...'
             ) : (
               <>
-                <FcGoogle className="mr-2 h-5 w-5" /> Google
+                <FcGoogle className="mr-2 h-5 w-5" /> Continue with Google
               </>
             )}
           </Button>
