@@ -88,25 +88,25 @@ export function useCollection<T = any>(
         setIsLoading(false);
       },
       (error: FirestoreError) => {
+        // Attempt to get the path from the query, which can be tricky.
+        // This is a hacky but common way to access internal properties for debugging.
         const path: string =
           memoizedTargetRefOrQuery.type === 'collection'
             ? (memoizedTargetRefOrQuery as CollectionReference).path
-            // This is a hack to get the path from a query. It's not ideal, but it's the only way.
-            : (memoizedTargetRefOrQuery as any)._query?.path?.canonicalString() || '';
+            : (memoizedTargetRefOrQuery as any)._query?.path?.toString() || 'unknown_path';
 
-        // Only create and emit an error if there's a valid path.
-        // This prevents errors for queries that are temporarily null.
-        if (path) {
+        // Only create and emit a contextual error if there's a valid path.
+        if (path && path !== 'unknown_path') {
             const contextualError = new FirestorePermissionError({
                 operation: 'list',
-                path,
+                path: path,
             });
 
             setError(contextualError);
+            // This is the key part: emit the detailed error globally.
             errorEmitter.emit('permission-error', contextualError);
         } else {
-            // If the path is empty, it's likely a setup issue, not a permissions one.
-            // We can log a different kind of error or just set a generic one.
+            // If we can't determine the path, fall back to the original error.
             setError(error);
         }
         

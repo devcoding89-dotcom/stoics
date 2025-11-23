@@ -36,20 +36,14 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
   
-    // Explicitly block any root-level queries that are not covered by more specific rules.
-    // This is a security best practice to prevent accidental exposure of all data.
-    match /{document=**} {
-      allow read, write: if false;
-    }
-
     /**
      * @description Secures user profiles. Users can read/write their own profile. Admins can read all profiles. Teachers can read students.
      * @path /users/{userId}
      */
     match /users/{userId} {
       allow get: if isOwner(userId) || isAdmin() || (isTeacher() && isStudent(userId));
-      // Admins can list all users. Teachers can list students.
-      allow list: if isAdmin() || (isTeacher() && request.query.where[0][2] == 'student');
+      // Admins can list all users. Teachers can list users with the 'student' role.
+      allow list: if isAdmin() || (isTeacher() && request.query.get("where")[0][2] == 'student');
       allow create: if isOwner(userId) && request.auth.uid == userId;
       // Allow updating own profile, admin updating any profile, or unauthenticated OTP update.
       allow update: if (isExistingOwner(userId) && request.auth.uid == userId && request.resource.data.id == resource.data.id) || isUpdatingOtp() || isAdmin();
@@ -202,6 +196,6 @@ service cloud.firestore {
     }
     // Check if there are any documents in the user's payments subcollection
     // with the status 'overdue'. The size() of this query must be 0 for access to be granted.
-    return firestore.get(/databases/$(database)/documents/users/$(userId)/payments?status=overdue).size() > 0;
+    return exists(/databases/$(database)/documents/users/$(userId)/payments?status=overdue);
   }
 }
