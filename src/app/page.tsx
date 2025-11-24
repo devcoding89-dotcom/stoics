@@ -40,7 +40,7 @@ export default function Home() {
                 </div>
                 <nav className="flex items-center gap-4">
                     <Button variant="ghost" asChild>
-                        <Link href="https://your-teacher-app.example.com" target="_blank">Teacher Portal</Link>
+                        <Link href="https://teacher-ashy.vercel.app/login" target="_blank">Teacher Portal</Link>
                     </Button>
                     <Button variant="ghost" asChild>
                         <Link href="/login">Log In</Link>

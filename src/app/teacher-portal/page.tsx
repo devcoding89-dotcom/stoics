@@ -49,7 +49,7 @@ export default function TeacherPortalPage() {
                 </CardHeader>
                 <CardContent>
                     <Button asChild className="w-full">
-                        <Link href="https://your-teacher-app.example.com" target="_blank">
+                        <Link href="https://teacher-ashy.vercel.app/login" target="_blank">
                             Go to Teacher Workspace
                             <ArrowRight className="ml-2 h-4 w-4" />
                         </Link>
