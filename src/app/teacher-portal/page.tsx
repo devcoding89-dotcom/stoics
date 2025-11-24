@@ -22,7 +22,7 @@ export default function TeacherPortalPage() {
     }, [user, isUserLoading, userProfile, router]);
 
     // Show a loading state while checking user status
-    if (isUserLoading || user) {
+    if (isUserLoading || (user && userProfile?.role === 'teacher')) {
         return (
             <div className="flex h-screen w-screen items-center justify-center">
                 <div className="flex flex-col items-center gap-4">
@@ -33,7 +33,7 @@ export default function TeacherPortalPage() {
         );
     }
     
-    // If not logged in, show the portal entry page
+    // If not logged in as a teacher, show the portal entry page
     return (
         <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
             <div className="mb-8 flex items-center gap-2">
@@ -44,13 +44,13 @@ export default function TeacherPortalPage() {
                 <CardHeader className="text-center">
                     <CardTitle className="text-2xl">Teacher Portal</CardTitle>
                     <CardDescription>
-                        Welcome. Please log in to access your dashboard and manage your lessons.
+                        Welcome. Please proceed to the teacher login page to access your dashboard.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Button asChild className="w-full">
-                        <Link href="/login">
-                            Log In to Teacher Portal
+                        <Link href="https://your-teacher-app.example.com" target="_blank">
+                            Go to Teacher Workspace
                             <ArrowRight className="ml-2 h-4 w-4" />
                         </Link>
                     </Button>
