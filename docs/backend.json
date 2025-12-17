@@ -43,6 +43,10 @@
           "type": "string",
           "format": "date-time",
           "description": "The expiration date and time of the OTP."
+        },
+        "registrationNumber": {
+          "type": "string",
+          "description": "A unique matriculation number assigned to the user upon registration."
         }
       },
       "required": [
