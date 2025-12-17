@@ -5,6 +5,8 @@ import { FirebaseApp } from 'firebase/app';
 import { Firestore, doc, getDoc } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import type { User as AppUser } from '@/lib/types';
+import { errorEmitter } from './error-emitter';
+import { FirestorePermissionError } from './errors';
 
 interface FirebaseProviderProps {
   children: ReactNode;
@@ -47,11 +49,18 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
           if (userSnap.exists()) {
             setUserProfile({ ...userSnap.data(), id: userSnap.id } as AppUser);
           } else {
-            console.warn(`No Firestore profile found for user ${firebaseUser.uid}.`);
+            console.warn(`No Firestore profile found for user ${firebaseUser.uid}. This might be a new user.`);
             setUserProfile(null); 
           }
         } catch (error) {
           console.error("Error fetching user profile:", error);
+           if (error instanceof Error && error.message.includes('permission-denied')) {
+                const permissionError = new FirestorePermissionError({
+                    path: userRef.path,
+                    operation: 'get',
+                });
+                errorEmitter.emit('permission-error', permissionError);
+            }
           setUserProfile(null);
         }
       } else {

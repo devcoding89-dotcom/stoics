@@ -24,6 +24,7 @@
  * - Data consistency is enforced between document IDs and path parameters.
  * - All write operations require a verified user identity (`request.auth != null`), except for OTP updates.
  * - **Payment Before Class**: Students with overdue payments are blocked from reading lesson data.
+ * - **Role Management**: Only Admins can change a user's role.
  *
  * Denormalization for Authorization:
  * - Attendance records nested under lessons include a denormalized `teacherId` to avoid `get()` calls
@@ -45,8 +46,8 @@ service cloud.firestore {
       // Admins can list all users. Teachers can list users with the 'student' role.
       allow list: if isAdmin() || (isTeacher() && request.query.get("where")[0][2] == 'student');
       allow create: if isOwner(userId) && request.auth.uid == userId;
-      // Allow updating own profile, admin updating any profile, or unauthenticated OTP update.
-      allow update: if (isExistingOwner(userId) && request.auth.uid == userId && request.resource.data.id == resource.data.id) || isUpdatingOtp() || isAdmin();
+      // Allow updating own profile (but not role), admin updating any profile, or unauthenticated OTP update.
+      allow update: if (isExistingOwner(userId) && request.auth.uid == userId && isNotChangingRole()) || isUpdatingOtp() || isAdmin();
       allow delete: if (isExistingOwner(userId) && request.auth.uid == userId) || isAdmin();
 
       /**
@@ -139,7 +140,7 @@ service cloud.firestore {
     }
 
     /**
-     * @description Secures AI tutoring context.
+_     * @description Secures AI tutoring context.
      * @path /ai_tutoring_contexts/{contextId}
      */
     match /ai_tutoring_contexts/{contextId} {
@@ -197,5 +198,10 @@ service cloud.firestore {
     // Check if there are any documents in the user's payments subcollection
     // with the status 'overdue'. The size() of this query must be 0 for access to be granted.
     return exists(/databases/$(database)/documents/users/$(userId)/payments?status=overdue);
+  }
+  
+  function isNotChangingRole() {
+    // Users cannot change their own role. Only an admin can.
+    return request.resource.data.role == resource.data.role;
   }
 }

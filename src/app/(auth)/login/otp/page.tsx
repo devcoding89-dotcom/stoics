@@ -14,7 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Logo } from '@/components/logo';
-import { useUser, updateDocumentNonBlocking } from '@/firebase';
+import { useUser, updateDocumentNonBlocking, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 
@@ -28,7 +28,20 @@ const formSchema = z.object({
 async function verifyOtpAndGetToken(firestore: any, email: string, otp: string): Promise<string> {
     const usersRef = collection(firestore, 'users');
     const q = query(usersRef, where('email', '==', email));
-    const querySnapshot = await getDocs(q);
+    
+    let querySnapshot;
+    try {
+        querySnapshot = await getDocs(q);
+    } catch (serverError) {
+        const permissionError = new FirestorePermissionError({
+            path: 'users',
+            operation: 'list' // This is a query, so it's a 'list' operation.
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        // Re-throw to be caught by the calling function's catch block
+        throw permissionError;
+    }
+
 
     if (querySnapshot.empty) {
         throw new Error('User not found.');
@@ -122,12 +135,15 @@ function OtpLoginPage() {
         }
 
     } catch (error: any) {
-      console.error('OTP Verification Error:', error);
-      toast({
-        title: 'Verification Failed',
-        description: error.message || 'An unexpected error occurred.',
-        variant: 'destructive',
-      });
+      // Don't show a toast for FirestorePermissionError, as it's handled globally
+      if (!(error instanceof FirestorePermissionError)) {
+        console.error('OTP Verification Error:', error);
+        toast({
+            title: 'Verification Failed',
+            description: error.message || 'An unexpected error occurred.',
+            variant: 'destructive',
+        });
+      }
     } finally {
       setIsVerifying(false);
     }
