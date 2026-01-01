@@ -47,6 +47,11 @@
         "registrationNumber": {
           "type": "string",
           "description": "A unique matriculation number assigned to the user upon registration."
+        },
+        "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The timestamp when the user profile was created."
         }
       },
       "required": [

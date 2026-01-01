@@ -11,7 +11,7 @@ import type { User as AppUser, UserRole } from '@/lib/types';
 import { useCollection, useFirestore, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
 import { collection, query, orderBy, doc } from 'firebase/firestore';
 import { capitalize } from '@/lib/utils';
-import { Edit, Users } from 'lucide-react';
+import { Edit, Users, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -101,9 +101,14 @@ export function AdminDashboard({ user, userProfile }: AdminDashboardProps) {
                     <Users className="h-6 w-6 text-primary" />
                     <CardTitle>User Management</CardTitle>
                 </div>
-                 <Button asChild variant="outline">
-                    <Link href="/teacher-portal">Teacher Portal</Link>
-                </Button>
+                <div className="flex items-center gap-4">
+                    <Button asChild variant="outline">
+                        <Link href="/students">View Students <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                    </Button>
+                    <Button asChild variant="outline">
+                        <Link href="/teacher-portal">Teacher Portal</Link>
+                    </Button>
+                </div>
             </div>
           </CardHeader>
           <CardContent>

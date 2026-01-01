@@ -11,7 +11,7 @@ import {
   createUserWithEmailAndPassword,
   updateProfile,
 } from 'firebase/auth';
-import { doc, setDoc, getFirestore } from 'firebase/firestore';
+import { doc, setDoc, getFirestore, serverTimestamp } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -92,8 +92,7 @@ export default function RegisterPage() {
       });
 
       const userRef = doc(firestore, 'users', firebaseUser.uid);
-      const newUserProfile: AppUser = {
-        id: firebaseUser.uid,
+      const newUserProfile: Omit<AppUser, 'id'> = {
         firstName: values.firstName,
         lastName: values.lastName,
         email: values.email,
@@ -102,6 +101,7 @@ export default function RegisterPage() {
         avatar: '',
         verified: true, 
         registrationNumber,
+        createdAt: serverTimestamp() as any,
       };
       await setDoc(userRef, newUserProfile);
 

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { doc, setDoc, getFirestore } from 'firebase/firestore';
+import { doc, setDoc, getFirestore, serverTimestamp } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -71,8 +71,7 @@ export default function SelectRolePage() {
       const userRef = doc(firestore, 'users', user.uid);
       
       const [firstName, ...lastName] = (user.displayName || 'New User').split(' ');
-      const newUserProfile: AppUser = {
-        id: user.uid,
+      const newUserProfile: Omit<AppUser, 'id'> = {
         firstName: firstName,
         lastName: lastName.join(' ') || '',
         email: user.email || '',
@@ -81,6 +80,7 @@ export default function SelectRolePage() {
         verified: true, // Google accounts are considered verified
         language: 'en',
         registrationNumber,
+        createdAt: serverTimestamp() as any,
       };
       await setDoc(userRef, newUserProfile);
 
