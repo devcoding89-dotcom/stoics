@@ -8,11 +8,11 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import type { User as AppUser } from '@/lib/types';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, where, orderBy } from 'firebase/firestore';
-import { capitalize } from '@/lib/utils';
 import { Users, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
+import Link from 'next/link';
 
 export default function StudentsPage() {
   const firestore = useFirestore();
@@ -36,10 +36,6 @@ export default function StudentsPage() {
     student.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     student.registrationNumber?.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const handleRowClick = (studentId: string) => {
-    router.push(`/students/${studentId}`);
-  };
 
   return (
     <>
@@ -81,7 +77,7 @@ export default function StudentsPage() {
                 )}
                 {!studentsLoading && filteredStudents && filteredStudents.length > 0 ? (
                   filteredStudents.map(student => (
-                    <TableRow key={student.id} onClick={() => handleRowClick(student.id)} className="cursor-pointer">
+                    <TableRow key={student.id} className="cursor-pointer" onClick={() => router.push(`/students/${student.id}`)}>
                       <TableCell>
                         <div className="flex items-center gap-3">
                            <Avatar className="h-9 w-9">
@@ -94,7 +90,7 @@ export default function StudentsPage() {
                       <TableCell>{student.registrationNumber || 'N/A'}</TableCell>
                       <TableCell className="hidden sm:table-cell">{student.email}</TableCell>
                       <TableCell className="hidden md:table-cell">
-                        {student.createdAt ? `${formatDistanceToNow(student.createdAt.toDate())} ago` : 'N/A'}
+                        {student.createdAt ? `${formatDistanceToNow(new Date(student.createdAt.seconds * 1000))} ago` : 'N/A'}
                       </TableCell>
                     </TableRow>
                   ))
