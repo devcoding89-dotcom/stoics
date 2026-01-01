@@ -9,7 +9,7 @@ import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { FaWhatsapp } from 'react-icons/fa';
-import { Mic, Presentation, ShieldCheck, ArrowRight, UserPlus, BookOpen, Users, Star, MessageCircleQuestion } from 'lucide-react';
+import { Mic, Presentation, ShieldCheck, ArrowRight, UserPlus, BookOpen, Users, Star, MessageCircleQuestion, TestTube, PenSquare } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -67,10 +67,10 @@ export default function Home() {
                         <div className="flex flex-col items-center">
                             <Logo className="h-24 w-auto mb-6" />
                             <h1 className="text-4xl font-extrabold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl font-headline">
-                                Stoics Speech & Reading Institute
+                                Stoics Educational Institute & Services
                             </h1>
                             <p className="mx-auto mt-6 max-w-[700px] text-lg text-muted-foreground md:text-xl">
-                                We are dedicated to developing confident, articulate speakers and skilled readers. Our institute provides a supportive learning environment for students and learners worldwide who want to improve communication, reading fluency, and self-expression.
+                                We are dedicated to developing confident, articulate speakers, skilled readers, and critical thinkers. Our institute provides a supportive learning environment for students worldwide who want to improve their communication, reading fluency, scientific literacy, and writing skills.
                             </p>
                             <div className="mt-8 flex flex-col sm:flex-row gap-4">
                                 <Button asChild size="lg" className="bg-green-600 hover:bg-green-700 text-white">
@@ -96,8 +96,8 @@ export default function Home() {
                              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Improve Your Essential Skills</h2>
                              <p className="mt-4 text-lg text-muted-foreground max-w-3xl mx-auto">We focus on practical, real-world skills that are essential for academic excellence, professional success, and personal development. Our programs are designed to build a strong foundation for lifelong learning.</p>
                         </div>
-                        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-                            <Card className="transform transition-transform duration-300 hover:scale-105 hover:shadow-xl flex flex-col">
+                        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
+                             <Card className="transform transition-transform duration-300 hover:scale-105 hover:shadow-xl flex flex-col">
                                 <CardHeader className="items-center text-center p-6">
                                     <div className="bg-primary/10 p-4 rounded-full mb-4">
                                         <Mic className="h-8 w-8 text-primary" />
@@ -105,29 +105,40 @@ export default function Home() {
                                     <CardTitle>Public Speaking & Debates</CardTitle>
                                 </CardHeader>
                                 <CardContent className="px-6 pb-6 flex-grow">
-                                    <p className="text-center text-muted-foreground">Master the art of persuasion and eloquent expression. We guide students in structuring compelling arguments, articulating ideas with clarity, and engaging any audience with confidence. Our debate program sharpens critical thinking and quick reasoning, preparing learners for academic forums and public stages.</p>
+                                    <p className="text-center text-muted-foreground">Master the art of persuasion and eloquent expression. We guide students in structuring compelling arguments and engaging any audience with confidence.</p>
                                 </CardContent>
                             </Card>
-                            <Card className="transform transition-transform duration-300 hover:scale-105 hover:shadow-xl flex flex-col">
-                                <CardHeader className="items-center text-center p-6">
-                                    <div className="bg-primary/10 p-4 rounded-full mb-4">
-                                        <Presentation className="h-8 w-8 text-primary" />
-                                    </div>
-                                    <CardTitle>Academic & Professional Communication</CardTitle>
-                                </CardHeader>
-                                <CardContent className="px-6 pb-6 flex-grow">
-                                    <p className="text-center text-muted-foreground">Excel in high-stakes communication scenarios. From classroom presentations and teaching practice to defending a research thesis, we provide the tools to convey complex information effectively. Our curriculum focuses on clarity, professionalism, and audience-centric messaging for success in any academic or professional environment.</p>
-                                </CardContent>
-                            </Card>
-                            <Card className="transform transition-transform duration-300 hover:scale-105 hover:shadow-xl flex flex-col">
+                             <Card className="transform transition-transform duration-300 hover:scale-105 hover:shadow-xl flex flex-col">
                                 <CardHeader className="items-center text-center p-6">
                                      <div className="bg-primary/10 p-4 rounded-full mb-4">
-                                        <ShieldCheck className="h-8 w-8 text-primary" />
+                                        <BookOpen className="h-8 w-8 text-primary" />
                                     </div>
-                                    <CardTitle>Confidence & Leadership</CardTitle>
+                                    <CardTitle>Reading & Comprehension</CardTitle>
                                 </CardHeader>
                                 <CardContent className="px-6 pb-6 flex-grow">
-                                    <p className="text-center text-muted-foreground">Develop the unshakable self-confidence that defines effective leaders. Our programs help learners command stage presence, manage public speaking anxiety, and cultivate a communication style that inspires and influences. We believe that true leadership begins with the ability to express oneself with conviction and grace.</p>
+                                    <p className="text-center text-muted-foreground">Develop advanced reading fluency and deep comprehension skills, enabling learners to analyze complex texts and extract key insights efficiently.</p>
+                                </CardContent>
+                            </Card>
+                             <Card className="transform transition-transform duration-300 hover:scale-105 hover:shadow-xl flex flex-col">
+                                <CardHeader className="items-center text-center p-6">
+                                     <div className="bg-primary/10 p-4 rounded-full mb-4">
+                                        <TestTube className="h-8 w-8 text-primary" />
+                                    </div>
+                                    <CardTitle>Scientific Literacy</CardTitle>
+                                </CardHeader>
+                                <CardContent className="px-6 pb-6 flex-grow">
+                                    <p className="text-center text-muted-foreground">Build a strong foundation in scientific principles and critical thinking. Our curriculum fosters curiosity and the ability to analyze data.</p>
+                                </CardContent>
+                            </Card>
+                             <Card className="transform transition-transform duration-300 hover:scale-105 hover:shadow-xl flex flex-col">
+                                <CardHeader className="items-center text-center p-6">
+                                     <div className="bg-primary/10 p-4 rounded-full mb-4">
+                                        <PenSquare className="h-8 w-8 text-primary" />
+                                    </div>
+                                    <CardTitle>Creative & Technical Writing</CardTitle>
+                                </CardHeader>
+                                <CardContent className="px-6 pb-6 flex-grow">
+                                    <p className="text-center text-muted-foreground">Learn to write with clarity, precision, and creativity. We cover everything from academic essays and research papers to compelling narratives.</p>
                                 </CardContent>
                             </Card>
                         </div>
@@ -139,7 +150,7 @@ export default function Home() {
                         <div className="grid md:grid-cols-2 gap-12 items-center">
                              <div>
                                 <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Our Educational Philosophy</h2>
-                                <p className="mt-4 text-lg text-muted-foreground">At the Stoics Speech & Reading Institute, we believe that true education transcends rote memorization. Our philosophy is rooted in the timeless principles of critical thinking, personal virtue, and articulate expression. We don't just teach skills; we cultivate habits of mind that empower our students to navigate a complex world with wisdom and resilience.</p>
+                                <p className="mt-4 text-lg text-muted-foreground">At the Stoics Educational Institute, we believe that true education transcends rote memorization. Our philosophy is rooted in the timeless principles of critical thinking, personal virtue, and articulate expression. We don't just teach skills; we cultivate habits of mind that empower our students to navigate a complex world with wisdom and resilience.</p>
                                 <p className="mt-4 text-muted-foreground">Our curriculum is designed to be interactive and practical. We emphasize learning through doing, with a focus on real-world application. Whether it's through structured debates, presentation workshops, or collaborative reading sessions, our goal is to build a student's confidence from the inside out, so that clear communication becomes second nature.</p>
                                 <Button asChild className="mt-6">
                                     <Link href="/register">Learn More & Register</Link>
@@ -322,6 +333,7 @@ export default function Home() {
                             <li><span className="text-muted-foreground">Public Speaking</span></li>
                             <li><span className="text-muted-foreground">Debate Club</span></li>
                             <li><span className="text-muted-foreground">Reading Fluency</span></li>
+                             <li><span className="text-muted-foreground">Scientific Literacy</span></li>
                             <li><span className="text-muted-foreground">Academic Writing</span></li>
                         </ul>
                     </div>
@@ -339,4 +351,3 @@ export default function Home() {
             </footer>
         </div>
     );
-}
