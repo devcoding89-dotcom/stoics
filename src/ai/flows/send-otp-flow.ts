@@ -73,10 +73,15 @@ export const sendOtpFlow = ai.defineFlow(
     
     if (querySnapshot.empty) {
       // Security: Do not reveal if the user exists or not in the error message.
+      // This is a valid case (user not found), not a permissions error, so we throw a regular error.
       throw new Error("If an account exists for this email, an OTP has been sent.");
     } 
     
     const userDoc = querySnapshot.docs[0];
+    if (!userDoc) {
+      throw new Error("Could not find user document.");
+    }
+
     const userRef = userDoc.ref;
 
     try {

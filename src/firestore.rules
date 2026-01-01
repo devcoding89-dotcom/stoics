@@ -44,11 +44,13 @@ service cloud.firestore {
     match /users/{userId} {
       allow get: if isOwner(userId) || isAdmin() || (isTeacher() && isStudent(userId));
       // Admins can list all users. Teachers can list users with the 'student' role.
-      allow list: if isAdmin() || (isTeacher() && request.query.get("where")[0][2] == 'student');
-      allow create: if isOwner(userId) && request.auth.uid == userId;
+      // Any authenticated user can count documents (for registration number generation) but not read data.
+      allow list: if (isAdmin() || (isTeacher() && request.query.get("where")[0][2] == 'student') || (isSignedIn() && request.query.limit == 0));
+      // Allow a user to create their own user document.
+      allow create: if isOwner(userId);
       // Allow updating own profile (but not role), admin updating any profile, or unauthenticated OTP update.
-      allow update: if (isExistingOwner(userId) && request.auth.uid == userId && isNotChangingRole()) || isUpdatingOtp() || isAdmin();
-      allow delete: if (isExistingOwner(userId) && request.auth.uid == userId) || isAdmin();
+      allow update: if (isExistingOwner(userId) && isNotChangingRole()) || isUpdatingOtp() || isAdmin();
+      allow delete: if isExistingOwner(userId) || isAdmin();
 
       /**
        * @description Secures lessons nested under a teacher.
@@ -140,7 +142,7 @@ service cloud.firestore {
     }
 
     /**
-_     * @description Secures AI tutoring context.
+     * @description Secures AI tutoring context.
      * @path /ai_tutoring_contexts/{contextId}
      */
     match /ai_tutoring_contexts/{contextId} {
@@ -156,11 +158,11 @@ _     * @description Secures AI tutoring context.
   }
 
   function isOwner(userId) {
-    return request.auth != null && request.auth.uid == userId;
+    return isSignedIn() && request.auth.uid == userId;
   }
 
   function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
+      return isOwner(userId) && exists(/databases/$(database)/documents/users/$(userId));
   }
   
   function getUserData(userId) {
