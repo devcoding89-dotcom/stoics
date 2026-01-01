@@ -51,6 +51,9 @@ export default function StudentProfilePage() {
       return <div className="text-center text-muted-foreground">Student not found.</div>;
     }
     
+    // Safely create a Date object from the Firestore Timestamp
+    const joinedDate = student.createdAt ? new Date(student.createdAt.seconds * 1000) : null;
+
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <Card className="lg:col-span-1">
@@ -70,10 +73,10 @@ export default function StudentProfilePage() {
                             <Hash className="h-4 w-4 text-muted-foreground" />
                             <span>Reg. No: <strong>{student.registrationNumber || 'N/A'}</strong></span>
                         </div>
-                         {student.createdAt && (
+                         {joinedDate && (
                             <div className="flex items-center gap-2">
                                 <Calendar className="h-4 w-4 text-muted-foreground" />
-                                <span>Joined: {format(student.createdAt.toDate(), 'PPP')}</span>
+                                <span>Joined: {format(joinedDate, 'PPP')}</span>
                             </div>
                         )}
                      </div>
