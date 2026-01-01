@@ -9,7 +9,7 @@ import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { FaWhatsapp } from 'react-icons/fa';
-import { Mic, Presentation, ShieldCheck, ArrowRight } from 'lucide-react';
+import { Mic, Presentation, ShieldCheck, ArrowRight, UserPlus, BookOpen, Users } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
@@ -93,7 +93,7 @@ export default function Home() {
                     <div className="container mx-auto px-4 md:px-6">
                         <div className="text-center mb-12">
                              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Improve Your Essential Skills</h2>
-                             <p className="mt-4 text-lg text-muted-foreground">We focus on practical skills for academic and professional success.</p>
+                             <p className="mt-4 text-lg text-muted-foreground max-w-3xl mx-auto">We focus on practical, real-world skills that are essential for academic excellence, professional success, and personal development. Our programs are designed to build a strong foundation for lifelong learning.</p>
                         </div>
                         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
                             <Card className="transform transition-transform duration-300 hover:scale-105 hover:shadow-xl">
@@ -104,7 +104,7 @@ export default function Home() {
                                     <CardTitle>Public Speaking & Debates</CardTitle>
                                 </CardHeader>
                                 <CardContent className="px-6 pb-6">
-                                    <p className="text-center text-muted-foreground">Master the art of persuasion and eloquent expression in debates and public forums.</p>
+                                    <p className="text-center text-muted-foreground">Master the art of persuasion and eloquent expression. Learn to structure arguments, articulate ideas clearly, and engage any audience in debates and public forums.</p>
                                 </CardContent>
                             </Card>
                             <Card className="transform transition-transform duration-300 hover:scale-105 hover:shadow-xl">
@@ -115,7 +115,7 @@ export default function Home() {
                                     <CardTitle>Academic & Professional Communication</CardTitle>
                                 </CardHeader>
                                 <CardContent className="px-6 pb-6">
-                                    <p className="text-center text-muted-foreground">Excel in class presentations, teaching practice, academic writing, and research defence.</p>
+                                    <p className="text-center text-muted-foreground">Excel in class presentations, teaching practice, academic writing, and research defence. We provide the tools to communicate complex ideas with clarity and professionalism.</p>
                                 </CardContent>
                             </Card>
                             <Card className="transform transition-transform duration-300 hover:scale-105 hover:shadow-xl">
@@ -126,9 +126,41 @@ export default function Home() {
                                     <CardTitle>Confidence & Leadership</CardTitle>
                                 </CardHeader>
                                 <CardContent className="px-6 pb-6">
-                                    <p className="text-center text-muted-foreground">Build unshakable confidence, command stage presence, and develop effective leadership communication.</p>
+                                    <p className="text-center text-muted-foreground">Build unshakable self-confidence, command stage presence, and develop the communication skills that define effective leaders in any field.</p>
                                 </CardContent>
                             </Card>
+                        </div>
+                    </div>
+                </section>
+                
+                <section className="py-20 lg:py-24">
+                    <div className="container mx-auto px-4 md:px-6">
+                        <div className="text-center mb-12">
+                             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">How It Works</h2>
+                             <p className="mt-4 text-lg text-muted-foreground">Getting started is simple. Follow these three easy steps.</p>
+                        </div>
+                        <div className="grid grid-cols-1 gap-12 md:grid-cols-3 text-center">
+                            <div className="flex flex-col items-center gap-4">
+                                <div className="bg-primary/10 p-4 rounded-full">
+                                    <UserPlus className="h-10 w-10 text-primary" />
+                                </div>
+                                <h3 className="text-xl font-semibold">1. Create Your Account</h3>
+                                <p className="text-muted-foreground">Register on our platform in just a few minutes to get access to our resources and community forums.</p>
+                            </div>
+                            <div className="flex flex-col items-center gap-4">
+                                <div className="bg-primary/10 p-4 rounded-full">
+                                    <BookOpen className="h-10 w-10 text-primary" />
+                                </div>
+                                <h3 className="text-xl font-semibold">2. Access Learning Materials</h3>
+                                <p className="text-muted-foreground">Explore a rich library of lessons, practice exercises, and guides designed by our expert educators.</p>
+                            </div>
+                            <div className="flex flex-col items-center gap-4">
+                                <div className="bg-primary/10 p-4 rounded-full">
+                                    <Users className="h-10 w-10 text-primary" />
+                                </div>
+                                <h3 className="text-xl font-semibold">3. Join the Community</h3>
+                                <p className="text-muted-foreground">Connect with fellow learners and educators in our WhatsApp forum to share insights and grow together.</p>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -159,9 +191,29 @@ export default function Home() {
             </main>
 
             <footer className="bg-foreground text-background">
-                <div className="container mx-auto flex flex-col items-center justify-center py-10 px-4 text-center">
-                    <p className="font-semibold text-lg italic max-w-2xl">"At Stoics, we don’t just teach — we train voices, shape confidence, and inspire greatness."</p>
-                    <p className="mt-4 text-sm text-muted-foreground">© {new Date().getFullYear()} Stoics Educational Institute & Services. All rights reserved.</p>
+                <div className="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 py-12 px-4 md:px-6">
+                    <div>
+                        <h4 className="font-bold text-lg mb-2">Stoics Institute</h4>
+                         <p className="text-sm text-muted-foreground">Developing confident speakers and skilled readers worldwide.</p>
+                    </div>
+                     <div>
+                        <h4 className="font-bold text-lg mb-2">Quick Links</h4>
+                        <ul className="space-y-2 text-sm">
+                            <li><Link href="/register" className="text-muted-foreground hover:text-background">Register</Link></li>
+                            <li><Link href="/login" className="text-muted-foreground hover:text-background">Login</Link></li>
+                            <li><Link href="https://teacher-ashy.vercel.app/login" target="_blank" className="text-muted-foreground hover:text-background">Teacher Portal</Link></li>
+                        </ul>
+                    </div>
+                     <div>
+                        <h4 className="font-bold text-lg mb-2">Contact Us</h4>
+                        <p className="text-sm text-muted-foreground">For inquiries, please join our WhatsApp forum or contact our administration.</p>
+                    </div>
+                </div>
+                <div className="border-t border-gray-700 py-6">
+                    <div className="container mx-auto flex flex-col md:flex-row items-center justify-between px-4 md:px-6 text-center">
+                        <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} Stoics Educational Institute & Services. All rights reserved.</p>
+                        <p className="mt-4 md:mt-0 text-sm text-muted-foreground italic max-w-md">"We don’t just teach — we train voices, shape confidence, and inspire greatness."</p>
+                    </div>
                 </div>
             </footer>
         </div>
