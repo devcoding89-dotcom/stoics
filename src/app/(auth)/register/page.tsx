@@ -42,6 +42,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { User as AppUser } from '@/lib/types';
 import { supportedLanguages, supportedLanguageCodes } from '@/lib/languages';
 import { generateRegistrationNumber } from '@/lib/registration';
+import { FirestorePermissionError, errorEmitter } from '@/firebase';
 
 const formSchema = z.object({
   firstName: z.string().min(2, 'First name must be at least 2 characters.'),
@@ -76,6 +77,9 @@ export default function RegisterPage() {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
+      // Generate registration number first, as it might fail due to permissions
+      const registrationNumber = await generateRegistrationNumber(firestore);
+
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         values.email,
@@ -86,9 +90,6 @@ export default function RegisterPage() {
       await updateProfile(firebaseUser, {
         displayName: `${values.firstName} ${values.lastName}`,
       });
-
-      // Generate registration number
-      const registrationNumber = await generateRegistrationNumber(firestore);
 
       const userRef = doc(firestore, 'users', firebaseUser.uid);
       const newUserProfile: AppUser = {
@@ -112,6 +113,11 @@ export default function RegisterPage() {
 
       router.push('/login');
     } catch (error: any) {
+      if (error instanceof FirestorePermissionError) {
+        errorEmitter.emit('permission-error', error);
+        return; // Stop execution, the global listener will handle it.
+      }
+      
       if (error.code === 'auth/email-already-in-use') {
         form.setError('email', {
           type: 'manual',
@@ -121,7 +127,7 @@ export default function RegisterPage() {
         console.error('Registration error:', error);
         toast({
           title: 'Registration Failed',
-          description: 'Failed to create account. Please try again.',
+          description: error.message || 'Failed to create account. Please try again.',
           variant: 'destructive',
         });
       }

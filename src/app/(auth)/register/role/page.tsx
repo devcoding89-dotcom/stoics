@@ -32,7 +32,7 @@ import {
 } from '@/components/ui/select';
 import { Logo } from '@/components/logo';
 import { useToast } from '@/hooks/use-toast';
-import { useUser } from '@/firebase';
+import { useUser, FirestorePermissionError, errorEmitter } from '@/firebase';
 import type { User as AppUser, UserRole } from '@/lib/types';
 import { generateRegistrationNumber } from '@/lib/registration';
 
@@ -67,8 +67,8 @@ export default function SelectRolePage() {
     }
     
     try {
-      const userRef = doc(firestore, 'users', user.uid);
       const registrationNumber = await generateRegistrationNumber(firestore);
+      const userRef = doc(firestore, 'users', user.uid);
       
       const [firstName, ...lastName] = (user.displayName || 'New User').split(' ');
       const newUserProfile: AppUser = {
@@ -91,6 +91,11 @@ export default function SelectRolePage() {
 
       router.push('/dashboard');
     } catch (error: any) {
+        if (error instanceof FirestorePermissionError) {
+          errorEmitter.emit('permission-error', error);
+          return; // Stop execution
+        }
+
         console.error('Role selection error:', error);
         toast({
           title: 'Registration Failed',

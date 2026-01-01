@@ -1,4 +1,5 @@
-import { collection, getCountFromServer, Firestore } from "firebase/firestore";
+import { collection, getCountFromServer, Firestore, FirestoreError } from "firebase/firestore";
+import { FirestorePermissionError } from "@/firebase";
 
 // This is a client-side implementation and is not safe from race conditions.
 // For a production app, this logic should be moved to a Cloud Function
@@ -19,10 +20,11 @@ const getNextLetter = (count: number, batchSize: number): string => {
  * Generates a new registration number based on the total number of users.
  * @param firestore - The Firestore instance.
  * @returns A promise that resolves to the new registration number string (e.g., "1A").
+ * @throws {FirestorePermissionError} If counting users is denied by security rules.
  */
 export async function generateRegistrationNumber(firestore: Firestore): Promise<string> {
+  const usersRef = collection(firestore, "users");
   try {
-    const usersRef = collection(firestore, "users");
     const snapshot = await getCountFromServer(usersRef);
     const userCount = snapshot.data().count;
 
@@ -34,8 +36,18 @@ export async function generateRegistrationNumber(firestore: Firestore): Promise<
 
     return `${numericPart}${letterPart}`;
   } catch (error) {
+    // Check if the error is a Firestore permission error
+    if (error instanceof FirestoreError && (error.code === 'permission-denied' || error.code === 'unauthenticated')) {
+        // Throw a specialized error that our global handler can catch
+        throw new FirestorePermissionError({
+            path: usersRef.path,
+            operation: 'list', // getCountFromServer is a 'list' like operation
+        });
+    }
+
     console.error("Error generating registration number:", error);
-    // Fallback to a random-based ID if counting fails to ensure a value is always returned.
-    return `ERR-${Date.now()}`;
+    // Fallback to a random-based ID if counting fails for other reasons
+    // and re-throw to allow the caller to handle it.
+    throw new Error("Could not generate registration number.");
   }
 }
