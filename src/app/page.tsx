@@ -69,7 +69,7 @@ export default function Home() {
                                 Stoics Speech & Reading Institute
                             </h1>
                             <p className="mx-auto mt-6 max-w-[700px] text-lg text-muted-foreground md:text-xl">
-                                We are committed to building a community of articulate, confident, and intelligent learners. This opportunity is open to serious students from SS1 to SS3, as well as students in tertiary institutions.
+                                We are dedicated to developing confident, articulate speakers and skilled readers. Our institute provides a supportive learning environment for students and learners worldwide who want to improve communication, reading fluency, and self-expression.
                             </p>
                             <div className="mt-8 flex flex-col sm:flex-row gap-4">
                                 <Button asChild size="lg" className="bg-green-600 hover:bg-green-700 text-white">
