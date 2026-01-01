@@ -45,9 +45,7 @@ export async function generateRegistrationNumber(firestore: Firestore): Promise<
         });
     }
 
-    console.error("Error generating registration number:", error);
-    // Fallback to a random-based ID if counting fails for other reasons
-    // and re-throw to allow the caller to handle it.
+    // Re-throw to allow the caller to handle it. This will show the "Could not generate..." message.
     throw new Error("Could not generate registration number.");
   }
 }
