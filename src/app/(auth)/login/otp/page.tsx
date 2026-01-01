@@ -120,14 +120,15 @@ function OtpLoginPage() {
         // This will likely fail without a real backend-signed JWT.
         // We'll proceed as if it works for the prototype UI flow.
         try {
-            // await signInWithCustomToken(auth, customToken);
-             console.log("Simulated sign-in successful with token for user:", customToken);
-             router.push('/dashboard');
+            await signInWithCustomToken(auth, customToken);
+            // On real success, redirect
+            router.push('/dashboard');
         } catch (authError) {
-             console.error("signInWithCustomToken failed. This is expected without a backend. Simulating success.", authError);
+             console.error("signInWithCustomToken failed. This is expected in the prototype without a real backend token service.", authError);
              toast({
-                title: 'Login Successful (Simulated)',
-                description: 'Redirecting to dashboard.',
+                title: 'Prototype Login Flow',
+                description: 'Sign-in with custom token failed as expected. In a real app, a backend would provide a valid token. Redirecting to dashboard as simulation.',
+                variant: 'destructive',
              });
              // Force a reload to trigger the auth state listener
              router.push('/dashboard');
