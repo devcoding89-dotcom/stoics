@@ -45,12 +45,13 @@ service cloud.firestore {
       allow get: if isOwner(userId) || isAdmin() || (isTeacher() && isStudent(userId));
       // Admins can list all users. Teachers can list users with the 'student' role.
       // Any authenticated user can count documents (for registration number generation) but not read data.
-      allow list: if (isAdmin() || isTeacher() || (isSignedIn() && request.query.limit == 0));
-      // Allow a user to create their own user document.
+      allow list: if (isAdmin() || (isTeacher() && request.query.get("where")[0][2] == 'student') || (isSignedIn() && request.query.limit == 0));
+      // Allow a user to create their own user document, if the document ID matches their auth UID.
       allow create: if isOwner(userId);
       // Allow updating own profile (but not role), admin updating any profile, or unauthenticated OTP update.
       allow update: if (isExistingOwner(userId) && isNotChangingRole()) || isUpdatingOtp() || isAdmin();
-      allow delete: if (isExistingOwner(userId) && request.auth.uid == userId) || isAdmin();
+      // Allow users to delete their own account. Admins can delete any account.
+      allow delete: if isOwner(userId) || isAdmin();
 
       /**
        * @description Secures lessons nested under a teacher.

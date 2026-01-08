@@ -77,9 +77,7 @@ export default function RegisterPage() {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      // Generate registration number first, as it might fail due to permissions
-      const registrationNumber = await generateRegistrationNumber(firestore);
-
+      // 1. Create the user in Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         values.email,
@@ -87,10 +85,16 @@ export default function RegisterPage() {
       );
       const firebaseUser = userCredential.user;
 
+      // 2. Now that the user is created and authenticated, generate the registration number.
+      // This will now pass the security rules that require an authenticated user.
+      const registrationNumber = await generateRegistrationNumber(firestore);
+
+      // 3. Update the user's display name in their Auth profile.
       await updateProfile(firebaseUser, {
         displayName: `${values.firstName} ${values.lastName}`,
       });
-
+      
+      // 4. Create the user's profile document in Firestore.
       const userRef = doc(firestore, 'users', firebaseUser.uid);
       const newUserProfile: Omit<AppUser, 'id'> = {
         firstName: values.firstName,
@@ -111,7 +115,9 @@ export default function RegisterPage() {
         className: 'bg-accent text-accent-foreground'
       });
 
+      // 5. Redirect to login page after successful registration.
       router.push('/login');
+      
     } catch (error: any) {
       if (error instanceof FirestorePermissionError) {
         errorEmitter.emit('permission-error', error);
