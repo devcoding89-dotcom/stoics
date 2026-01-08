@@ -15,12 +15,7 @@ import type { Homework } from '@/lib/types';
 import { capitalize } from '@/lib/utils';
 
 
-const homeworkData: Homework[] = [
-    { id: '1', studentName: 'Alex Doe', subject: 'Math', status: 'completed', submittedDate: '2023-10-26' },
-    { id: '2', studentName: 'Alex Doe', subject: 'Science', status: 'pending', submittedDate: '2023-10-27' },
-    { id: '3', studentName: 'Alex Doe', subject: 'History', status: 'completed', submittedDate: '2023-10-25' },
-    { id: '4', studentName: 'Alex Doe', subject: 'English', status: 'pending', submittedDate: '2023-10-28' },
-];
+const homeworkData: Homework[] = [];
 
 
 export default function HomeworkPage() {
@@ -44,20 +39,28 @@ export default function HomeworkPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {homeworkData.map((hw) => (
-                <TableRow key={hw.id}>
-                  <TableCell className="font-medium">{hw.subject}</TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={hw.status === 'completed' ? 'default' : 'secondary'}
-                      className={hw.status === 'completed' ? 'bg-green-500/80' : ''}
-                    >
-                      {capitalize(hw.status)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{hw.submittedDate}</TableCell>
+              {homeworkData.length > 0 ? (
+                homeworkData.map((hw) => (
+                  <TableRow key={hw.id}>
+                    <TableCell className="font-medium">{hw.subject}</TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={hw.status === 'completed' ? 'default' : 'secondary'}
+                        className={hw.status === 'completed' ? 'bg-green-500/80' : ''}
+                      >
+                        {capitalize(hw.status)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{hw.submittedDate}</TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                    <TableCell colSpan={3} className="h-24 text-center">
+                        No homework assignments to display.
+                    </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </CardContent>

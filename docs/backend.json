@@ -234,6 +234,13 @@
           "type": "string",
           "description": "Reference to User who received the message. (Relationship: User 1:N ChatMessage)"
         },
+        "participantIds": {
+            "type": "array",
+            "description": "An array containing the UIDs of both the sender and the recipient, to allow for efficient querying of conversations.",
+            "items": {
+                "type": "string"
+            }
+        },
         "message": {
           "type": "string",
           "description": "The content of the message."
@@ -248,6 +255,7 @@
         "id",
         "senderId",
         "recipientId",
+        "participantIds",
         "message",
         "timestamp"
       ]

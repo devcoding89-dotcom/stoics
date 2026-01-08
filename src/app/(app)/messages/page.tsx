@@ -1,44 +1,80 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { useUser, useFirestore, useCollection, useMemoFirebase, addDocumentNonBlocking } from '@/firebase';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { cn } from '@/lib/utils';
+import { cn, capitalize } from '@/lib/utils';
 import { Send, Search } from 'lucide-react';
-import { chatContacts, chatMessages } from '@/lib/data';
-import type { ChatContact, ChatMessage } from '@/lib/types';
+import type { User as AppUser, ChatMessage as AppChatMessage } from '@/lib/types';
+import { collection, query, where, orderBy, serverTimestamp } from 'firebase/firestore';
 
 export default function MessagesPage() {
-  const [selectedContact, setSelectedContact] = useState<ChatContact>(chatContacts[0]);
-  const [messages, setMessages] = useState<ChatMessage[]>(chatMessages);
+  const { user: currentUser, userProfile: currentUserProfile } = useUser();
+  const firestore = useFirestore();
+  const [selectedContact, setSelectedContact] = useState<AppUser | null>(null);
   const [newMessage, setNewMessage] = useState('');
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  // Fetch all users to act as contacts, excluding the current user
+  const usersQuery = useMemoFirebase(() => {
+    if (!firestore || !currentUser) return null;
+    return query(collection(firestore, 'users'), where('id', '!=', currentUser.uid));
+  }, [firestore, currentUser]);
+  const { data: contacts, isLoading: contactsLoading } = useCollection<AppUser>(usersQuery);
+
+  // Fetch messages for the selected chat
+  const messagesQuery = useMemoFirebase(() => {
+    if (!firestore || !currentUser || !selectedContact) return null;
+    return query(
+      collection(firestore, 'chat_messages'),
+      where('participantIds', 'array-contains', currentUser.uid),
+      orderBy('timestamp', 'asc')
+    );
+  }, [firestore, currentUser, selectedContact]);
+
+  const { data: allMessages, isLoading: messagesLoading } = useCollection<AppChatMessage>(messagesQuery);
+  
+  const currentChatMessages = useMemo(() => {
+    if (!allMessages || !selectedContact || !currentUser) return [];
+    return allMessages.filter(msg => 
+      (msg.senderId === currentUser.uid && msg.recipientId === selectedContact.id) ||
+      (msg.senderId === selectedContact.id && msg.recipientId === currentUser.uid)
+    );
+  }, [allMessages, selectedContact, currentUser]);
+
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newMessage.trim() === '') return;
+    if (newMessage.trim() === '' || !currentUser || !selectedContact || !firestore) return;
 
-    const newMsg: ChatMessage = {
-      id: `msg-${Date.now()}`,
-      senderId: 'current-user-id', // This would be the logged-in user's ID
+    const messagesRef = collection(firestore, 'chat_messages');
+    const messageData = {
+      senderId: currentUser.uid,
       recipientId: selectedContact.id,
+      participantIds: [currentUser.uid, selectedContact.id], // For easier querying
       message: newMessage,
-      timestamp: new Date(),
+      timestamp: serverTimestamp(),
     };
 
-    setMessages([...messages, newMsg]);
+    addDocumentNonBlocking(messagesRef, messageData);
     setNewMessage('');
   };
+  
+    // Auto-scroll to the bottom when new messages arrive
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+        const scrollable = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
+        if (scrollable) {
+            scrollable.scrollTop = scrollable.scrollHeight;
+        }
+    }
+  }, [currentChatMessages]);
 
-  // Filter messages for the selected contact
-  const currentChatMessages = messages.filter(
-    (msg) =>
-      (msg.senderId === selectedContact.id && msg.recipientId === 'current-user-id') ||
-      (msg.senderId === 'current-user-id' && msg.recipientId === selectedContact.id)
-  );
 
   return (
     <div className="h-[calc(100vh-8rem)] flex flex-col">
@@ -53,29 +89,29 @@ export default function MessagesPage() {
             <h2 className="text-xl font-semibold">Contacts</h2>
             <div className="relative mt-2">
               <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search contacts..." className="pl-8" />
+              <Input placeholder="Search contacts..." className="pl-8" disabled />
             </div>
           </div>
           <ScrollArea className="flex-1">
             <div className="flex flex-col">
-              {chatContacts.map((contact) => (
+              {contactsLoading && <p className="p-4 text-muted-foreground">Loading contacts...</p>}
+              {contacts?.map((contact) => (
                 <button
                   key={contact.id}
                   onClick={() => setSelectedContact(contact)}
                   className={cn(
                     'flex items-center gap-3 p-4 text-left hover:bg-muted/50 transition-colors w-full',
-                    selectedContact.id === contact.id && 'bg-muted'
+                    selectedContact?.id === contact.id && 'bg-muted'
                   )}
                 >
                   <Avatar>
-                    <AvatarImage src={contact.avatar} alt={contact.name} />
-                    <AvatarFallback>{contact.name.charAt(0)}</AvatarFallback>
+                    <AvatarImage src={contact.avatar} alt={contact.firstName} />
+                    <AvatarFallback>{contact.firstName?.charAt(0)}{contact.lastName?.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1 truncate">
-                    <p className="font-semibold">{contact.name}</p>
-                    <p className="text-sm text-muted-foreground truncate">{contact.lastMessage}</p>
+                    <p className="font-semibold">{contact.firstName} {contact.lastName}</p>
+                    <p className="text-sm text-muted-foreground truncate">{capitalize(contact.role)}</p>
                   </div>
-                  <time className="text-xs text-muted-foreground">{contact.lastMessageTime}</time>
                 </button>
               ))}
             </div>
@@ -89,30 +125,31 @@ export default function MessagesPage() {
               {/* Chat Header */}
               <div className="flex items-center gap-3 p-4 border-b">
                 <Avatar>
-                  <AvatarImage src={selectedContact.avatar} alt={selectedContact.name} />
-                  <AvatarFallback>{selectedContact.name.charAt(0)}</AvatarFallback>
+                  <AvatarImage src={selectedContact.avatar} alt={selectedContact.firstName} />
+                   <AvatarFallback>{selectedContact.firstName?.charAt(0)}{selectedContact.lastName?.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="font-semibold">{selectedContact.name}</p>
-                  <p className="text-sm text-muted-foreground">{selectedContact.role}</p>
+                  <p className="font-semibold">{selectedContact.firstName} {selectedContact.lastName}</p>
+                  <p className="text-sm text-muted-foreground">{capitalize(selectedContact.role)}</p>
                 </div>
               </div>
 
               {/* Messages */}
-              <ScrollArea className="flex-1 p-4">
+              <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
                 <div className="space-y-4">
+                  {messagesLoading && <p className="text-muted-foreground text-center">Loading messages...</p>}
                   {currentChatMessages.map((msg) => (
                     <div
                       key={msg.id}
                       className={cn(
                         'flex items-end gap-2',
-                        msg.senderId === 'current-user-id' ? 'justify-end' : 'justify-start'
+                        msg.senderId === currentUser?.uid ? 'justify-end' : 'justify-start'
                       )}
                     >
                       <div
                         className={cn(
-                          'max-w-xs lg:max-w-md rounded-lg px-4 py-2',
-                          msg.senderId === 'current-user-id'
+                          'max-w-xs lg:max-w-md rounded-lg px-4 py-2 break-words',
+                          msg.senderId === currentUser?.uid
                             ? 'bg-primary text-primary-foreground'
                             : 'bg-muted'
                         )}

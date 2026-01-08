@@ -77,7 +77,8 @@ export type ChatMessage = {
   senderId: string;
   recipientId: string;
   message: string;
-  timestamp: Date;
+  timestamp: Timestamp;
+  participantIds: string[];
 };
 
 export type Homework = {
