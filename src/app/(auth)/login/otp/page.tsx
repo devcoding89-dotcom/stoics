@@ -17,6 +17,8 @@ import { Logo } from '@/components/logo';
 import { useUser, updateDocumentNonBlocking, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Terminal } from 'lucide-react';
 
 const formSchema = z.object({
   otp: z.string().min(6, 'Your one-time password must be 6 characters.'),
@@ -77,6 +79,8 @@ function OtpLoginPage() {
   const auth = getAuth();
   const firestore = getFirestore();
   const [isVerifying, setIsVerifying] = useState(false);
+  const [loginStatus, setLoginStatus] = useState<'idle' | 'failed' | 'success'>('idle');
+
 
   // Get email from query parameter
   const email = searchParams.get('email');
@@ -106,72 +110,53 @@ function OtpLoginPage() {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!email) return;
     setIsVerifying(true);
+    setLoginStatus('idle');
 
     try {
         // This is a placeholder for what would be a Cloud Function call.
-        // A real implementation would call a backend endpoint that returns a real JWT custom token.
-        // Directly calling this on the client is insecure as it exposes logic.
         const customToken = await verifyOtpAndGetToken(firestore, email, values.otp);
 
-        // For this prototype, we're assuming the "token" is just the UID, which is not how
-        // signInWithCustomToken works. A real token is required. This will fail without
-        // a backend to generate a real token. The purpose here is to demonstrate the UI flow.
+        // This will fail in production without a backend to generate a real token.
+        await signInWithCustomToken(auth, customToken);
         
-        // This will likely fail without a real backend-signed JWT.
-        // We'll proceed as if it works for the prototype UI flow.
-        try {
-            await signInWithCustomToken(auth, customToken);
-            // On real success, redirect
-            router.push('/dashboard');
-        } catch (authError) {
-             console.error("signInWithCustomToken failed. This is expected in the prototype without a real backend token service.", authError);
-             toast({
-                title: 'Prototype Login Flow',
-                description: 'Sign-in with custom token failed as expected. In a real app, a backend would provide a valid token. Redirecting to dashboard as simulation.',
-                variant: 'destructive',
-             });
-             // Force a reload to trigger the auth state listener
-             router.push('/dashboard');
-             setTimeout(() => window.location.reload(), 500);
-        }
+        // If it somehow succeeds, treat it as a success
+        setLoginStatus('success');
+        router.push('/dashboard');
 
     } catch (error: any) {
-      // Don't show a toast for FirestorePermissionError, as it's handled globally
-      if (!(error instanceof FirestorePermissionError)) {
-        console.error('OTP Verification Error:', error);
-        toast({
-            title: 'Verification Failed',
-            description: error.message || 'An unexpected error occurred.',
-            variant: 'destructive',
-        });
+        if (error.code === 'auth/invalid-custom-token') {
+             console.error("signInWithCustomToken failed. This is expected without a real backend token service.", error);
+             setLoginStatus('failed');
+        } else if (!(error instanceof FirestorePermissionError)) {
+            console.error('OTP Verification Error:', error);
+            toast({
+                title: 'Verification Failed',
+                description: error.message || 'An unexpected error occurred.',
+                variant: 'destructive',
+            });
       }
     } finally {
       setIsVerifying(false);
     }
   };
-
-  if (isUserLoading || !email) {
+  
+  const renderContent = () => {
+    if (loginStatus === 'failed') {
+        return (
+             <Alert>
+                <Terminal className="h-4 w-4" />
+                <AlertTitle>Prototype Feature Notice</AlertTitle>
+                <AlertDescription>
+                    The email/OTP login is a demonstration feature. In a production app, this step would be handled by a secure backend. For now, please use the primary Google Sign-In method.
+                    <Button variant="link" asChild className="p-0 h-auto mt-2">
+                        <Link href="/login">Return to Login</Link>
+                    </Button>
+                </AlertDescription>
+            </Alert>
+        )
+    }
+    
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-background">
-        <Logo className="h-12 w-auto animate-pulse" />
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
-      <div className="mb-8 flex items-center gap-2">
-        <Logo className="h-8 w-auto" />
-        <span className="text-2xl font-bold font-headline">Stoics Educational Institute & Services</span>
-      </div>
-      <Card className="w-full max-w-sm">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Enter Your Code</CardTitle>
-          <CardDescription>
-            A 6-digit code was logged to the server console. Check the logs and enter it below.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField
@@ -201,6 +186,32 @@ function OtpLoginPage() {
               </Button>
             </form>
           </Form>
+    );
+  }
+
+  if (isUserLoading || !email) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-background">
+        <Logo className="h-12 w-auto animate-pulse" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
+      <div className="mb-8 flex items-center gap-2">
+        <Logo className="h-8 w-auto" />
+        <span className="text-2xl font-bold font-headline">Stoics Educational Institute & Services</span>
+      </div>
+      <Card className="w-full max-w-sm">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl">Enter Your Code</CardTitle>
+          <CardDescription>
+            A 6-digit code was logged to the server console. Check the logs and enter it below.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+            {renderContent()}
         </CardContent>
       </Card>
       <p className="mt-4 text-center text-sm text-muted-foreground">
