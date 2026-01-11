@@ -10,6 +10,8 @@ import {
   getAuth,
   createUserWithEmailAndPassword,
   updateProfile,
+  signInWithPopup,
+  GoogleAuthProvider,
 } from 'firebase/auth';
 import { doc, setDoc, getFirestore, serverTimestamp } from 'firebase/firestore';
 
@@ -43,6 +45,7 @@ import type { User as AppUser } from '@/lib/types';
 import { supportedLanguages, supportedLanguageCodes } from '@/lib/languages';
 import { generateRegistrationNumber } from '@/lib/registration';
 import { FirestorePermissionError, errorEmitter } from '@/firebase';
+import { FcGoogle } from 'react-icons/fc';
 
 const formSchema = z.object({
   firstName: z.string().min(2, 'First name must be at least 2 characters.'),
@@ -74,6 +77,26 @@ export default function RegisterPage() {
       role: 'student'
     },
   });
+
+  const handleGoogleSignIn = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+      // The onAuthStateChanged listener in FirebaseProvider will handle
+      // redirecting to /register/role for new users.
+      router.push('/dashboard');
+    } catch (error: any) {
+      if (error.code === 'auth/popup-closed-by-user') {
+        return;
+      }
+      console.error('Google Sign-In Error:', error);
+      toast({
+        title: 'Sign-up Failed',
+        description: 'Could not sign up with Google. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
@@ -264,6 +287,26 @@ export default function RegisterPage() {
               </Button>
             </form>
           </Form>
+
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                Or continue with
+              </span>
+            </div>
+          </div>
+
+          <Button
+            variant="outline"
+            onClick={handleGoogleSignIn}
+            disabled={form.formState.isSubmitting}
+            className="w-full"
+          >
+            <FcGoogle className="mr-2 h-5 w-5" /> Continue with Google
+          </Button>
 
           <div className="mt-4 text-center text-sm">
             Already have an account?{' '}

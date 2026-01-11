@@ -116,7 +116,7 @@ export default function LoginPage() {
       // Redirect to the OTP entry page, passing the email as a query parameter
       router.push(`/login/otp?email=${encodeURIComponent(values.email)}`);
 
-    } catch (error: any) => {
+    } catch (error: any) {
       console.error('OTP Send Error:', error);
       toast({
         title: 'Failed to Send OTP',
