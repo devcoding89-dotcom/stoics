@@ -8,7 +8,7 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
 } from 'firebase/auth';
-import { doc, getDoc, setDoc, getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
+import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -66,26 +66,15 @@ export default function LoginPage() {
     setIsGoogleSigningIn(true);
     const provider = new GoogleAuthProvider();
     try {
-      const result = await signInWithPopup(auth, provider);
-      const firebaseUser = result.user;
-
-      const userRef = doc(firestore, 'users', firebaseUser.uid);
-      const userSnap = await getDoc(userRef);
-
-      // If user document doesn't exist, it's a new user. Redirect to role selection.
-      if (!userSnap.exists()) {
-        // The AppLayout will handle redirecting to /register/role
-        // because the user will be authenticated but have no profile/role yet.
-        // We just need to ensure the user is logged in and then redirect to dashboard path.
-         router.push('/dashboard');
-      } else {
-        // Existing user, go to dashboard.
-        router.push('/dashboard');
-      }
+      await signInWithPopup(auth, provider);
+      // After successful sign-in, the onAuthStateChanged listener in FirebaseProvider
+      // will handle fetching the user profile or determining if it's a new user.
+      // The AppLayout will then redirect to the appropriate page (/dashboard or /register/role).
+      router.push('/dashboard');
 
     } catch (error: any) {
       if (error.code === 'auth/popup-closed-by-user') {
-        setIsGoogleSigningIn(false);
+        // User closed the popup, do nothing.
         return;
       }
       
@@ -127,7 +116,7 @@ export default function LoginPage() {
       // Redirect to the OTP entry page, passing the email as a query parameter
       router.push(`/login/otp?email=${encodeURIComponent(values.email)}`);
 
-    } catch (error: any) {
+    } catch (error: any) => {
       console.error('OTP Send Error:', error);
       toast({
         title: 'Failed to Send OTP',
